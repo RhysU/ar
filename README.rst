@@ -1,0 +1,116 @@
+Burg recursion in Header-only C++
+=================================
+
+Description
+-----------
+
+This is a precision-agnostic, extension of Burg's recursion as presented and
+implemented in [Collomb2009]. The expressions differ slightly from those
+presented in [Press2007], which cannot be distributed due to draconian
+licensing. However, the results match Numerical Recipes code to floating point
+error against benchmark data by [Bourke1998]::
+
+	./test test1.coeff test1.dat
+	
+	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
+	          ----------   ----------------     --------------           -----------
+	                 1.4    1.3722815374162    1.3722815374161  -7.4431168445089e-12
+	                -0.7  -0.69066992983051   -0.6906699298305  -1.9289498094656e-12
+	                0.04  0.034482949286973  0.034482949287216   7.0461579987592e-10
+	                 0.7   0.74323368158906   0.74323368158868  -5.1385819821096e-11
+	                -0.5  -0.46165133140387  -0.46165133140364  -4.9240227164672e-11
+	
+	  Mean^2 Discrepancy    1.0600415436226    1.0600415436232   6.0934192590181e-11
+	
+	./test test2.coeff test2.dat
+	
+	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
+	          ----------   ----------------     --------------           -----------
+	               0.677   0.65876631854655   0.65876631854655  -1.1797144076101e-13
+	               0.175   0.20659300731471   0.20659300731471  -4.2991698085266e-13
+	               0.297   0.28423342541501   0.28423342541501  -3.5154230038347e-13
+	               0.006  0.046456925303432  0.046456925303431  -3.2859614554535e-13
+	              -0.114  -0.12126498977465  -0.12126498977465   1.2588601720054e-13
+	              -0.083 -0.088294332237173 -0.088294332237173  -2.9863521436483e-13
+	              -0.025  -0.05546648074175  -0.05546648074175  -3.2526174202682e-13
+	
+	  Mean^2 Discrepancy   0.97858693598551   0.97858693598555   3.8006302717997e-12
+	
+	./test test3.coeff test3.dat
+	
+	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
+	          ----------   ----------------     --------------           -----------
+	                1.02    1.0251761581124    1.0251761581124   3.4654665451271e-13
+	               -0.53  -0.52577027224279  -0.52577027224279   4.8567085121517e-13
+	
+	  Mean^2 Discrepancy    1.0577040559129    1.0577040559129  -6.5078532262362e-13
+
+The implementation also permits extracting a sequence of AR(p) models for p
+from one up to some maximum order::
+
+	Order       RMS/N Coefficients
+	-----       ----- ------------
+	    0    0.001172     0.9995
+	    1  5.0336e-06     1.9969   -0.99785
+	    2  2.7649e-08      2.992    -2.9892    0.99725
+	    3  6.0467e-11     3.9881    -5.9751     3.9859   -0.99891
+	    4  6.6639e-14     4.9865    -9.9589     9.9578    -4.9848    0.99945
+	    5  1.2883e-16      5.985    -14.939     19.906    -14.934     5.9811   -0.99903
+	    6  4.8869e-17      6.772    -19.651     31.672    -30.617      17.75    -5.7142    0.78783
+	    7  4.8602e-17     6.7138    -19.229      30.36    -28.354      15.41    -4.2621    0.28742   0.073894
+
+Contents
+--------
+
+*burg.hpp*
+  Standalone header implementing the Burg recursion.
+
+*Makefile*
+   Try ``make`` followed by ``./example`` or ``make check``.
+
+*example.cpp*
+   Extract a sequence of AR(p) models for a sample by [Collomb2009].
+
+*test.cpp*
+*nr.h*
+   A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
+
+*\*.coeff*
+*\*.dat*
+   Sample data and exact coefficients from [Bourke1998] used for ``make check``.
+
+*Collomb_Burg.pdf*
+   For posterity, a copy of [Collomb2009].
+
+TODO
+----
+
+1. Add a class to encapsulate the sequence of AR(p) models produced.  Include
+   prediction both with and without noise and prediction error computations
+   against known data.
+
+2. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
+   following [Seghouane2004].  Add these as standalone routines but also
+   incorporate them into the class.
+
+3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
+
+References
+----------
+
+-- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
+
+-- [Campbell1993]  Campbell, W. and D. N. Swingler. "Frequency estimation performance of several weighted Burg algorithms." IEEE Transactions on Signal Processing 41 (March 1993): 1237-1247. http://dx.doi.org/10.1109/78.205726
+
+-- [Collomb2009]   Cedrick Collomb. Burg's method, algorithm, and recursion, November 2009. http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf
+
+-- [Ibrahim1987a]  Ibrahim, M. K. "Improvement in the speed of the data-adaptive weighted Burg technique." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1474–1476. http://dx.doi.org/10.1109/TASSP.1987.1165046
+
+-- [Ibrahim1987b]  Ibrahim, M. K. "On line splitting in the optimum tapered Burg algorithm." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1476–1479. http://dx.doi.org/10.1109/TASSP.1987.1165047
+
+-- [Ibrahim1989]   Ibrahim, M. K. "Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'." IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
+
+-- [Press2007]     Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
+
+-- [Seghouane2004] Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
