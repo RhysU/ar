@@ -1,6 +1,5 @@
 // Except for any way in which it interferes with Cedrick Collomb's 2009
-// copyright assertion in his article refactored from of Cedrick Collomb's
-// 2009 article "Burg’s Method, Algorithm and Recursion":
+// copyright assertion in the article "Burg’s Method, Algorithm and Recursion":
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
