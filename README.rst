@@ -75,9 +75,14 @@ Contents
 *nr.h*
    A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
 
-*\*.coeff*
-*\*.dat*
+*test\*.coeff*
+*test\*.dat*
    Sample data and exact coefficients from [Bourke1998] used for ``make check``.
+
+*rhoe.coeff*
+*rhoe.dat*
+   Sample turbulent total energy RMS fluctuation data and optimal coefficients
+   found by automatically by ARMASA [Broersen2002].
 
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
@@ -100,6 +105,8 @@ References
 ----------
 
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
+
+-- [Broersen2002]  Broersen, P. M. T. "Automatic spectral analysis with time series models." IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
 
 -- [Campbell1993]  Campbell, W. and D. N. Swingler. "Frequency estimation performance of several weighted Burg algorithms." IEEE Transactions on Signal Processing 41 (March 1993): 1237-1247. http://dx.doi.org/10.1109/78.205726
 
