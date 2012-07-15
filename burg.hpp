@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <limits>
 #include <numeric>
 #include <iterator>
@@ -19,28 +18,31 @@
 /**
  * Use Burg's recursion to find coefficients \f$a_i\f$ such that the sum
  * of the squared errors in both the forward linear prediction \f$x_n =
- * \sum_{i=1}^m a_i x_{n-i}\f$ and backward linear prediction \f$x_n =
- * \sum_{i=1}^m a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
+ * \sum_{i=1}^m - a_i x_{n-i}\f$ and backward linear prediction \f$x_n =
+ * \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
  * is taken from the range [data_first, data_last) in a single pass.
  *
- * Coefficients \f$\vec{a}\f$ are stored in [coeffs_first, coeffs_last) with
- * the model order determined by both <tt>k = distance(coeffs_first,
- * coeffs_last)</tt> and the \c all_models flag.  If \c all_models is
+ * Coefficients \f$\vec{a}\f$ are stored in [coeffs_first, coeffs_last)
+ * with the model order determined by both <tt>k = distance(coeffs_first,
+ * coeffs_last)</tt> and the \c hierarchy flag.  If \c hierarchy is
  * false, the coefficients for an AR(<tt>k</tt>) process are output.  If \c
- * all_models is true, the <tt>m*(m+1)/2</tt> coefficients for models
- * AR(1), AR(2), ..., AR(m) up * to order <tt>m = floor(sqrt(2*k))</tt> are
- * output.  One mean squared discrepancy value is also output for each model.
+ * hierarchy is true, the <tt>m*(m+1)/2</tt> coefficients for models AR(1),
+ * AR(2), ..., AR(m) up to order <tt>m = floor(sqrt(2*k))</tt> are output.
+ * The mean squared discrepancy value \f$\sigma_\epsilon^2\f$ is also output
+ * for each model.  Each corresponding AR(p) prediction model has the form
+ * \f[
+ *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
+ * \f]
+ * where \f$\epsilon_n\f$ has variance \f$\sigma_\epsilon^2\f$.
  *
- * The implementation has been
- * refactored from of Cedrick Collomb's 2009 article <a
+ * The implementation has been refactored from of Cedrick Collomb's 2009
+ * article <a
  * href="http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf">"Burg’s
  * Method, Algorithm and Recursion"</a>.  In particular, iterators are
  * employed, the working precision depends on the output coefficients
- * precision, output \f$\vec{a}\f$ has the opposite sign from Collomb's
- * notation to better match other authors, a mean squared discrepancy
- * calculation has been added, some loop index transformations have been
- * performed, and all lower order models may be output during the recursion
- * using \c all_models.
+ * precision, a mean squared discrepancy calculation has been added, some loop
+ * index transformations have been performed, and all lower order models may be
+ * output during the recursion using \c hierarchy.
  *
  * @returns the number data values processed within [data_first, data_last).
  */
@@ -50,16 +52,15 @@ std::size_t burg_algorithm(InputIterator   data_first,
                            ForwardIterator coeffs_first,
                            ForwardIterator coeffs_last,
                            OutputIterator  msd_first,
-                           const bool all_models = false)
+                           const bool hierarchy = false)
 {
+    using std::copy;
     using std::distance;
     using std::fill;
     using std::inner_product;
     using std::iterator_traits;
-    using std::negate;
     using std::numeric_limits;
     using std::sqrt;
-    using std::transform;
 
     // ForwardIterator::value_type determines the working precision
     typedef typename iterator_traits<ForwardIterator>::value_type value;
@@ -71,10 +72,10 @@ std::size_t burg_algorithm(InputIterator   data_first,
     const size N = f.size();
 
     // Get the order or maximum order of autoregressive model(s) desired.
-    // When all_models is tru, the maximum order is the index of the largest
+    // When hierarchy is true, the maximum order is the index of the largest
     // triangular number that will fit within [coeffs_first, coeffs_last).
-    const size m = all_models ? sqrt(2*distance(coeffs_first, coeffs_last))
-                              :        distance(coeffs_first, coeffs_last);
+    const size m = hierarchy ? sqrt(2*distance(coeffs_first, coeffs_last))
+                             :        distance(coeffs_first, coeffs_last);
 
     // Initialize mean squared discrepancy msd and Dk
     value msd = inner_product(f.begin(), f.end(), f.begin(), value(0));
@@ -101,11 +102,11 @@ std::size_t burg_algorithm(InputIterator   data_first,
         }
 
         // Here, Ak[1:kp1] contains AR(k) coefficients by the recurrence.
-        if (all_models || kp1 == m)
+        if (hierarchy || kp1 == m)
         {
-            // Output negated coefficients and the mean squared discrepancy
-            coeffs_first = transform(Ak.begin() + 1, Ak.begin() + (kp1 + 1),
-                                     coeffs_first, negate<value>());
+            // Output coefficients and the mean squared discrepancy
+            coeffs_first = copy(Ak.begin() + 1, Ak.begin() + (kp1 + 1),
+                                coeffs_first);
             *msd_first++ = msd;
         }
 
@@ -123,7 +124,7 @@ std::size_t burg_algorithm(InputIterator   data_first,
         }
     }
 
-    // Defensively NaN any remaining locations within the coeffs range
+    // Defensively NaN any unspecified locations within the coeffs range
     if (numeric_limits<value>::has_quiet_NaN)
     {
         fill(coeffs_first, coeffs_last, numeric_limits<value>::quiet_NaN());
