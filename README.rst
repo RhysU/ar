@@ -6,9 +6,9 @@ Description
 
 This is a precision-agnostic, extension of Burg's recursion as presented and
 implemented in [Collomb2009]. The expressions differ slightly from those
-presented in [Press2007], which cannot be distributed due to draconian
-licensing. However, the results match Numerical Recipes code to floating point
-error against benchmark data by [Bourke1998]::
+presented in [Press2007], whose source cannot be distributed due to licensing
+restrictions. However, the results match Numerical Recipes code to floating
+point error against benchmark data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
 	
