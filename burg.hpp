@@ -5,8 +5,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef BURG_ALGORITHM_HPP
-#define BURG_ALGORITHM_HPP
+#ifndef BURG_HPP
+#define BURG_HPP
 
 #include <algorithm>
 #include <cmath>
@@ -180,4 +180,65 @@ std::size_t burg_algorithm(InputIterator   data_first,
                           null_output_iterator(), false);
 }
 
-#endif /* BURG_ALGORITHM_HPP */
+// zohar_linear_solve(...)
+//
+// Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM
+// 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
+//
+// Problem Formulation
+// \f[
+//      L_{n+1} s_{n+1} = d_{n+1}
+//      \mbox{ where }
+//      L_{n+1} = \bigl(\begin{smallmatrix}
+//                    1   & \tilde{a}_n \\
+//                    r_n & L_n
+//                \end{smallmatrix}\bigr)
+// \f]
+// \f[
+//      \tilde{a}_i = \left[\rho_{-1} \rho_{-2} \dots \rho{-i}]
+//      \mbox{ for } 1 \leq i \leq n
+// \f]
+// \f[
+//      \tilde{r}_i = \left[\rho_{1} \rho_{2} \dots \rho{i}]
+//      \mbox{ for } 1 \leq i \leq n
+// \f]
+// \f[
+//      d_{n+1} = \left[\delta_1 \delta_2 \dots \delta_{n+1}]
+// \f]
+// \f[
+//      s_{n+1} = \text{?}
+// \f]
+//
+// Initial values for recursion:
+// \f[ s_1       = \delta_1            \f]
+// \f[ e_1       = -\rho_{-1}          \f]
+// \f[ g_1       = -\rho_1             \f]
+// \f[ \lambda_1 = 1 - \rho_{-1}\rho_1 \f]
+//
+// Tildes indicate transposes while hats indicate reversed vectors.
+//
+// Recursion for i = 1, 2, ..., n:
+// \f[ \theta_i =  \delta_{i+1}  - \tilde{s}_i \hat{r}_i \f]
+// \f[ \eta_i   = -\rho_{-(i+1)} - \tilde{a}_i \hat{e}_i \f]
+// \f[ \gamma_i = -\rho_{i+1}    - \tilde{g}_i \hat{r}_i \f]
+// \f[
+//     s_{i+1} = \bigl(\begin{smallmatrix}
+//                   s_i + (\theta_i/\lambda_i) \hat{e}_i \\
+//                   \theta_i/\lambda_i
+//               \end{smallmatrix}\bigr)
+// \f]
+// \f[
+//     hat{e}_{i+1} = \bigl(\begin{smallmatrix}
+//                        \eta_i/\lambda_i \\
+//                        \hat{e}_i + (\ega_i/\lambda_i) g_i
+//                    \end{smallmatrix}\bigr)
+// \f]
+// \f[
+//     g_{i+1} = \bigl(\begin{smallmatrix}
+//                   g_i + (\gamma_i/\lambda_i) \hat{e}_i \\
+//                   \gamma_i/\lambda_i
+//               \end{smallmatrix}\bigr)
+// \f]
+// \f[ \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i \f]
+
+#endif /* BURG_HPP */
