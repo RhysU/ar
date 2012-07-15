@@ -101,12 +101,31 @@ TODO
 3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
 
+4. Also included is a Toeplitz linear equation solver for a single right hand
+   side using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement
+   of [Trench1967]'s work.  See [Bunch1985] for a discussion of the stability
+   of this particular algorithm and for faster, albeit much more complicated,
+   variants.
+
+5. Use the Toeplitz solver to find the lag(k) autocorrelation (e.g.
+   [Broersen2006] equation 4.51)
+
+6. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
+   autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
+
+7. Automatically remove the sample mean from the input to burg_algorithm(...).
+   Return it to the user through an additional parameter.
+
 References
 ----------
 
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
 
 -- [Broersen2002]  Broersen, P. M. T. "Automatic spectral analysis with time series models." IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
+
+-- [Broersen2006]  Broersen, P. M. T. Automatic autocorrelation and spectral analysis. Springer, 2006. http://dx.doi.org/10.1007/1-84628-329-9
+
+-- [Bunch1985]     Bunch, James R. "Stability of Methods for Solving Toeplitz Systems of Equations." SIAM Journal on Scientific and Statistical Computing 6 (1985): 349-364. http://dx.doi.org/10.1137/0906025
 
 -- [Campbell1993]  Campbell, W. and D. N. Swingler. "Frequency estimation performance of several weighted Burg algorithms." IEEE Transactions on Signal Processing 41 (March 1993): 1237-1247. http://dx.doi.org/10.1109/78.205726
 
@@ -121,3 +140,7 @@ References
 -- [Press2007]     Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 
 -- [Seghouane2004] Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
+
+-- [Trench1967]    Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510.
+
+-- [Zohar1974]     Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
