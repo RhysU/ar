@@ -261,30 +261,32 @@ void zohar_linear_solve(RandomAccessIterator a_first,
         const value neg_gamma = inner_product(
                 g.begin(), g.end(), rhat_first, value(r_first[i]));
 
-        // Using std::transform would have been nice but impossible
-        // given the nature of the \hat{e} and g updates.
-        //
-        // s_{i+1} = \bigl(\begin{smallmatrix}
-        //              s_i + (\theta_i/\lambda_i) \hat{e}_i \\
-        //              \theta_i/\lambda_i
-        //          \end{smallmatrix}\bigr)
-        //
-        // \hat{e}_{i+1} = \bigl(\begin{smallmatrix}
-        //                     \eta_i/\lambda_i \\
-        //                     \hat{e}_i + (\ega_i/\lambda_i) g_i
-        //                 \end{smallmatrix}\bigr)
-        //
-        // g_{i+1} = \bigl(\begin{smallmatrix}
-        //               g_i + (\gamma_i/\lambda_i) \hat{e}_i \\
-        //               \gamma_i/\lambda_i
-        //           \end{smallmatrix}\bigr)
+        /*
+         * Using std::transform would have been nice but impossible
+         * given the nature of the \hat{e} and g updates.
+         *
+         * s_{i+1} = \bigl(\begin{smallmatrix}
+         *              s_i + (\theta_i/\lambda_i) \hat{e}_i \\
+         *              \theta_i/\lambda_i
+         *          \end{smallmatrix}\bigr)
+         *
+         * \hat{e}_{i+1} = \bigl(\begin{smallmatrix}
+         *                     \eta_i/\lambda_i \\
+         *                     \hat{e}_i + (\ega_i/\lambda_i) g_i
+         *                 \end{smallmatrix}\bigr)
+         *
+         * g_{i+1} = \bigl(\begin{smallmatrix}
+         *               g_i + (\gamma_i/\lambda_i) \hat{e}_i \\
+         *               \gamma_i/\lambda_i
+         *           \end{smallmatrix}\bigr)
+         */
         const value theta_by_lambda = -neg_theta/lambda;
         const value   eta_by_lambda = -neg_eta  /lambda;
         const value gamma_by_lambda = -neg_gamma/lambda;
         for (size j = 0; j < i; ++j) {
-            const value sj = s[j], ejhat = ehat[j], gj = g[j];
+            const value ejhat = ehat[j], gj = g[j];
             s[j]     += theta_by_lambda*ejhat;
-            ejhat[j] +=   eta_by_lambda*gj;
+            ehat[j]  +=   eta_by_lambda*gj;
             g[j]     += gamma_by_lambda*ejhat;
         }
         s   .push_back(theta_by_lambda);
@@ -338,7 +340,6 @@ struct zero_input_iterator : std::iterator<
  *                     written.
  */
 template<class RandomAccessIterator,
-         class InputIterator,
          class OutputIterator>
 void zohar_linear_solve(RandomAccessIterator a_first,
                         RandomAccessIterator a_last,
