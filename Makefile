@@ -1,4 +1,4 @@
-CXXFLAGS ?= -Wall -O3 # -O0 -fno-unsafe-math-optimizations
+CXXFLAGS ?= -g -Wall -O3 # -O0 -fno-unsafe-math-optimizations
 all:     example test
 example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
