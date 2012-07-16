@@ -181,8 +181,8 @@ std::size_t burg_algorithm(InputIterator   data_first,
 }
 
 /**
- * Find the solution to a Toeplitz set of linear equations.  That is,
- * satisfy the equation
+ * Solve a Toeplitz set of linear equations.  That is, find \f$s_{n+1}\f$
+ * satisfying
  * \f[
  *      L_{n+1} s_{n+1} = d_{n+1}
  *      \mbox{ where }
@@ -191,7 +191,7 @@ std::size_t burg_algorithm(InputIterator   data_first,
  *                    r_n & L_n
  *                \end{smallmatrix}\bigr)
  * \f]
- * given \f$\vec{s}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
+ * given \f$\vec{a}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
  * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
  * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
  * iterate over the same data.  The Hermitian case requires two buffers with
@@ -309,6 +309,40 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 
     // Output solution
     copy(s.begin(), s.end(), s_first);
+}
+
+/**
+ * Solve a Toeplitz set of linear equations in-place.  That is, compute
+ * \f[
+ *      L_{n+1}^{-1} d_{n+1}
+ *      \mbox{ for }
+ *      L_{n+1} = \bigl(\begin{smallmatrix}
+ *                    1   & \tilde{a}_n \\
+ *                    r_n & L_n
+ *                \end{smallmatrix}\bigr)
+ * \f]
+ * given \f$\vec{a}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of
+ * the problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
+ * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
+ * iterate over the same data.  The Hermitian case requires two buffers with
+ * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.
+ *
+ * @param[in]     a_first Beginning of the range containing \f$\vec{a}\f$.
+ * @param[in]     a_last  End of the range containing \f$\vec{a}\f$.
+ * @param[in]     r_first Beginning of the range containing \f$\vec{r}\f$.
+ * @param[in,out] d_first Beginning of the range containing \f$\vec{d}\f$.
+ *                        Also the beginning of the output range to which
+ *                        <strong><tt>n+1</tt></strong> entries will be
+ *                        written.
+ */
+template<class RandomAccessIterator,
+         class ForwardIterator>
+void zohar_linear_solve(RandomAccessIterator a_first,
+                        RandomAccessIterator a_last,
+                        RandomAccessIterator r_first,
+                        ForwardIterator      d_first)
+{
+    return zohar_linear_solve(a_first, a_last, r_first, d_first, d_first);
 }
 
 #endif /* BURG_HPP */
