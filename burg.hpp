@@ -13,6 +13,7 @@
 #include <limits>
 #include <numeric>
 #include <iterator>
+#include <stdexcept>
 #include <vector>
 
 /**
@@ -126,9 +127,7 @@ std::size_t burg_algorithm(InputIterator   data_first,
 
     // Defensively NaN any unspecified locations within the coeffs range
     if (numeric_limits<value>::has_quiet_NaN)
-    {
         fill(coeffs_first, coeffs_last, numeric_limits<value>::quiet_NaN());
-    }
 
     // Return the number of values processed in [data_first, data_last)
     return N;
@@ -239,8 +238,12 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
 
-    // Determine problem size using [a_first,a_last)
-    const size n = distance(a_first, a_last);
+    // Determine problem size using [a_first,a_last) and ensure nontrivial
+    typename iterator_traits<RandomAccessIterator>::difference_type a_dist
+        = distance(a_first, a_last);
+    if (a_dist < 1)
+        throw std::invalid_argument("distance(a_first, a_last) < 1");
+    const size n = static_cast<size>(a_dist);
 
     // Allocate working storage and set initial values for recursion:
     vector s;    s   .reserve(n+1); s   .push_back( *d_first);
