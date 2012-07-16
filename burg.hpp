@@ -247,8 +247,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 
     // Allocate working storage and set initial values for recursion:
     vector s;    s   .reserve(n+1); s   .push_back( *d_first);
-    vector ehat; ehat.reserve(n+1); ehat.push_back(-a_first[0]);
-    vector g;    g   .reserve(n+1); g   .push_back(-r_first[0]);
+    vector ehat; ehat.reserve(n  ); ehat.push_back(-a_first[0]);
+    vector g;    g   .reserve(n  ); g   .push_back(-r_first[0]);
     value lambda  = 1 - a_first[0]*r_first[0];
 
     // Though recursive updates to s and g can be done in-place, updates to
@@ -257,7 +257,7 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     // "This sequence of computations is economical of storage.  It is only
     // necessary to retain quantities computed at level m - 1 until the
     // computations at level m are complete." [Trench1967, page 1504]
-    vector next_ehat; next_ehat.reserve(n+1);
+    vector next_ehat; next_ehat.reserve(n);
 
     // Recursion for i = {1, 2, ..., n - 1}:
     for (size i = 1; i < n; ++i) {
