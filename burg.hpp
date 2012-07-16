@@ -191,8 +191,10 @@ std::size_t burg_algorithm(InputIterator   data_first,
  *                    r_n & L_n
  *                \end{smallmatrix}\bigr)
  * \f]
- * given \f$\vec{s}\f$, \f$\vec{r}\f$, \f$\vec{d}\f$.  The dimension
- * of the problem is fixed by <tt>n = distance(a_first, a_last)</tt>.
+ * given \f$\vec{s}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
+ * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  Though less
+ * efficient than a symmetric solution procedure, \f$\vec{a}\f$ and
+ * \f$vec{r}\f$ may iterate over the same data.
  *
  * The algorithm is from Zohar, Shalhav. "The Solution of a
  * Toeplitz Set of Linear Equations." J. ACM 21 (April 1974):
@@ -295,6 +297,59 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 
     // Output solution
     copy(s.begin(), s.end(), s_first);
+}
+
+namespace { // anonymous
+
+// Provides an infinite input iterator returning zeros
+template <typename T>
+struct zero_input_iterator : std::iterator<
+        std::input_iterator_tag, T, std::ptrdiff_t, const T*, const T&
+    >
+{
+    T operator*() { return 0; }
+    zero_input_iterator& operator++()    { return *this; }
+    zero_input_iterator& operator++(int) { return *this; }
+};
+
+}
+
+/**
+ * Find the homogeneous solution to a Toeplitz set of linear equations.  That
+ * is, satisfy the equation
+ * \f[
+ *      L_{n+1} s_{n+1} = 0
+ *      \mbox{ where }
+ *      L_{n+1} = \bigl(\begin{smallmatrix}
+ *                    1   & \tilde{a}_n \\
+ *                    r_n & L_n
+ *                \end{smallmatrix}\bigr)
+ * \f]
+ * given \f$\vec{s}\f$ and \f$\vec{r}\f$.  The dimension of the problem is
+ * fixed by <tt>n = distance(a_first, a_last)</tt>.  Though less efficient than
+ * a symmetric solution procedure, \f$\vec{a}\f$ and \f$vec{r}\f$ may iterate
+ * over the same data.
+ *
+ * @param[in]  a_first Beginning of the range containing \f$\vec{a}\f$.
+ * @param[in]  a_last  End of the range containing \f$\vec{a}\f$.
+ * @param[in]  r_first Beginning of the range containing \f$\vec{r}\f$.
+ * @param[out] s_first Beginning of the output range to which
+ *                     <strong><tt>n+1</tt></strong> entries will be
+ *                     written.
+ */
+template<class RandomAccessIterator,
+         class InputIterator,
+         class OutputIterator>
+void zohar_linear_solve(RandomAccessIterator a_first,
+                        RandomAccessIterator a_last,
+                        RandomAccessIterator r_first,
+                        OutputIterator       s_first)
+{
+    // OutputIterator::value_type determines the working precision
+    using std::iterator_traits;
+    typedef typename iterator_traits<OutputIterator>::value_type value;
+    return zohar_linear_solve(a_first, a_last, r_first,
+                              zero_input_iterator<value>(), s_first);
 }
 
 #endif /* BURG_HPP */
