@@ -197,13 +197,17 @@ std::size_t burg_algorithm(InputIterator   data_first,
  * iterate over the same data.  The Hermitian case requires two buffers with
  * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.
  *
- * The algorithm is from Zohar, Shalhav. "The Solution of a
- * Toeplitz Set of Linear Equations." J. ACM 21 (April 1974):
- * 272-276. http://dx.doi.org/10.1145/321812.321822.  It has complexity
- * like <tt>O(2*(n+1)^2)</tt>.  See Bunch, James R. "Stability of Methods
- * for Solving Toeplitz Systems of Equations." SIAM Journal on Scientific and
- * Statistical Computing 6 (1985): 349-364. http://dx.doi.org/10.1137/0906025
- * for a discussion of the algorithms stability characteristics.
+ * The algorithm is from Zohar, Shalhav. "The Solution of a Toeplitz Set of
+ * Linear Equations." J. ACM 21 (April 1974): 272-276.
+ * http://dx.doi.org/10.1145/321812.321822.  It has complexity like
+ * <tt>O(2*(n+1)^2)</tt>.  Zohar improved upon earlier work from Page 1504 from
+ * Trench, William F. "Weighting Coefficients for the Prediction of Stationary
+ * Time Series from the Finite Past." SIAM Journal on Applied Mathematics 15
+ * (November 1967): 1502-1510.  http://www.jstor.org/stable/2099503.  See
+ * Bunch, James R. "Stability of Methods for Solving Toeplitz Systems of
+ * Equations." SIAM Journal on Scientific and Statistical Computing 6 (1985):
+ * 349-364. http://dx.doi.org/10.1137/0906025 for a discussion of the
+ * algorithms stability characteristics.
  *
  * @param[in]  a_first Beginning of the range containing \f$\vec{a}\f$.
  * @param[in]  a_last  End of the range containing \f$\vec{a}\f$.
@@ -244,6 +248,14 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     vector g;    g   .reserve(n+1); g   .push_back(-r_first[0]);
     value lambda  = 1 - a_first[0]*r_first[0];
 
+    // Though recursive updates to s and g can be done in-place, updates to
+    // ehat seemingly require one additional vector for storage:
+    //
+    // "This sequence of computations is economical of storage.  It is only
+    // necessary to retain quantities computed at level m - 1 until the
+    // computations at level m are complete." [Trench1967, page 1504]
+    vector next_ehat; next_ehat.reserve(n+1);
+
     // Recursion for i = 1, 2, ..., n:
     for (size i = 1; i <= n; ++i) {
 
@@ -262,9 +274,6 @@ void zohar_linear_solve(RandomAccessIterator a_first,
                 g.begin(), g.end(), rhat_first, value(r_first[i]));
 
         /*
-         * Using std::transform would have been nice but impossible
-         * given the nature of the \hat{e} and g updates.
-         *
          * s_{i+1} = \bigl(\begin{smallmatrix}
          *              s_i + (\theta_i/\lambda_i) \hat{e}_i \\
          *              \theta_i/\lambda_i
@@ -283,16 +292,16 @@ void zohar_linear_solve(RandomAccessIterator a_first,
         const value theta_by_lambda = -neg_theta/lambda;
         const value   eta_by_lambda = -neg_eta  /lambda;
         const value gamma_by_lambda = -neg_gamma/lambda;
-        ehat.push_back(0);
+        next_ehat.clear();
+        next_ehat.push_back(eta_by_lambda);
         for (size j = 0; j < i; ++j) {
-            const value ejhat = ehat[j], gj = g[j];
-            s[j]      += theta_by_lambda*ejhat;
-            ehat[j+1]  = ejhat + eta_by_lambda*gj;
-            g[j]      += gamma_by_lambda*ejhat;
+            s[j] += theta_by_lambda*ehat[j];
+            next_ehat.push_back(ehat[j] + eta_by_lambda*g[j]);
+            g[j] += gamma_by_lambda*ehat[j];
         }
         s.push_back(theta_by_lambda);
-        ehat[0] = eta_by_lambda;
         g.push_back(gamma_by_lambda);
+        ehat.swap(next_ehat);
 
         // \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i
         lambda -= neg_eta*neg_gamma/lambda;
