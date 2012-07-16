@@ -159,6 +159,6 @@ References
 
 -- [Seghouane2004] Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
 
--- [Trench1967]    Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510.
+-- [Trench1967]    Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510. http://www.jstor.org/stable/2099503
 
 -- [Zohar1974]     Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
