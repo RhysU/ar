@@ -46,7 +46,7 @@
  *
  * @returns the number data values processed within [data_first, data_last).
  */
-template<class InputIterator, class ForwardIterator, class OutputIterator>
+template <class InputIterator, class ForwardIterator, class OutputIterator>
 std::size_t burg_algorithm(InputIterator   data_first,
                            InputIterator   data_last,
                            ForwardIterator coeffs_first,
@@ -142,7 +142,7 @@ struct null_output_iterator
     : std::iterator< std::output_iterator_tag, null_output_iterator >
 {
 
-    template<typename T> void operator=(const T&) { }
+    template <typename T> void operator=(const T&) { }
 
     null_output_iterator& operator++() { return *this; }
 
@@ -169,7 +169,7 @@ struct null_output_iterator
  *
  * @returns the number data values processed within [data_first, data_last).
  */
-template<class InputIterator, class ForwardIterator>
+template <class InputIterator, class ForwardIterator>
 std::size_t burg_algorithm(InputIterator   data_first,
                            InputIterator   data_last,
                            ForwardIterator coeffs_first,
@@ -180,65 +180,121 @@ std::size_t burg_algorithm(InputIterator   data_first,
                           null_output_iterator(), false);
 }
 
-// zohar_linear_solve(...)
-//
-// Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM
-// 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
-//
-// Problem Formulation
-// \f[
-//      L_{n+1} s_{n+1} = d_{n+1}
-//      \mbox{ where }
-//      L_{n+1} = \bigl(\begin{smallmatrix}
-//                    1   & \tilde{a}_n \\
-//                    r_n & L_n
-//                \end{smallmatrix}\bigr)
-// \f]
-// \f[
-//      \tilde{a}_i = \left[\rho_{-1} \rho_{-2} \dots \rho{-i}]
-//      \mbox{ for } 1 \leq i \leq n
-// \f]
-// \f[
-//      \tilde{r}_i = \left[\rho_{1} \rho_{2} \dots \rho{i}]
-//      \mbox{ for } 1 \leq i \leq n
-// \f]
-// \f[
-//      d_{n+1} = \left[\delta_1 \delta_2 \dots \delta_{n+1}]
-// \f]
-// \f[
-//      s_{n+1} = \text{?}
-// \f]
-//
-// Initial values for recursion:
-// \f[ s_1       = \delta_1            \f]
-// \f[ e_1       = -\rho_{-1}          \f]
-// \f[ g_1       = -\rho_1             \f]
-// \f[ \lambda_1 = 1 - \rho_{-1}\rho_1 \f]
-//
-// Tildes indicate transposes while hats indicate reversed vectors.
-//
-// Recursion for i = 1, 2, ..., n:
-// \f[ \theta_i =  \delta_{i+1}  - \tilde{s}_i \hat{r}_i \f]
-// \f[ \eta_i   = -\rho_{-(i+1)} - \tilde{a}_i \hat{e}_i \f]
-// \f[ \gamma_i = -\rho_{i+1}    - \tilde{g}_i \hat{r}_i \f]
-// \f[
-//     s_{i+1} = \bigl(\begin{smallmatrix}
-//                   s_i + (\theta_i/\lambda_i) \hat{e}_i \\
-//                   \theta_i/\lambda_i
-//               \end{smallmatrix}\bigr)
-// \f]
-// \f[
-//     hat{e}_{i+1} = \bigl(\begin{smallmatrix}
-//                        \eta_i/\lambda_i \\
-//                        \hat{e}_i + (\ega_i/\lambda_i) g_i
-//                    \end{smallmatrix}\bigr)
-// \f]
-// \f[
-//     g_{i+1} = \bigl(\begin{smallmatrix}
-//                   g_i + (\gamma_i/\lambda_i) \hat{e}_i \\
-//                   \gamma_i/\lambda_i
-//               \end{smallmatrix}\bigr)
-// \f]
-// \f[ \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i \f]
+/**
+ * Find the solution to a Toeplitz set of linear equations.  That is,
+ * satisfy the equation
+ * \f[
+ *      L_{n+1} s_{n+1} = d_{n+1}
+ *      \mbox{ where }
+ *      L_{n+1} = \bigl(\begin{smallmatrix}
+ *                    1   & \tilde{a}_n \\
+ *                    r_n & L_n
+ *                \end{smallmatrix}\bigr)
+ * \f]
+ * given \f$\vec{s}\f$, \f$\vec{r}\f$, \f$\vec{d}\f$.  The dimension
+ * of the problem is fixed by <tt>n = distance(a_first, a_last)</tt>.
+ *
+ * The algorithm is from Zohar, Shalhav. "The Solution of a
+ * Toeplitz Set of Linear Equations." J. ACM 21 (April 1974):
+ * 272-276. http://dx.doi.org/10.1145/321812.321822.  It has complexity
+ * like <tt>O(2*(n+1)^2)</tt>.  See Bunch, James R. "Stability of Methods
+ * for Solving Toeplitz Systems of Equations." SIAM Journal on Scientific and
+ * Statistical Computing 6 (1985): 349-364. http://dx.doi.org/10.1137/0906025
+ * for a discussion of the algorithms stability characteristics.
+ *
+ * @param[in]  a_first Beginning of the range containing \f$\vec{a}\f$.
+ * @param[in]  a_last  End of the range containing \f$\vec{a}\f$.
+ * @param[in]  r_first Beginning of the range containing \f$\vec{r}\f$.
+ * @param[in]  d_first Beginning of the range containing \f$\vec{d}\f$.
+ * @param[out] s_first Beginning of the output range to which
+ *                     <strong><tt>n+1</tt></strong> entries will be
+ *                     written.
+ */
+template<class RandomAccessIterator,
+         class InputIterator,
+         class OutputIterator>
+void zohar_linear_solve(RandomAccessIterator a_first,
+                        RandomAccessIterator a_last,
+                        RandomAccessIterator r_first,
+                        InputIterator        d_first,
+                        OutputIterator       s_first)
+{
+    // Tildes indicate transposes while hats indicate reversed vectors.
+
+    using std::copy;
+    using std::distance;
+    using std::inner_product;
+    using std::iterator_traits;
+    using std::reverse_iterator;
+    using std::transform;
+
+    // OutputIterator::value_type determines the working precision
+    typedef typename iterator_traits<OutputIterator>::value_type value;
+    typedef typename std::vector<value> vector;
+    typedef typename vector::size_type size;
+
+    // Determine problem size using [a_first,a_last)
+    const size n = distance(a_first, a_last);
+
+    // Allocate working storage and set initial values for recursion:
+    vector s;    s   .reserve(n+1); s   .push_back( *d_first);
+    vector ehat; ehat.reserve(n+1); ehat.push_back(-a_first[0]);
+    vector g;    g   .reserve(n+1); g   .push_back(-r_first[0]);
+    value lambda  = 1 - a_first[0]*r_first[0];
+
+    // Recursion for i = 1, 2, ..., n:
+    for (size i = 1; i <= n; ++i) {
+
+        reverse_iterator<RandomAccessIterator> rhat_first(r_first + i);
+
+        // \theta_i =  \delta_{i+1}  - \tilde{s}_i \hat{r}_i
+        const value neg_theta = inner_product(
+                s.begin(), s.end(), rhat_first, value(-(*++d_first)));
+
+        // \eta_i   = -\rho_{-(i+1)} - \tilde{a}_i \hat{e}_i
+        const value neg_eta   = inner_product(
+                ehat.begin(), ehat.end(), a_first, value(a_first[i]));
+
+        // \gamma_i = -\rho_{i+1}    - \tilde{g}_i \hat{r}_i
+        const value neg_gamma = inner_product(
+                g.begin(), g.end(), rhat_first, value(r_first[i]));
+
+        // Using std::transform would have been nice but impossible
+        // given the nature of the \hat{e} and g updates.
+        //
+        // s_{i+1} = \bigl(\begin{smallmatrix}
+        //              s_i + (\theta_i/\lambda_i) \hat{e}_i \\
+        //              \theta_i/\lambda_i
+        //          \end{smallmatrix}\bigr)
+        //
+        // \hat{e}_{i+1} = \bigl(\begin{smallmatrix}
+        //                     \eta_i/\lambda_i \\
+        //                     \hat{e}_i + (\ega_i/\lambda_i) g_i
+        //                 \end{smallmatrix}\bigr)
+        //
+        // g_{i+1} = \bigl(\begin{smallmatrix}
+        //               g_i + (\gamma_i/\lambda_i) \hat{e}_i \\
+        //               \gamma_i/\lambda_i
+        //           \end{smallmatrix}\bigr)
+        const value theta_by_lambda = -neg_theta/lambda;
+        const value   eta_by_lambda = -neg_eta  /lambda;
+        const value gamma_by_lambda = -neg_gamma/lambda;
+        for (size j = 0; j < i; ++j) {
+            const value sj = s[j], ejhat = ehat[j], gj = g[j];
+            s[j]     += theta_by_lambda*ejhat;
+            ejhat[j] +=   eta_by_lambda*gj;
+            g[j]     += gamma_by_lambda*ejhat;
+        }
+        s   .push_back(theta_by_lambda);
+        ehat.push_back(  eta_by_lambda);
+        g   .push_back(gamma_by_lambda);
+
+        // \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i
+        lambda -= neg_eta*neg_gamma/lambda;
+    }
+
+    // Output solution
+    copy(s.begin(), s.end(), s_first);
+}
 
 #endif /* BURG_HPP */
