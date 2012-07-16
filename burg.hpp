@@ -192,9 +192,10 @@ std::size_t burg_algorithm(InputIterator   data_first,
  *                \end{smallmatrix}\bigr)
  * \f]
  * given \f$\vec{s}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
- * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  Though less
- * efficient than a symmetric solution procedure, \f$\vec{a}\f$ and
- * \f$vec{r}\f$ may iterate over the same data.
+ * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
+ * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
+ * iterate over the same data.  The Hermitian case requires two buffers with
+ * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.
  *
  * The algorithm is from Zohar, Shalhav. "The Solution of a
  * Toeplitz Set of Linear Equations." J. ACM 21 (April 1974):
