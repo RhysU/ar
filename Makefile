@@ -8,10 +8,6 @@ clean:
 # Test cases from http://paulbourke.net/miscellaneous/ar/
 check: test
 	@echo
-	./test constant.coeff  constant.dat  # Expected to fail on constant process
-	@echo
-	./test symmetric.coeff symmetric.dat # Expected coefficients are rubbish
-	@echo
 	./test test1.coeff     test1.dat
 	@echo
 	./test test2.coeff     test2.dat
