@@ -221,14 +221,13 @@ void zohar_linear_solve(RandomAccessIterator a_first,
                         InputIterator        d_first,
                         OutputIterator       s_first)
 {
-    // Tildes indicate transposes while hats indicate reversed vectors.
-
     using std::copy;
     using std::distance;
     using std::inner_product;
     using std::iterator_traits;
     using std::reverse_iterator;
-    using std::transform;
+
+    // Tildes indicate transposes while hats indicate reversed vectors.
 
     // OutputIterator::value_type determines the working precision
     typedef typename iterator_traits<OutputIterator>::value_type value;
@@ -283,15 +282,16 @@ void zohar_linear_solve(RandomAccessIterator a_first,
         const value theta_by_lambda = -neg_theta/lambda;
         const value   eta_by_lambda = -neg_eta  /lambda;
         const value gamma_by_lambda = -neg_gamma/lambda;
+        ehat.push_back(0);
         for (size j = 0; j < i; ++j) {
             const value ejhat = ehat[j], gj = g[j];
-            s[j]     += theta_by_lambda*ejhat;
-            ehat[j]  +=   eta_by_lambda*gj;
-            g[j]     += gamma_by_lambda*ejhat;
+            s[j]      += theta_by_lambda*ejhat;
+            ehat[j+1]  = ejhat + eta_by_lambda*gj;
+            g[j]      += gamma_by_lambda*ejhat;
         }
-        s   .push_back(theta_by_lambda);
-        ehat.push_back(  eta_by_lambda);
-        g   .push_back(gamma_by_lambda);
+        s.push_back(theta_by_lambda);
+        ehat[0] = eta_by_lambda;
+        g.push_back(gamma_by_lambda);
 
         // \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i
         lambda -= neg_eta*neg_gamma/lambda;
