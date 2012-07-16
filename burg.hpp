@@ -256,8 +256,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     // computations at level m are complete." [Trench1967, page 1504]
     vector next_ehat; next_ehat.reserve(n+1);
 
-    // Recursion for i = 1, 2, ..., n:
-    for (size i = 1; i <= n; ++i) {
+    // Recursion for i = {1, 2, ..., n - 1}:
+    for (size i = 1; i < n; ++i) {
 
         reverse_iterator<RandomAccessIterator> rhat_first(r_first + i);
 
@@ -281,7 +281,7 @@ void zohar_linear_solve(RandomAccessIterator a_first,
          *
          * \hat{e}_{i+1} = \bigl(\begin{smallmatrix}
          *                     \eta_i/\lambda_i \\
-         *                     \hat{e}_i + (\ega_i/\lambda_i) g_i
+         *                     \hat{e}_i + (\eta_i/\lambda_i) g_i
          *                 \end{smallmatrix}\bigr)
          *
          * g_{i+1} = \bigl(\begin{smallmatrix}
@@ -305,6 +305,28 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 
         // \lambda_{i+1} = \lambda_i - \eta_i \gamma_i / \lambda_i
         lambda -= neg_eta*neg_gamma/lambda;
+    }
+
+    // Recursion for i = n differs slightly per Zohar's "Last Computed Values"
+    // Computing g_n above was unnecessary but the incremental expense is small
+    {
+        reverse_iterator<RandomAccessIterator> rhat_first(r_first + n);
+
+        // \theta_n =  \delta_{n+1}  - \tilde{s}_n \hat{r}_n
+        const value neg_theta = inner_product(
+                s.begin(), s.end(), rhat_first, value(-(*++d_first)));
+
+        /*
+         * s_{n+1} = \bigl(\begin{smallmatrix}
+         *              s_n + (\theta_n/\lambda_n) \hat{e}_n \\
+         *              \theta_n/\lambda_n
+         *          \end{smallmatrix}\bigr)
+         */
+        const value theta_by_lambda = -neg_theta/lambda;
+        for (size j = 0; j < n; ++j) {
+            s[j] += theta_by_lambda*ehat[j];
+        }
+        s.push_back(theta_by_lambda);
     }
 
     // Output solution
