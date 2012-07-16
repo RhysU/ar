@@ -11,7 +11,7 @@ restrictions. However, the results match Numerical Recipes code to floating
 point error against benchmark data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
-	
+
 	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
 	          ----------   ----------------     --------------           -----------
 	                 1.4    1.3722815374162    1.3722815374161  -7.4431168445089e-12
@@ -19,11 +19,11 @@ point error against benchmark data by [Bourke1998]::
 	                0.04  0.034482949286973  0.034482949287216   7.0461579987592e-10
 	                 0.7   0.74323368158906   0.74323368158868  -5.1385819821096e-11
 	                -0.5  -0.46165133140387  -0.46165133140364  -4.9240227164672e-11
-	
+
 	  Mean^2 Discrepancy    1.0600415436226    1.0600415436232   6.0934192590181e-11
-	
+
 	./test test2.coeff test2.dat
-	
+
 	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
 	          ----------   ----------------     --------------           -----------
 	               0.677   0.65876631854655   0.65876631854655  -1.1797144076101e-13
@@ -33,16 +33,16 @@ point error against benchmark data by [Bourke1998]::
 	              -0.114  -0.12126498977465  -0.12126498977465   1.2588601720054e-13
 	              -0.083 -0.088294332237173 -0.088294332237173  -2.9863521436483e-13
 	              -0.025  -0.05546648074175  -0.05546648074175  -3.2526174202682e-13
-	
+
 	  Mean^2 Discrepancy   0.97858693598551   0.97858693598555   3.8006302717997e-12
-	
+
 	./test test3.coeff test3.dat
-	
+
 	         Coefficient   NumericalRecipes     burg_algorithm           PercentDiff
 	          ----------   ----------------     --------------           -----------
 	                1.02    1.0251761581124    1.0251761581124   3.4654665451271e-13
 	               -0.53  -0.52577027224279  -0.52577027224279   4.8567085121517e-13
-	
+
 	  Mean^2 Discrepancy    1.0577040559129    1.0577040559129  -6.5078532262362e-13
 
 The implementation also permits extracting a sequence of AR(p) models for p
@@ -59,11 +59,33 @@ from one up to some maximum order::
 	    6  4.8869e-17      6.772    -19.651     31.672    -30.617      17.75    -5.7142    0.78783
 	    7  4.8602e-17     6.7138    -19.229      30.36    -28.354      15.41    -4.2621    0.28742   0.073894
 
+Also included is a Toeplitz linear equation solver for a single right hand side
+using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement of
+[Trench1967]'s work::
+
+	Topmost row of Toeplitz matrix is:
+		1 2 3 5 7 11 13 17
+	Leftmost column of Toeplitz matrix is:
+		1 2 4 8 16 32 64 128
+	Right hand size data is:
+		1 2 3 4 5 6 7 8
+	Expected solution is:
+		-0.62963 0.148148 3.55556 -1.66667 0 -2 -1 2
+	Solution computed by zohar_linear_solve is:
+		-0.62963 0.148148 3.55556 -1.66667 7.10543e-15 -2 -1 2
+	Term-by-term errors are:
+		5.55112e-16 1.04361e-14 -2.70894e-14 9.99201e-15 -7.10543e-15 4.44089e-15 1.26565e-14 -9.32587e-15
+	Sum of the squared errors is:
+		1.26027e-27
+
+See [Bunch1985] for a discussion of the stability of Trench-like algorithms and
+for faster, albeit much more complicated, variants.
+
 Contents
 --------
 
 *burg.hpp*
-  Standalone header implementing the Burg recursion.
+  Standalone header implementing the Burg recursion and the Zohar Toeplitz solver.
 
 *Makefile*
    Try ``make`` followed by ``./example`` or ``make check``.
@@ -71,8 +93,10 @@ Contents
 *example.cpp*
    Extract a sequence of AR(p) models for a sample by [Collomb2009].
 
+*zohar.cpp*
+   Solve a nonsymmetric, real-valued Toeplitz set of linear equations.
+
 *test.cpp*
-*nr.h*
    A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
 
 *test\*.coeff*
@@ -101,19 +125,13 @@ TODO
 3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
 
-4. Also included is a Toeplitz linear equation solver for a single right hand
-   side using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement
-   of [Trench1967]'s work.  See [Bunch1985] for a discussion of the stability
-   of this particular algorithm and for faster, albeit much more complicated,
-   variants.
-
-5. Use the Toeplitz solver to find the lag(k) autocorrelation (e.g.
+4. Use the Toeplitz solver to find the lag(k) autocorrelation (e.g.
    [Broersen2006] equation 4.51)
 
-6. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
+5. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
 
-7. Automatically remove the sample mean from the input to burg_algorithm(...).
+6. Automatically remove the sample mean from the input to burg_algorithm(...).
    Return it to the user through an additional parameter.
 
 References
