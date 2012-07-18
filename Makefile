@@ -1,13 +1,17 @@
 CXXFLAGS ?= -g -Wall -O3 # -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
-all:     example test
+
+all:     example zohar test
+
 example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
 zohar:   zohar.cpp   burg.hpp
 clean:
-	rm -f example test
+	rm -f example zohar test
 
 # Test cases from http://paulbourke.net/miscellaneous/ar/
-check: zohar test
+check: all
+	@echo
+	./example
 	@echo
 	./zohar
 	@echo
