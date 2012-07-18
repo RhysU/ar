@@ -108,6 +108,10 @@ Contents
    Sample turbulent total energy RMS fluctuation data and optimal coefficients
    found by automatically by ARMASA [Broersen2002].
 
+*WuleYalker.tex*
+   A derivation of some equations closely connected with the Yule--Walker
+   system.
+
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
 
@@ -125,8 +129,9 @@ TODO
 3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
 
-4. Use the Toeplitz solver to find the lag(k) autocorrelation (e.g.
-   [Broersen2006] equation 4.51)
+4. Complete the ``Wule-Yalker`` write up by finding or deriving some
+   suitable algorithm.  Implement it as a way to find the lag(k)
+   autocorrelation boundary conditions.
 
 5. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).

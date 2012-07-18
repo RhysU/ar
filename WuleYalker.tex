@@ -1,0 +1,344 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{amsmath, amssymb, graphics}
+\usepackage{fullpage}
+
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}{{}}
+
+\begin{document}
+
+\section*{Derivation and solution of the ``Wule--Yalker'' equations}
+
+These equations are nothing but the Yule-Walker equations rearranged to that
+autocorrelations might be recovered from autoregressive process parameters.
+
+\subsection*{Setting}
+
+The standard AR(p) process is taken as
+\[
+x_n+a_1x_{n-1}+\dots+a_px_{n-p}=\epsilon _n
+\]
+in which the \(a_i\) are called the ``parameters" and \(\epsilon _n\sim
+N\left(0,\sigma _{\epsilon }{}^2\right)\). By multiplying by \(x_{n-k}\) and
+taking the expectation, one arrives at the classical Yule Walker equations:
+\begin{align*}
+1+a_1\rho ^1+\dots+a_p\rho ^p &= \frac{\sigma _{\epsilon }{}^2}{\sigma _x{}^2},
+&
+k&=0
+\\
+\rho ^k+a_1\rho ^{k-1}+\dots+a_p\rho ^{k-1}&=0
+&
+k &> 0
+\end{align*}
+Here $\rho^i$ denotes the lag $i$ autocorrelation which are symmetric about lag
+$0$. These equations are solved by a variant of the Levinson-Durbin to estimate
+parameters from observed autocorrelations. We want the converse--- computing
+autocorrelations $\rho^i$ given parameters $a^i$.  For $k\geq p$ this is simple
+as the latter, iterative relation can be used. However, For $0<k<p$ the
+equations form a linear system behaving as a ``boundary condition''.  Many
+authors solve this system explicitly for only $p=1$ and $p=2$ and consider the
+matter closed.  We seek a systematic way to derive and solve the boundary
+condition system, which we call the ``Wule-Yalker'' equations to hint at their
+straightforward heritage.
+
+\subsection*{Details}
+
+Several concrete examples of the linear system, derived mechanically using
+Mathematica, are now provided. It is nothing but iterating and rearranging the
+Yule--Walker $k>0$ relationship considering $\rho ^i$ to be unknown and using
+that $\rho^0=1$.
+
+\begin{quote}
+\noindent\({\text{Unprotect}[\text{Power}];}\\
+{\rho ^{\text{k$\_$}}\text{:=}\rho ^{-k}\text{/;}k<0;}\\
+{a_0=1;}\)
+\end{quote}
+
+Next come expressions for getting the \(k^{\text{th}}\) equation for given \(p\), collecting all relations for \(1\leq k\leq p\) into a list, extracting
+the coefficients on different \(\rho ^i\) terms, obtaining the matrix of coefficients, obtaining the vector of data, and preparing them both for
+display.
+
+\begin{quote}
+\noindent\({\text{yw}[\text{p$\_$},\text{k$\_$}]\text{:=}\text{Sum}\left[a_i\rho ^{k-i},\{i,0,p\}\right];}\\
+{\text{yt}[\text{p$\_$}]\text{:=}\text{Collect}[\text{Table}[\text{yw}[p,k],\{k,1,p\}],\rho ];}\\
+{\text{yc}[\text{p$\_$}]\text{:=}\text{PadRight}[\text{CoefficientList}[\text{yt}[p],\rho ]];}\\
+{\text{ym}[\text{p$\_$}]\text{:=}\text{Drop}[\text{yc}[p],\text{None},1];}\\
+{\text{yd}[\text{p$\_$}]\text{:=}-\text{FullSimplify}[\text{Take}[\text{yc}[p],\text{All},1]];}\\
+{\text{yp}[\text{p$\_$}]\text{:=}\text{Thread}[\text{MatrixForm}[\{\text{ym}[p],\text{yd}[p]\}]];}\)
+\end{quote}
+
+Examine the matrix of coefficients and vector of data for small \(p\):
+
+\begin{quote}
+\noindent\({\text{Do}[}\\
+{\text{Print}[\text{$\texttt{"}$p=$\texttt{"}$},p];}\\
+{\text{Print}[\text{yp}[p]],\{p,1,8\}}\\
+{]}\\
+{ }\)
+\end{quote}
+
+\[
+\begin{bmatrix}
+ 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & 0 \\
+ a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & 0 \\
+ a_1+a_3 & 1 & 0 \\
+ a_2 & a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & a_4 & 0 \\
+ a_1+a_3 & 1+a_4 & 0 & 0 \\
+ a_2+a_4 & a_1 & 1 & 0 \\
+ a_3 & a_2 & a_1 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4
+\end{bmatrix}
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & a_4 & a_5 & 0 \\
+ a_1+a_3 & 1+a_4 & a_5 & 0 & 0 \\
+ a_2+a_4 & a_1+a_5 & 1 & 0 & 0 \\
+ a_3+a_5 & a_2 & a_1 & 1 & 0 \\
+ a_4 & a_3 & a_2 & a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4 \\
+ \rho^5
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4 \\
+ -a_5
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & a_4 & a_5 & a_6 & 0 \\
+ a_1+a_3 & 1+a_4 & a_5 & a_6 & 0 & 0 \\
+ a_2+a_4 & a_1+a_5 & 1+a_6 & 0 & 0 & 0 \\
+ a_3+a_5 & a_2+a_6 & a_1 & 1 & 0 & 0 \\
+ a_4+a_6 & a_3 & a_2 & a_1 & 1 & 0 \\
+ a_5 & a_4 & a_3 & a_2 & a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4 \\
+ \rho^5 \\
+ \rho^6
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4 \\
+ -a_5 \\
+ -a_6
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & a_4 & a_5 & a_6 & a_7 & 0 \\
+ a_1+a_3 & 1+a_4 & a_5 & a_6 & a_7 & 0 & 0 \\
+ a_2+a_4 & a_1+a_5 & 1+a_6 & a_7 & 0 & 0 & 0 \\
+ a_3+a_5 & a_2+a_6 & a_1+a_7 & 1 & 0 & 0 & 0 \\
+ a_4+a_6 & a_3+a_7 & a_2 & a_1 & 1 & 0 & 0 \\
+ a_5+a_7 & a_4 & a_3 & a_2 & a_1 & 1 & 0 \\
+ a_6 & a_5 & a_4 & a_3 & a_2 & a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4 \\
+ \rho^5 \\
+ \rho^6 \\
+ \rho^7
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4 \\
+ -a_5 \\
+ -a_6 \\
+ -a_7
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+ 1+a_2 & a_3 & a_4 & a_5 & a_6 & a_7 & a_8 & 0 \\
+ a_1+a_3 & 1+a_4 & a_5 & a_6 & a_7 & a_8 & 0 & 0 \\
+ a_2+a_4 & a_1+a_5 & 1+a_6 & a_7 & a_8 & 0 & 0 & 0 \\
+ a_3+a_5 & a_2+a_6 & a_1+a_7 & 1+a_8 & 0 & 0 & 0 & 0 \\
+ a_4+a_6 & a_3+a_7 & a_2+a_8 & a_1 & 1 & 0 & 0 & 0 \\
+ a_5+a_7 & a_4+a_8 & a_3 & a_2 & a_1 & 1 & 0 & 0 \\
+ a_6+a_8 & a_5 & a_4 & a_3 & a_2 & a_1 & 1 & 0 \\
+ a_7 & a_6 & a_5 & a_4 & a_3 & a_2 & a_1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4 \\
+ \rho^5 \\
+ \rho^6 \\
+ \rho^7 \\
+ \rho^8
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4 \\
+ -a_5 \\
+ -a_6 \\
+ -a_7 \\
+ -a_8
+\end{bmatrix}
+\]
+
+Evidently, the matrices are the sum of two contributions. The first is a
+full-rank, unit-lower-triangular Toeplitz matrix. The second is a
+rank-deficient Hankel matrix. In the above $p=8$ case, e.g., the decomposition
+is
+\[
+\left(
+\begin{bmatrix}
+ 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ a_1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ a_2 & a_1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+ a_3 & a_2 & a_1 & 1 & 0 & 0 & 0 & 0 \\
+ a_4 & a_3 & a_2 & a_1 & 1 & 0 & 0 & 0 \\
+ a_5 & a_4 & a_3 & a_2 & a_1 & 1 & 0 & 0 \\
+ a_6 & a_5 & a_4 & a_3 & a_2 & a_1 & 1 & 0 \\
+ a_7 & a_6 & a_5 & a_4 & a_3 & a_2 & a_1 & 1
+\end{bmatrix}
++
+\begin{bmatrix}
+ a_2 & a_3 & a_4 & a_5 & a_6 & a_7 & a_8 & 0 \\
+ a_3 & a_4 & a_5 & a_6 & a_7 & a_8 & 0 & 0 \\
+ a_4 & a_5 & a_6 & a_7 & a_8 & 0 & 0 & 0 \\
+ a_5 & a_6 & a_7 & a_8 & 0 & 0 & 0 & 0 \\
+ a_6 & a_7 & a_8 & 0 & 0 & 0 & 0 & 0 \\
+ a_7 & a_8 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ a_8 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+\right)
+\begin{bmatrix}
+ \rho^1 \\
+ \rho^2 \\
+ \rho^3 \\
+ \rho^4 \\
+ \rho^5 \\
+ \rho^6 \\
+ \rho^7 \\
+ \rho^8
+\end{bmatrix}
+=
+\begin{bmatrix}
+ -a_1 \\
+ -a_2 \\
+ -a_3 \\
+ -a_4 \\
+ -a_5 \\
+ -a_6 \\
+ -a_7 \\
+ -a_8
+\end{bmatrix}
+.
+\]
+
+This special structure is not surprising given that the Yule-Walker system is
+symmetric Toeplitz. Gohberg and Koltracht 1989 presented an ``Efficient
+Algorithm for Toeplitz Plus Hankel Matrices'' scaling like $5N^2$ operations.
+Unfortunately the article details only the case for a real, symmetric sum
+stemming from a real, symmetric Toeplitz summand. They hinted that the
+non-symmetric algorithm, which we desire, is similar.
+
+\subsection*{TODO}
+
+\begin{enumerate}
+ \item Actually write the general, closed-form expression for these matrices.
+ \item Find or derive the algorithm for solving with a real-valued operator
+  that is the sum of a non-symmetric Toeplitz matrix and a Toeplitz matrix.
+\end{enumerate}
+
+\subsection*{Comments}
+
+Of course, as suggested by Broersen 2006 in ``Automatic Autocorrelation and
+Spectral Analysis'' section 5.4, we could obtain the process reflection
+coefficients from the parameters and then the autocorrelations from the
+reflection coefficients, but what fun would that be?  Presumably any efficient
+solution we find will be equivalent to Broersen's suggested two-pass solution
+solution.
+
+\end{document}
