@@ -30,12 +30,12 @@ k&=0
 &
 k &> 0
 \end{align*}
-Here $\rho^i$ denotes the lag $i$ autocorrelation which are symmetric about lag
-$0$. These equations are solved by a variant of the Levinson-Durbin to estimate
-parameters from observed autocorrelations. We want the converse--- computing
-autocorrelations $\rho^i$ given parameters $a^i$.  For $k\geq p$ this is simple
-as the latter, iterative relation can be used. However, For $0<k<p$ the
-equations form a linear system behaving as a ``boundary condition''.  Many
+Here $\rho^i$ denotes the lag $i$ autocorrelation which is symmetric about lag
+$0$. These equations are usually solved by a variant of the Levinson-Durbin to
+estimate parameters from observed autocorrelations. We want the converse---
+computing autocorrelations $\rho^i$ given parameters $a^i$.  For $k\geq p$ this
+is simple as the latter, iterative relation can be used. However, For $0<k<p$
+the equations form a linear system behaving as a ``boundary condition''.  Many
 authors solve this system explicitly for only $p=1$ and $p=2$ and consider the
 matter closed.  We seek a systematic way to derive and solve the boundary
 condition system, which we call the ``Wule-Yalker'' equations to hint at their
