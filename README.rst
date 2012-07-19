@@ -1,4 +1,4 @@
-Burg recursion in Header-only C++
+Burg recursion in header-only C++
 =================================
 
 Description
@@ -108,6 +108,11 @@ Contents
    Sample turbulent total energy RMS fluctuation data and optimal coefficients
    found by automatically by ARMASA [Broersen2002].
 
+bj4ed.dat
+   Data from Table 2.1 on page 32 of [Box2008].  These may be used to test
+   AR(15) autocorrelation coefficients against Table 2.2 on page 33 and
+   reflection coefficients against Table 3.1 on page 70.
+
 *WuleYalker.tex*
    A derivation of some equations closely connected with the Yule--Walker
    system.
@@ -143,6 +148,8 @@ References
 ----------
 
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
+
+-- [Box2008]       Box, George E. P., Gwilym M. Jenkins, and Gregory C. Reinsel. Time Series Analysis : Forecasting and Control. 4 edition. John Wiley, June 2008.
 
 -- [Broersen2002]  Broersen, P. M. T. "Automatic spectral analysis with time series models." IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
 
