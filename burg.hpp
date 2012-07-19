@@ -23,9 +23,9 @@
  * \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
  * is taken from the range [data_first, data_last) in a single pass.
  *
- * Coefficients \f$\vec{a}\f$ are stored in [coeffs_first, coeffs_last)
- * with the model order determined by both <tt>k = distance(coeffs_first,
- * coeffs_last)</tt> and the \c hierarchy flag.  If \c hierarchy is
+ * Parameters \f$\vec{a}\f$ are stored in [params_first, params_last)
+ * with the model order determined by both <tt>k = distance(params_first,
+ * params_last)</tt> and the \c hierarchy flag.  If \c hierarchy is
  * false, the coefficients for an AR(<tt>k</tt>) process are output.  If \c
  * hierarchy is true, the <tt>m*(m+1)/2</tt> coefficients for models AR(1),
  * AR(2), ..., AR(m) up to order <tt>m = floor(sqrt(2*k))</tt> are output.
@@ -50,8 +50,8 @@
 template <class InputIterator, class ForwardIterator, class OutputIterator>
 std::size_t burg_algorithm(InputIterator   data_first,
                            InputIterator   data_last,
-                           ForwardIterator coeffs_first,
-                           ForwardIterator coeffs_last,
+                           ForwardIterator params_first,
+                           ForwardIterator params_last,
                            OutputIterator  msd_first,
                            const bool hierarchy = false)
 {
@@ -74,9 +74,9 @@ std::size_t burg_algorithm(InputIterator   data_first,
 
     // Get the order or maximum order of autoregressive model(s) desired.
     // When hierarchy is true, the maximum order is the index of the largest
-    // triangular number that will fit within [coeffs_first, coeffs_last).
-    const size m = hierarchy ? sqrt(2*distance(coeffs_first, coeffs_last))
-                             :        distance(coeffs_first, coeffs_last);
+    // triangular number that will fit within [params_first, params_last).
+    const size m = hierarchy ? sqrt(2*distance(params_first, params_last))
+                             :        distance(params_first, params_last);
 
     // Initialize mean squared discrepancy msd and Dk
     value msd = inner_product(f.begin(), f.end(), f.begin(), value(0));
@@ -106,8 +106,8 @@ std::size_t burg_algorithm(InputIterator   data_first,
         if (hierarchy || kp1 == m)
         {
             // Output coefficients and the mean squared discrepancy
-            coeffs_first = copy(Ak.begin() + 1, Ak.begin() + (kp1 + 1),
-                                coeffs_first);
+            params_first = copy(Ak.begin() + 1, Ak.begin() + (kp1 + 1),
+                                params_first);
             *msd_first++ = msd;
         }
 
@@ -127,7 +127,7 @@ std::size_t burg_algorithm(InputIterator   data_first,
 
     // Defensively NaN any unspecified locations within the coeffs range
     if (numeric_limits<value>::has_quiet_NaN)
-        fill(coeffs_first, coeffs_last, numeric_limits<value>::quiet_NaN());
+        fill(params_first, params_last, numeric_limits<value>::quiet_NaN());
 
     // Return the number of values processed in [data_first, data_last)
     return N;
@@ -163,19 +163,19 @@ struct null_output_iterator
  * \sum_{i=1}^m a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
  * is taken from the range [data_first, data_last) in a single pass.
  *
- * Coefficients \f$\vec{a}\f$ are stored in [coeffs_first, coeffs_last) with
- * the model order determined by <tt>distance(coeffs_first, coeffs_last)</tt>.
+ * Parameters \f$\vec{a}\f$ are stored in [params_first, params_last) with
+ * the model order determined by <tt>distance(params_first, params_last)</tt>.
  *
  * @returns the number data values processed within [data_first, data_last).
  */
 template <class InputIterator, class ForwardIterator>
 std::size_t burg_algorithm(InputIterator   data_first,
                            InputIterator   data_last,
-                           ForwardIterator coeffs_first,
-                           ForwardIterator coeffs_last)
+                           ForwardIterator params_first,
+                           ForwardIterator params_last)
 {
     return burg_algorithm(data_first, data_last,
-                          coeffs_first, coeffs_last,
+                          params_first, params_last,
                           null_output_iterator(), false);
 }
 
