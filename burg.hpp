@@ -193,8 +193,10 @@ std::size_t burg_algorithm(InputIterator   data_first,
  * T. Automatic autocorrelation and spectral analysis. Springer, 2006.
  * http://dx.doi.org/10.1007/1-84628-329-9.
  *
- * @param first The beginning of the range containing the parameters.
- * @param last  The exclusive end of the range.
+ * @param[in,out] first On input, the beginning of the range containing
+ *                      the parameters.  On output, the range contains
+ *                      the reflection coefficients.
+ * @param[in,out] last  The exclusive end of the range.
  *
  * @return the variance of the process normalized by the variance of the
  *         input noise \f$\sigma_epsilon\f$ where \f$\epsilon \sim{}
@@ -245,6 +247,42 @@ reflection_coefficients(BidirectionalIterator first,
     }
 
     return retval;
+}
+
+/**
+ * Convert AR(p) lag \f$k < p\f$ autocorrelations \f$\rho_1,\dots,\rho_{p-1}\f$
+ * given process parameters \f$a_i\f$ and reflection coefficients \f$k_i\f$.
+ * The parameters are defined by
+ * \f[
+ *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
+ * \f]
+ * while the reflection coefficients are the negative of the partial
+ * autocorrelations as defined within the classical Levinson-Durbin recursion.
+ * The model order is determined by <tt>p = distance(params_first,
+ * params_last)</tt>.  Autocorrelations for \f$k >= p\f$ may be computed
+ * directly from \f$a_i\f$ using that
+ * \f[
+ *   \rho_k = - a_0 \rho_{k-1} + \dots + a_{p-1} x_{k - (p + 1)}
+ *   .
+ * \f]
+ *
+ * @param[in]  params_first  The beginning of the range containing parameters
+ *                           computed by, e.g., burg_algorithm().
+ * @param[in]  params_last   The exclusive end of the parameter range.
+ * @param[in]  rcoeffs_first The beginning of the reflection coefficients
+ *                           computed by, e.g., reflection_coefficients().
+ * @param[out] rho_first     The beginning of the computed autocorrelations.
+ *                           The zeroth value is the lag 0 autocorrelation.
+ */
+template <class ForwardIterator,
+          class InputIterator,
+          class BidirectionalIterator>
+void autocorrelations(ForwardIterator       params_first,
+                      ForwardIterator       params_last,
+                      InputIterator         rcoeffs_first,
+                      BidirectionalIterator rho_first)
+{
+    // FIXME Implement
 }
 
 /**
