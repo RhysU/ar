@@ -59,12 +59,11 @@ std::size_t burg_algorithm(InputIterator   data_first,
     using std::distance;
     using std::fill;
     using std::inner_product;
-    using std::iterator_traits;
     using std::numeric_limits;
     using std::sqrt;
 
     // ForwardIterator::value_type determines the working precision
-    typedef typename iterator_traits<ForwardIterator>::value_type value;
+    typedef typename std::iterator_traits<ForwardIterator>::value_type value;
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
 
@@ -266,13 +265,17 @@ reflection_coefficients(BidirectionalIterator first,
  *   .
  * \f]
  *
+ * The algorithm is from section 5.4.4 of Broersen, P. M.  T. Automatic
+ * autocorrelation and spectral analysis. Springer, 2006.
+ * http://dx.doi.org/10.1007/1-84628-329-9.
+ *
  * @param[in]  params_first  The beginning of the range containing parameters
  *                           computed by, e.g., burg_algorithm().
  * @param[in]  params_last   The exclusive end of the parameter range.
  * @param[in]  rcoeffs_first The beginning of the reflection coefficients
  *                           computed by, e.g., reflection_coefficients().
  * @param[out] rho_first     The beginning of the computed autocorrelations.
- *                           The zeroth value is the lag 0 autocorrelation.
+ *                           The zeroth output is the lag 1 autocorrelation.
  */
 template <class ForwardIterator,
           class InputIterator,
@@ -282,7 +285,32 @@ void autocorrelations(ForwardIterator       params_first,
                       InputIterator         rcoeffs_first,
                       BidirectionalIterator rho_first)
 {
-    // FIXME Implement
+    using std::advance;
+    using std::distance;
+    using std::inner_product;
+    using std::numeric_limits;
+    using std::reverse_iterator;
+
+    // BidirectionalIterator::value_type determines the working precision
+    typedef typename std::iterator_traits<BidirectionalIterator>::value_type value;
+
+    // Track output written so far and maximal amount of output possible
+    BidirectionalIterator rho_next(rho_first);
+    BidirectionalIterator rho_last(rho_first);
+    advance(rho_last, distance(params_first, params_last));
+
+    // Base case for rho(1)
+    *rho_next++ = -*rcoeffs_first++;
+
+    // Recurse for rho(2)...rho(p-1)
+    while (rho_next != rho_last) {
+        value t = (*rcoeffs_first++);
+        t *= inner_product(rho_first, rho_next, params_first, value(1));
+        t += inner_product(reverse_iterator<BidirectionalIterator>(rho_next),
+                           reverse_iterator<BidirectionalIterator>(rho_first),
+                           params_first, value(0));
+        *rho_next++ = -t;
+    }
 }
 
 /**
@@ -334,18 +362,17 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     using std::copy;
     using std::distance;
     using std::inner_product;
-    using std::iterator_traits;
     using std::reverse_iterator;
 
     // Tildes indicate transposes while hats indicate reversed vectors.
 
     // OutputIterator::value_type determines the working precision
-    typedef typename iterator_traits<OutputIterator>::value_type value;
+    typedef typename std::iterator_traits<OutputIterator>::value_type value;
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
 
     // Determine problem size using [a_first,a_last) and ensure nontrivial
-    const typename iterator_traits<RandomAccessIterator>::difference_type dist
+    typename std::iterator_traits<RandomAccessIterator>::difference_type dist
             = distance(a_first, a_last);
     if (dist < 1) throw std::invalid_argument("distance(a_first, a_last) < 1");
     const size n = static_cast<size>(dist);
