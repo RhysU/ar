@@ -51,13 +51,8 @@ int main(int argc, char *argv[])
     }
     printf("\n%22s %22.14g\n", "Mean^2 Discrepancy", est_msd);
 
-// FIXME
-//  // Compute lag(k) autocorrelations using Toeplitz solve
-//  vector<double> lag(exact.size() + 1);
-//  zohar_linear_solve(est.begin(), est.end(), est.begin(), lag.begin());
-//  for (vector<double>::const_iterator i = lag.begin(); i != lag.end(); ++i) {
-//      printf("%22.14g\n", *i);
-//  }
+    // Compute partial autocorrelation functions overwriting parameters
+    reflection_coefficients(est.begin(), est.end());
 
     return 0;
 }

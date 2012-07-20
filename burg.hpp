@@ -180,6 +180,66 @@ std::size_t burg_algorithm(InputIterator   data_first,
 }
 
 /**
+ * Convert AR(p) process parameters \f$a_i\f$ into reflection coefficients.
+ * The parameters are defined by
+ * \f[
+ *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
+ * \f]
+ * and the reflection coefficients are the negative of the partial
+ * autocorrelations as defined within the classical Levinson-Durbin recursion.
+ *
+ * The in-place conversion algorithm is from section 5.4.3 of Broersen, P. M.
+ * T. Automatic autocorrelation and spectral analysis. Springer, 2006.
+ * http://dx.doi.org/10.1007/1-84628-329-9.
+ *
+ * @param first The beginning of the range containing the parameters.
+ * @param last  The exclusive end of the range.
+ *
+ * @return the number of reflection coefficients computed in-place within
+ * <tt>[first,last)</tt>
+ */
+template <class BidirectionalIterator>
+std::size_t reflection_coefficients(BidirectionalIterator first,
+                                    BidirectionalIterator last)
+{
+    using std::distance;
+    using std::iterator_traits;
+    using std::reverse_iterator;
+
+    typedef BidirectionalIterator iterator;
+    typedef reverse_iterator<iterator> reverse;
+    typedef typename iterator_traits<iterator>::value_type value;
+    typedef typename iterator_traits<iterator>::difference_type difference;
+
+    // Determine problem size using [first,last) and ensure nontrivial
+    const difference n = distance(first, last);
+    if (n < 1) throw std::invalid_argument("distance(first, last) < 1");
+
+    // Initialize recursive output location (which is written in reverse order)
+    reverse rfirst(last);
+    for (difference i = n; i --> 1 ;) {
+
+        // Preserve the final parameter as the current reflection coefficient
+        const value k = *rfirst++;
+        const value mu = 1 / (1 - k*k);
+
+        // Compute the recursive inputs by traversing from both ends
+        // Front write occurs second so it "wins" in odd-length iterations
+        iterator front(first);
+        reverse  back(rfirst);
+        for (difference j = 0; j <= (i-1)/2; ++j) {
+            const value t1 = mu*(*front - k*(*back) );
+            const value t2 = mu*(*back  - k*(*front));
+            *back++  = t2;
+            *front++ = t1;
+        }
+
+    }
+
+    return n;
+}
+
+/**
  * Solve a Toeplitz set of linear equations.  That is, find \f$s_{n+1}\f$
  * satisfying
  * \f[
@@ -239,11 +299,10 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     typedef typename vector::size_type size;
 
     // Determine problem size using [a_first,a_last) and ensure nontrivial
-    typename iterator_traits<RandomAccessIterator>::difference_type a_dist
-        = distance(a_first, a_last);
-    if (a_dist < 1)
-        throw std::invalid_argument("distance(a_first, a_last) < 1");
-    const size n = static_cast<size>(a_dist);
+    const typename iterator_traits<RandomAccessIterator>::difference_type dist
+            = distance(a_first, a_last);
+    if (dist < 1) throw std::invalid_argument("distance(a_first, a_last) < 1");
+    const size n = static_cast<size>(dist);
 
     // Allocate working storage and set initial values for recursion:
     vector s;    s   .reserve(n+1); s   .push_back( *d_first);
