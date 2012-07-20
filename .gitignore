@@ -12,6 +12,7 @@
 *.a
 
 # Binaries
+autocor
 example
 test
 zohar

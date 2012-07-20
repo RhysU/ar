@@ -1,7 +1,8 @@
 CXXFLAGS ?= -g -Wall -O3 # -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
 
-all:     example zohar test
+all:     autocor example zohar test
 
+autocor: autocor.cpp burg.hpp
 example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
 zohar:   zohar.cpp   burg.hpp

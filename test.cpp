@@ -14,7 +14,7 @@
 // Computes percent difference of \c b against theoretical result \c a.
 template<typename FPT> FPT pdiff(FPT a, FPT b) { return (b - a) / a * 100; }
 
-// Test burg_algorithm against synthetic data and NR routine memcof()
+// Test burg_algorithm against synthetic data
 int main(int argc, char *argv[])
 {
     using namespace std;

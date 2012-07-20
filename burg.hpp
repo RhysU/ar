@@ -248,6 +248,8 @@ reflection_coefficients(BidirectionalIterator first,
     return retval;
 }
 
+// FIXME autocorrelations(...) is absurdly broken!
+
 /**
  * Convert AR(p) lag \f$k < p\f$ autocorrelations \f$\rho_1,\dots,\rho_{p-1}\f$
  * given process parameters \f$a_i\f$ and reflection coefficients \f$k_i\f$.
