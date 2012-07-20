@@ -180,13 +180,14 @@ std::size_t burg_algorithm(InputIterator   data_first,
 }
 
 /**
- * Convert AR(p) process parameters \f$a_i\f$ into reflection coefficients.
- * The parameters are defined by
+ * Convert AR(p) process parameters \f$a_i\f$ into reflection coefficients
+ * \f$k_i\f$.  The parameters are defined by
  * \f[
  *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
  * \f]
- * and the reflection coefficients are the negative of the partial
+ * while the reflection coefficients are the negative of the partial
  * autocorrelations as defined within the classical Levinson-Durbin recursion.
+ * The model order is determined by <tt>p = distance(first, last)</tt>.
  *
  * The in-place conversion algorithm is from section 5.4.3 of Broersen, P. M.
  * T. Automatic autocorrelation and spectral analysis. Springer, 2006.
@@ -195,33 +196,40 @@ std::size_t burg_algorithm(InputIterator   data_first,
  * @param first The beginning of the range containing the parameters.
  * @param last  The exclusive end of the range.
  *
- * @return the number of reflection coefficients computed in-place within
+ * @return the variance of the process normalized by the variance of the
+ *         input noise \f$\sigma_epsilon\f$ where \f$\epsilon \sim{}
+ *         N(0,\sigma_epsilon)\f$.  That is, \f$\prod_{i=0}^{p-1}
+ *         \left(1-k_i^2\right)^{-1}\f$ is returned.
+ *
+ * number of reflection coefficients computed in-place within
  * <tt>[first,last)</tt>
  */
 template <class BidirectionalIterator>
-std::size_t reflection_coefficients(BidirectionalIterator first,
-                                    BidirectionalIterator last)
+typename std::iterator_traits<BidirectionalIterator>::value_type
+reflection_coefficients(BidirectionalIterator first,
+                        BidirectionalIterator last)
 {
     using std::distance;
-    using std::iterator_traits;
     using std::reverse_iterator;
 
     typedef BidirectionalIterator iterator;
     typedef reverse_iterator<iterator> reverse;
-    typedef typename iterator_traits<iterator>::value_type value;
-    typedef typename iterator_traits<iterator>::difference_type difference;
+    typedef typename std::iterator_traits<iterator>::value_type value;
+    typedef typename std::iterator_traits<iterator>::difference_type difference;
 
     // Determine problem size using [first,last) and ensure nontrivial
     const difference n = distance(first, last);
     if (n < 1) throw std::invalid_argument("distance(first, last) < 1");
 
-    // Initialize recursive output location (which is written in reverse order)
+    // Initialize and recurse.  Output is *rfirst on every iteration.
+    value retval = 1;
     reverse rfirst(last);
     for (difference i = n; i --> 1 ;) {
 
         // Preserve the final parameter as the current reflection coefficient
         const value k = *rfirst++;
         const value mu = 1 / (1 - k*k);
+        retval *= mu;
 
         // Compute the recursive inputs by traversing from both ends
         // Front write occurs second so it "wins" in odd-length iterations
@@ -236,7 +244,7 @@ std::size_t reflection_coefficients(BidirectionalIterator first,
 
     }
 
-    return n;
+    return retval;
 }
 
 /**
