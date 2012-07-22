@@ -246,6 +246,59 @@ reflection_coefficients(BidirectionalIterator first,
     return gain;
 }
 
+/**
+ * Convert AR(p) reflection coefficients \f$k_i\f$ into process parameters
+ * \f$a_i\f$.  The parameters are defined by
+ * \f[
+ *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
+ * \f]
+ * while the reflection coefficients are the negative of the partial
+ * autocorrelations as defined within the classical Levinson-Durbin recursion.
+ * The model order is determined by <tt>p = distance(first, last)</tt>.
+ *
+ * The in-place conversion algorithm is from section 5.4.2 of Broersen, P. M.
+ * T. Automatic autocorrelation and spectral analysis. Springer, 2006.
+ * http://dx.doi.org/10.1007/1-84628-329-9.
+ *
+ * @param[in,out] first On input, the beginning of the range containing
+ *                      the reflection coefficients.  On output, the range
+ *                      contains the parameters.
+ * @param[in,out] last  The exclusive end of the range.
+ */
+template <class BidirectionalIterator>
+void parameters(BidirectionalIterator first,
+                BidirectionalIterator last)
+{
+    using std::distance;
+    using std::reverse_iterator;
+
+    typedef BidirectionalIterator iterator;
+    typedef reverse_iterator<iterator> reverse;
+    typedef typename std::iterator_traits<iterator>::value_type value;
+    typedef typename std::iterator_traits<iterator>::difference_type difference;
+
+    // Determine problem size using [first,last) and ensure nontrivial
+    const difference n = distance(first, last);
+    if (n < 1) throw std::invalid_argument("distance(first, last) < 1");
+
+    // Initialize and recurse.
+    iterator k(first);
+    for (difference i = 0; i < n; ++i, ++k) {
+
+        // Compute the recursive inputs by traversing from both ends
+        // Front write occurs second so it "wins" in odd-length iterations
+        iterator front(first);
+        reverse  back(k);
+        for (difference j = 0; j <= (i-1)/2; ++j) {
+            const value t1 = *front + (*k)*(*back);
+            const value t2 = *back  + (*k)*(*front);
+            *back++  = t2;
+            *front++ = t1;
+        }
+
+    }
+}
+
 // FIXME autocorrelations(...) is absurdly broken!
 
 /**
