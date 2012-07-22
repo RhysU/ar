@@ -281,9 +281,10 @@ void parameters(BidirectionalIterator first,
     const difference n = distance(first, last);
     if (n < 1) throw std::invalid_argument("distance(first, last) < 1");
 
-    // Initialize and recurse.
+    // Initialize, hard coding result in simple p = 1 case, and then recurse.
     iterator k(first);
-    for (difference i = 0; i < n; ++i, ++k) {
+    ++k;
+    for (difference i = 1; i < n; ++i, ++k) {
 
         // Compute the recursive inputs by traversing from both ends
         // Front write occurs second so it "wins" in odd-length iterations
