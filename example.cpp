@@ -26,16 +26,18 @@ int main(int argc, char *argv[])
     }
 
     // Get linear prediction coefficients for orders 1 through maxorder
-    std::size_t maxorder = 8;
-    std::vector<real> coeffs(maxorder*(maxorder+1)/2), msd(maxorder);
+    std::size_t maxorder = 7;
+    std::vector<real> coeffs(maxorder*(maxorder+1)/2);
+    std::vector<real> sigma2e(maxorder), sigma2x(maxorder), rho(maxorder);
     burg_algorithm(original.begin(), original.end(),
-                   coeffs.begin(), coeffs.end(), msd.begin(), true);
+                   coeffs.begin(), coeffs.end(),
+                   sigma2e.begin(), sigma2x.begin(), rho.begin(), true);
 
     // Display orders, mean squared discrepancy, and model coefficients
-    printf("%5s  %9s %9s\n", "Order", "RMS/N", "Coefficients");
-    printf("%5s  %9s %9s\n", "-----", "-----", "------------");
+    printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");
+    printf("%5s  %9s %9s %9s\n", "-----", "-----", "----", "------------");
     for (std::size_t p = 0, c = 0; p < maxorder; ++p) {
-        printf("%5lu  %9.4Lg", p, msd[p]);
+        printf("%5lu  %9.4Lg %9.4Lg", p, sigma2e[p], sigma2x[p]/sigma2e[p]);
         for (std::size_t i = 0; i < p+1; ++i) printf(" %9.4Lg", coeffs[c++]);
         putchar('\n');
     }

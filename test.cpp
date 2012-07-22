@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         copy(istream_iterator<double>(f), istream_iterator<double>(),
              back_inserter(exact));
     }
-    vector<double> est(exact.size()), nr(exact.size());
+    vector<double> est(exact.size()), est_rho(exact.size());
 
     vector<double> data;
     {
@@ -39,8 +39,9 @@ int main(int argc, char *argv[])
     }
 
     // Compute burg_algorithm's answer
-    double est_msd;
-    burg_algorithm(data.begin(), data.end(), est.begin(), est.end(), &est_msd);
+    double est_sigma2e, est_sigma2x;
+    burg_algorithm(data.begin(), data.end(), est.begin(), est.end(),
+                   &est_sigma2e, &est_sigma2x, est_rho.begin());
 
     printf("%22s %22s %22s\n", "Coefficient", "burg_algorithm", "PercentDiff");
     printf("%22s %22s %22s\n", "-----------", "--------------", "-----------");
@@ -49,7 +50,9 @@ int main(int argc, char *argv[])
     {
         printf("%22.14g %22.14g %22.14g\n", *i, *j, pdiff(*i, *j));
     }
-    printf("\n%22s %22.14g\n", "Mean^2 Discrepancy", est_msd);
+    printf("\n");
+    printf("%22s %22.14g\n", "\\sigma^2_\\epsilon", est_sigma2e);
+    printf("%22s %22.14g\n", "\\sigma^2_x",         est_sigma2x);
 
     return 0;
 }
