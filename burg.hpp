@@ -300,70 +300,71 @@ void parameters(BidirectionalIterator first,
     }
 }
 
-// FIXME autocorrelations(...) is absurdly broken!
-
 /**
- * Convert AR(p) lag \f$k < p\f$ autocorrelations \f$\rho_1,\dots,\rho_{p-1}\f$
- * given process parameters \f$a_i\f$ and reflection coefficients \f$k_i\f$.
- * The parameters are defined by
- * \f[
- *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
- * \f]
- * while the reflection coefficients are the negative of the partial
- * autocorrelations as defined within the classical Levinson-Durbin recursion.
- * The model order is determined by <tt>p = distance(params_first,
- * params_last)</tt>.  Autocorrelations for \f$k >= p\f$ may be computed
- * directly from \f$a_i\f$ using that
+ * Compute AR(p) lag \f$k < p\f$ autocorrelations \f$\rho_1,\dots,\rho_{p-1}\f$
+ * given reflection coefficients \f$k_i\f$.  The reflection coefficients are
+ * the negative of the partial autocorrelations as defined within the classical
+ * Levinson-Durbin recursion.  The model order is determined by <tt>p =
+ * distance(k_first, k_last)</tt>.  Autocorrelations for \f$k >= p\f$ may be
+ * computed directly from \f$a_i\f$ using that
  * \f[
  *   \rho_k = - a_0 \rho_{k-1} + \dots + a_{p-1} x_{k - (p + 1)}
- *   .
  * \f]
+ * where \f$a_i\f$ are the corresponding process parameters.
  *
  * The algorithm is from section 5.4.4 of Broersen, P. M.  T. Automatic
  * autocorrelation and spectral analysis. Springer, 2006.
- * http://dx.doi.org/10.1007/1-84628-329-9.
+ * http://dx.doi.org/10.1007/1-84628-329-9.  Because the algorithm operates
+ * in-place on <tt>[k_first, k_last)</tt> by incrementally building process
+ * parameters of increasingly higher orders, it is highly subject to numerical
+ * stability issues.
  *
- * @param[in]  params_first  The beginning of the range containing parameters
- *                           computed by, e.g., burg_algorithm().
- * @param[in]  params_last   The exclusive end of the parameter range.
- * @param[in]  rcoeffs_first The beginning of the reflection coefficients
- *                           computed by, e.g., reflection_coefficients().
- * @param[out] rho_first     The beginning of the computed autocorrelations.
- *                           The zeroth output is the lag 1 autocorrelation.
+ * @param[in,out] k_first   The beginning of the range containing reflection
+ *                          coefficients from, e.g., reflection_coefficients().
+ *                          Values <i>will be overwritten</i> by parameters.
+ * @param[in,out] k_last    The exclusive end of the reflection coefficients.
+ * @param[out]    rho_first The beginning of the computed autocorrelations.
+ *                       The zeroth output is the lag 1 autocorrelation.
  */
-template <class ForwardIterator,
-          class InputIterator,
-          class BidirectionalIterator>
-void autocorrelations(ForwardIterator       params_first,
-                      ForwardIterator       params_last,
-                      InputIterator         rcoeffs_first,
-                      BidirectionalIterator rho_first)
+template <class BidirectionalIterator,
+          class ForwardIterator>
+void autocorrelations(BidirectionalIterator k_first,
+                      BidirectionalIterator k_last,
+                      ForwardIterator       rho_first)
 {
-    using std::advance;
     using std::distance;
     using std::inner_product;
-    using std::numeric_limits;
     using std::reverse_iterator;
 
-    // BidirectionalIterator::value_type determines the working precision
-    typedef typename std::iterator_traits<BidirectionalIterator>::value_type value;
+    typedef BidirectionalIterator iterator;
+    typedef reverse_iterator<iterator> reverse;
+    typedef typename std::iterator_traits<iterator>::value_type value;
+    typedef typename std::iterator_traits<iterator>::difference_type difference;
 
-    // Track output written so far and maximal amount of output possible
-    BidirectionalIterator rho_next(rho_first);
-    BidirectionalIterator rho_last(rho_first);
-    advance(rho_last, distance(params_first, params_last));
+    // Determine problem size using [first,last) and ensure nontrivial
+    const difference n = distance(k_first, k_last);
+    if (n < 1) throw std::invalid_argument("distance(k_first, k_last) < 1");
 
-    // Base case for rho(1)
-    *rho_next++ = -*rcoeffs_first++;
+    // Initialize, hard coding result in simple p = 1 case, and then recurse.
+    ForwardIterator rho(rho_first);
+    iterator k(k_first);
+    *rho++ = -*(k++);
+    for (difference i = 1; i < n; ++i, ++k, ++rho) {
 
-    // Recurse for rho(2)...rho(p-1)
-    while (rho_next != rho_last) {
-        value t = (*rcoeffs_first++);
-        t *= inner_product(rho_first, rho_next, params_first, value(1));
-        t += inner_product(reverse_iterator<BidirectionalIterator>(rho_next),
-                           reverse_iterator<BidirectionalIterator>(rho_first),
-                           params_first, value(0));
-        *rho_next++ = -t;
+        // Compute the recursive inputs by traversing from both ends
+        // Front write occurs second so it "wins" in odd-length iterations
+        iterator front(k_first);
+        reverse  back(k);
+        for (difference j = 0; j <= (i-1)/2; ++j) {
+            const value tf = *front;
+            const value tb = *back;
+            *back++  = (*k)*tb + tf;
+            *front++ = (*k)*tf + tb;
+        }
+
+        // Compute the k-th autocorrelation using Broersen's equation (5.31)
+        *rho  = inner_product(rho_first, rho, k_first, *k);
+        *rho *= -1;
     }
 }
 

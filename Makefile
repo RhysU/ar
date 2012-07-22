@@ -16,6 +16,8 @@ check: all
 	@echo
 	./zohar
 	@echo
+	./autocor
+	@echo
 	./test test1.coeff     test1.dat
 	@echo
 	./test test2.coeff     test2.dat

@@ -51,14 +51,5 @@ int main(int argc, char *argv[])
     }
     printf("\n%22s %22.14g\n", "Mean^2 Discrepancy", est_msd);
 
-// FIXME
-//  // Compute autocorrelation functions by way of reflection coefficients 
-//  vector<double> rho(est);
-//  reflection_coefficients(rho.begin(), rho.end());
-//  autocorrelations(est.begin(), est.end(), rho.begin(), rho.begin());
-//  for (vector<double>::const_iterator i = rho.begin(); i != rho.end(); ++i) {
-//      printf("%22.14g\n", *i);
-//  }
-
     return 0;
 }
