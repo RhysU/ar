@@ -22,6 +22,11 @@
  * \sum_{i=1}^m - a_i x_{n-i}\f$ and backward linear prediction \f$x_n =
  * \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
  * is taken from the range [data_first, data_last) in a single pass.
+ * Each corresponding AR(p) prediction model has the form
+ * \f[
+ *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
+ * \f]
+ * where \f$\epsilon_n\f$ has variance \f$\sigma^2_\epsilon\f$.
  *
  * Parameters \f$\vec{a}\f$ are stored in [params_first, params_last) with the
  * model order determined by both <tt>k = distance(params_first,
@@ -29,15 +34,10 @@
  * coefficients for an AR(<tt>k</tt>) process are output.  If \c hierarchy is
  * true, the <tt>m*(m+1)/2</tt> coefficients for models AR(1), AR(2), ...,
  * AR(m) up to order <tt>m = floor(sqrt(2*k))</tt> are output.  The mean
- * squared discrepancy value \f$\sigma^2_\epsilon\f$ is also output for each
- * model.  The autocorrelations for lags <tt>[1,k]/<tt> are output with lags
- * <tt>[1,m]</tt> being relevant for model AR(m) when \c hierarchy is true.
- *
- * Each corresponding AR(p) prediction model has the form
- * \f[
- *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
- * \f]
- * where \f$\epsilon_n\f$ has variance \f$\sigma^2_\epsilon\f$.
+ * squared discrepancy value \f$\sigma^2_\epsilon\f$ and gain \f$\sigma^2_x /
+ * \sigma^2_\epsilon\f$ is also output for each model.  The autocorrelations
+ * for lags <tt>[1,k]/<tt> are output with lags <tt>[1,m]</tt> being relevant
+ * for model AR(m) when \c hierarchy is true.
  *
  * The implementation has been refactored from of Cedrick Collomb's 2009
  * article <a
@@ -60,7 +60,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
                            ForwardIterator1 params_first,
                            ForwardIterator1 params_last,
                            OutputIterator1  sigma2e_first,
-                           OutputIterator2  sigma2x_first,
+                           OutputIterator2  gain_first,
                            ForwardIterator2 rho_first,
                            const bool hierarchy = false)
 {
@@ -92,15 +92,17 @@ std::size_t burg_algorithm(InputIterator    data_first,
     sigma2e /= N;
 
     // Initialize recursion
-    value gain = 1;
     vector Ak(m + 1, value(0));
     Ak[0] = 1;
+    value gain = 1;
+    ForwardIterator2 rho(rho_first);
 
     // Perform Burg recursion
     for (size kp1 = 1; kp1 <= m; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
+        // By the recurrence, Ak[kp1] is also the current reflection coefficient
         const value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
                                             b.begin(), value(0));
         sigma2e *= (1 - mu*mu);
@@ -112,19 +114,20 @@ std::size_t burg_algorithm(InputIterator    data_first,
             Ak[kp1 - n] = t2;
         }
 
-        // By the recurrence, Ak[kp1] is the current reflection coefficient
+        // Update the gain per Broersen 2006 equation (5.25)
         gain *= 1 / (1 - Ak[kp1]*Ak[kp1]);
 
-        // TODO Compute and output the next autocorrelation value
-        // See Broersen equation (5.31) for details.
+        // Compute and output the next autocorrelation coefficient
+        // See Broersen 2006 equations (5.28) and (5.31) for details
+        *rho++ = -inner_product(Ak.rend()-kp1, Ak.rend()-1, rho_first, Ak[kp1]);
 
         // Output parameters and the input and output variances when requested
         if (hierarchy || kp1 == m)
         {
-            params_first = copy(Ak.begin() + 1, Ak.begin() + (kp1 + 1),
+            params_first = copy(Ak.begin() + 1, Ak.begin() + kp1 + 1,
                                 params_first);
             *sigma2e_first++ = sigma2e;
-            *sigma2x_first++ = gain*sigma2e;
+            *gain_first++    = gain;
         }
 
         // Update f, b, and then Dk for the next iteration if another remains

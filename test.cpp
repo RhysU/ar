@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
     }
 
     // Compute burg_algorithm's answer
-    double est_sigma2e, est_sigma2x;
+    double est_sigma2e, est_gain;
     burg_algorithm(data.begin(), data.end(), est.begin(), est.end(),
-                   &est_sigma2e, &est_sigma2x, est_rho.begin());
+                   &est_sigma2e, &est_gain, est_rho.begin());
 
     printf("%22s %22s %22s\n", "Coefficient", "burg_algorithm", "PercentDiff");
     printf("%22s %22s %22s\n", "-----------", "--------------", "-----------");
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
     printf("%22s %22.14g\n", "\\sigma^2_\\epsilon", est_sigma2e);
-    printf("%22s %22.14g\n", "\\sigma^2_x",         est_sigma2x);
+    printf("%22s %22.14g\n", "\\sigma^2_x",         est_gain);
 
     return 0;
 }
