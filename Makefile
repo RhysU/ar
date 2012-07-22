@@ -7,7 +7,7 @@ example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
 zohar:   zohar.cpp   burg.hpp
 clean:
-	rm -f example zohar test
+	rm -f autocor example zohar test
 
 # Test cases from http://paulbourke.net/miscellaneous/ar/
 check: all
