@@ -202,9 +202,6 @@ std::size_t burg_algorithm(InputIterator   data_first,
  *         input noise \f$\sigma_epsilon\f$ where \f$\epsilon \sim{}
  *         N(0,\sigma_epsilon)\f$.  That is, \f$\prod_{i=0}^{p-1}
  *         \left(1-k_i^2\right)^{-1}\f$ is returned.
- *
- * number of reflection coefficients computed in-place within
- * <tt>[first,last)</tt>
  */
 template <class BidirectionalIterator>
 typename std::iterator_traits<BidirectionalIterator>::value_type
