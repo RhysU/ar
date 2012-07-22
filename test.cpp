@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
     printf("%22s %22.14g\n", "\\sigma^2_\\epsilon", est_sigma2e);
-    printf("%22s %22.14g\n", "\\sigma^2_x",         est_gain);
+    printf("%22s %22.14g\n", "gain",                est_gain);
 
     return 0;
 }
