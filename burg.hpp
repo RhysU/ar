@@ -133,52 +133,6 @@ std::size_t burg_algorithm(InputIterator   data_first,
     return N;
 }
 
-
-namespace { // anonymous
-
-// Used to discard output per http://stackoverflow.com/questions/335930/
-struct null_output_iterator
-    : std::iterator< std::output_iterator_tag, null_output_iterator >
-{
-
-    template <typename T> void operator=(const T&) { }
-
-    null_output_iterator& operator++() { return *this; }
-
-    null_output_iterator operator++(int) {
-        null_output_iterator it(*this);
-        ++*this;
-        return it;
-    }
-
-    null_output_iterator& operator*() { return *this; }
-};
-
-}
-
-/**
- * Use Burg's recursion to find coefficients \f$a_i\f$ such that the sum
- * of the squared errors in both the forward linear prediction \f$x_n =
- * \sum_{i=1}^m a_i x_{n-i}\f$ and backward linear prediction \f$x_n =
- * \sum_{i=1}^m a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
- * is taken from the range [data_first, data_last) in a single pass.
- *
- * Parameters \f$\vec{a}\f$ are stored in [params_first, params_last) with
- * the model order determined by <tt>distance(params_first, params_last)</tt>.
- *
- * @returns the number data values processed within [data_first, data_last).
- */
-template <class InputIterator, class ForwardIterator>
-std::size_t burg_algorithm(InputIterator   data_first,
-                           InputIterator   data_last,
-                           ForwardIterator params_first,
-                           ForwardIterator params_last)
-{
-    return burg_algorithm(data_first, data_last,
-                          params_first, params_last,
-                          null_output_iterator(), false);
-}
-
 /**
  * Convert AR(p) process parameters \f$a_i\f$ into reflection coefficients
  * \f$k_i\f$.  The parameters are defined by
