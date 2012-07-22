@@ -235,10 +235,10 @@ reflection_coefficients(BidirectionalIterator first,
         iterator front(first);
         reverse  back(rfirst);
         for (difference j = 0; j <= (i-1)/2; ++j) {
-            const value t1 = *front;
-            const value t2 = *back;
-            *back++  = mu*(t2 - k*t1);
-            *front++ = mu*(t1 - k*t2);
+            const value tf = *front;
+            const value tb = *back;
+            *back++  = mu*(tb - k*tf);
+            *front++ = mu*(tf - k*tb);
         }
 
     }
@@ -290,10 +290,10 @@ void parameters(BidirectionalIterator first,
         iterator front(first);
         reverse  back(k);
         for (difference j = 0; j <= (i-1)/2; ++j) {
-            const value t1 = *front + (*k)*(*back);
-            const value t2 = *back  + (*k)*(*front);
-            *back++  = t2;
-            *front++ = t1;
+            const value tf = *front;
+            const value tb = *back;
+            *back++  = tb + (*k)*tf;
+            *front++ = tf + (*k)*tb;
         }
 
     }
