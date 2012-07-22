@@ -102,6 +102,7 @@ std::size_t burg_algorithm(InputIterator   data_first,
         }
 
         // Here, Ak[1:kp1] contains AR(k) coefficients by the recurrence.
+        // Also, Ak[kp1] is the current reflection coefficient.
         if (hierarchy || kp1 == m)
         {
             // Output coefficients and the mean squared discrepancy
