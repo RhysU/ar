@@ -224,14 +224,14 @@ reflection_coefficients(BidirectionalIterator first,
     if (n < 1) throw std::invalid_argument("distance(first, last) < 1");
 
     // Initialize and recurse.  Output is *rfirst on every iteration.
-    value retval = 1;
+    value gain = 1;
     reverse rfirst(last);
     for (difference i = n; i --> 1 ;) {
 
         // Preserve the final parameter as the current reflection coefficient
         const value k = *rfirst++;
         const value mu = 1 / (1 - k*k);
-        retval *= mu;
+        gain *= mu;
 
         // Compute the recursive inputs by traversing from both ends
         // Front write occurs second so it "wins" in odd-length iterations
@@ -246,7 +246,7 @@ reflection_coefficients(BidirectionalIterator first,
 
     }
 
-    return retval;
+    return gain;
 }
 
 // FIXME autocorrelations(...) is absurdly broken!
