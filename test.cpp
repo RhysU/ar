@@ -48,9 +48,11 @@ int main(int argc, char *argv[])
     }
 
     // Use burgs_method to fit an AR model and characterize it completely
-    real sigma2e, gain;
-    burgs_method(data.begin(), data.end(), exact.size(), est.begin(),
-                 &sigma2e, &gain, cor.begin());
+    // TODO Permit subtracting mean using a command line argument
+    real mean, sigma2e, gain;
+    burgs_method(data.begin(), data.end(), exact.size(),
+                 mean, est.begin(), &sigma2e, &gain, cor.begin(),
+                 false, false);
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
     // Given right hand side containing rho_1, ..., rho_p the solution should
@@ -68,9 +70,11 @@ int main(int argc, char *argv[])
         printf("%22.14g %22.14g %22.14g\n", *i, *j, pdiff(*i, *j));
     }
     printf("\n");
-    printf("%22s %22.14g\n", "Yule-Walker residual:", res);
+    printf("%22s %22.14g\n", "mean of data:",         mean);
     printf("%22s %22.14g\n", "\\sigma^2_\\epsilon:",  sigma2e);
     printf("%22s %22.14g\n", "signal gain:",          gain);
+    printf("%22s %22.14g\n", "\\sigma^2_x:",          gain*sigma2e);
+    printf("%22s %22.14g\n", "Yule-Walker residual:", res);
 
     return 0;
 }

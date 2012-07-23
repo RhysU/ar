@@ -27,10 +27,11 @@ int main(int argc, char *argv[])
 
     // Get linear prediction coefficients for orders 1 through order
     const size_t order = 7;
+    real mean;
     vector<real> params(order*(order+1)/2);
     vector<real> sigma2e(order), gain(order), rho(order);
-    burgs_method(original.begin(), original.end(), order, params.begin(),
-                 sigma2e.begin(), gain.begin(), rho.begin(), true);
+    burgs_method(original.begin(), original.end(), order, mean, params.begin(),
+                 sigma2e.begin(), gain.begin(), rho.begin(), false, true);
 
     // Display orders, mean squared discrepancy, and model coefficients
     printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");

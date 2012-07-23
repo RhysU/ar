@@ -17,8 +17,8 @@
 #include <vector>
 
 /**
- * Fit an autoregressive model to stationary, zero-mean time series data using
- * Burg's method.  That is, assuming the model
+ * Fit an autoregressive model to stationary time series data using
+ * Burg's method.  That is, assuming a zero-mean model
  * \f{align}{
  *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
  *     &
@@ -34,10 +34,12 @@
  * minimized.  Either a single model of given order or a hierarchy of models up
  * to and including a maximum order may returned.
  *
- * The input data \f$\vec{x}\f$, which should have zero mean, is read from
- * <tt>[data_first,data_last)</tt> in a single pass.  The estimated model
- * parameters \f$a_i\f$ are output using \c params_first with the behavior
- * determined by both <tt>maxorder</tt> and the \c hierarchy flag:
+ * The input data \f$\vec{x}\f$ is read from <tt>[data_first,data_last)</tt>
+ * in a single pass.  The mean is computed using pairwise summation,
+ * returned in \c mean, and \e removed from further consideration whenever
+ * \c subtract_mean is true.  The estimated model parameters \f$a_i\f$
+ * are output using \c params_first with the behavior determined by both
+ * <tt>maxorder</tt> and the \c hierarchy flag:
  * <ul>
  *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
  *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
@@ -75,6 +77,7 @@
  * @returns the number data values processed within [data_first, data_last).
  */
 template <class InputIterator,
+          class Value,
           class OutputIterator1,
           class OutputIterator2,
           class OutputIterator3,
@@ -82,39 +85,67 @@ template <class InputIterator,
 std::size_t burgs_method(InputIterator     data_first,
                          InputIterator     data_last,
                          const std::size_t maxorder,
+                         Value&            mean,
                          OutputIterator1   params_first,
                          OutputIterator2   sigma2e_first,
                          OutputIterator3   gain_first,
                          OutputIterator4   autocor_first,
+                         const bool        subtract_mean = false,
                          const bool        hierarchy = false)
 {
     assert(maxorder > 0);
 
+    using std::bind2nd;
     using std::copy;
     using std::distance;
     using std::fill;
     using std::inner_product;
+    using std::minus;
 
-    // OutputIterator1::value_type determines the working precision
-    typedef typename std::iterator_traits<OutputIterator1>::value_type value;
-    typedef typename std::vector<value> vector;
+    typedef typename std::vector<Value> vector;
     typedef typename vector::size_type size;
 
-    // Initialize f from [data_first, data_last), b by copying f, and data size
-    // TODO Use pairwise summation here to stably compute and subtract mean
-    vector f(data_first, data_last), b(f);
+    // Initialize f from [data_first, data_last) and fix number of samples
+    vector f(data_first, data_last);
     const size N = f.size();
 
+    // Compute the mean of f using pairwise summation and output it
+    // Pairwise chosen instead of of Kahan for speed trade off and to avoid
+    // algorithmic nonsense when working precision is exact (e.g. rational).
+    vector b(N, 0);
+    {
+        // First pass copies f into b reducing by up to a factor of 2
+        // Requires b has been adequately sized and filled with zeros
+        for (size i = 0; i < N; ++i)
+            b[i/2] += f[i];
+
+        // Initialize i to the next power of 2 lower than N
+        size t = N, i = !!N;
+        while (t /= 2)
+            i *= 2;
+
+        // Recurse on the now power-of-two, smaller problem size
+        while (i /= 2)
+            for (size_t j = 0; j < i; ++j)
+                b[j] = b[2*j] + b[2*j+1];
+    }
+    mean = b[0] / N;
+
+    if (subtract_mean)
+        transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
+
     // Initialize mean squared discrepancy sigma2e and Dk
-    value sigma2e = inner_product(f.begin(), f.end(), f.begin(), value(0));
-    value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
+    Value sigma2e = inner_product(f.begin(), f.end(), f.begin(), Value(0));
+    Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
 
     // Initialize recursion
-    vector Ak(maxorder + 1, value(0));
+    copy(f.begin(), f.end(), b.begin());
+    vector Ak(maxorder + 1, Value(0));
     Ak[0] = 1;
-    value gain = 1;
-    vector autocor; autocor.reserve(maxorder);
+    Value gain = 1;
+    vector autocor;
+    autocor.reserve(maxorder);
 
     // Perform Burg recursion
     for (size kp1 = 1; kp1 <= maxorder; ++kp1)
@@ -122,13 +153,13 @@ std::size_t burgs_method(InputIterator     data_first,
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
         // By the recurrence, Ak[kp1] will also be the reflection coefficient
-        const value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
-                                            b.begin(), value(0));
+        const Value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
+                                            b.begin(), Value(0));
         sigma2e *= (1 - mu*mu);
         for (size n = 0; n <= kp1/2; ++n)
         {
-            const value t1 = Ak[n] - mu*Ak[kp1 - n];
-            const value t2 = Ak[kp1 - n] - mu*Ak[n];
+            Value t1 = Ak[n] - mu*Ak[kp1 - n];
+            Value t2 = Ak[kp1 - n] - mu*Ak[n];
             Ak[n] = t1;
             Ak[kp1 - n] = t2;
         }
@@ -155,8 +186,8 @@ std::size_t burgs_method(InputIterator     data_first,
         {
             for (size n = 0; n < N - kp1; ++n)
             {
-                const value t1 = f[n + kp1] - mu*b[n];
-                const value t2 = b[n] - mu*f[n + kp1];
+                Value t1 = f[n + kp1] - mu*b[n];
+                Value t2 = b[n] - mu*f[n + kp1];
                 f[n + kp1] = t1;
                 b[n] = t2;
             }
@@ -225,6 +256,7 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     // Tildes indicate transposes while hats indicate reversed vectors.
 
     // OutputIterator::value_type determines the working precision
+    // FIXME OutputIterator has no value_type!
     typedef typename std::iterator_traits<OutputIterator>::value_type value;
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
@@ -250,7 +282,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     vector next_ehat; next_ehat.reserve(n);
 
     // Recursion for i = {1, 2, ..., n - 1}:
-    for (size i = 1; i < n; ++i) {
+    for (size i = 1; i < n; ++i)
+    {
 
         reverse_iterator<RandomAccessIterator> rhat_first(r_first + i);
 
@@ -287,7 +320,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
         const value gamma_by_lambda = -neg_gamma/lambda;
         next_ehat.clear();
         next_ehat.push_back(eta_by_lambda);
-        for (size j = 0; j < i; ++j) {
+        for (size j = 0; j < i; ++j)
+        {
             s[j] += theta_by_lambda*ehat[j];
             next_ehat.push_back(ehat[j] + eta_by_lambda*g[j]);
             g[j] += gamma_by_lambda*ehat[j];
@@ -316,7 +350,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
          *          \end{smallmatrix}\bigr)
          */
         const value theta_by_lambda = -neg_theta/lambda;
-        for (size j = 0; j < n; ++j) {
+        for (size j = 0; j < n; ++j)
+        {
             s[j] += theta_by_lambda*ehat[j];
         }
         s.push_back(theta_by_lambda);
