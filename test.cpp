@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     // Given right hand side containing rho_1, ..., rho_p the solution should
     // be -a_1, ..., -a_p on success so adding to it a_1, ..., a_p gives errors.
     vector<real> rhs(cor);
-    zohar_linear_solve(cor.begin(), --cor.end(), cor.begin(), rhs.begin());
+    zohar_linear_solve(cor.begin(), --cor.end(), rhs.begin());
     transform(rhs.begin(), rhs.end(), est.begin(), rhs.begin(), plus<real>());
     real res = accumulate(rhs.begin(), rhs.end(), real(0), sum_error<real>());
 

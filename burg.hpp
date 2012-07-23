@@ -242,10 +242,10 @@ std::size_t burgs_method(InputIterator     data_first,
  * @param[in]  a_first Beginning of the range containing \f$\vec{a}\f$.
  * @param[in]  a_last  End of the range containing \f$\vec{a}\f$.
  * @param[in]  r_first Beginning of the range containing \f$\vec{r}\f$.
- * @param[in]  d_first Beginning of the range containing \f$\vec{d}\f$.
+ * @param[in]  d_first Beginning of the range containing \f$\vec{d}\f$
+ *                     which should have <tt>n+1</tt> entries available.
  * @param[out] s_first Beginning of the output range to which
- *                     <strong><tt>n+1</tt></strong> entries will be
- *                     written.
+ *                     <tt>n+1</tt> entries will be written.
  */
 template<class RandomAccessIterator,
          class InputIterator,
@@ -401,6 +401,37 @@ void zohar_linear_solve(RandomAccessIterator a_first,
                         ForwardIterator      d_first)
 {
     return zohar_linear_solve(a_first, a_last, r_first, d_first, d_first);
+}
+
+/**
+ * Solve a real-valued, symmetric Toeplitz set of linear equations in-place.
+ * That is, compute
+ * \f[
+ *      L_{n+1}^{-1} d_{n+1}
+ *      \mbox{ for }
+ *      L_{n+1} = \bigl(\begin{smallmatrix}
+ *                    1   & \tilde{a}_n \\
+ *                    a_n & L_n
+ *                \end{smallmatrix}\bigr)
+ * \f]
+ * given \f$\vec{a}\f$ and \f$\vec{d}\f$.  The dimension of the problem is
+ * fixed by <tt>n = distance(a_first, a_last)</tt>.  The working precision is
+ * fixed by the \c value_type of \c d_first.
+ *
+ * @param[in]     a_first Beginning of the range containing \f$\vec{a}\f$.
+ * @param[in]     a_last  End of the range containing \f$\vec{a}\f$.
+ * @param[in,out] d_first Beginning of the range containing \f$\vec{d}\f$.
+ *                        Also the beginning of the output range to which
+ *                        <strong><tt>n+1</tt></strong> entries will be
+ *                        written.
+ */
+template<class RandomAccessIterator,
+         class ForwardIterator>
+void zohar_linear_solve(RandomAccessIterator a_first,
+                        RandomAccessIterator a_last,
+                        ForwardIterator      d_first)
+{
+    return zohar_linear_solve(a_first, a_last, a_first, d_first);
 }
 
 #endif /* BURG_HPP */
