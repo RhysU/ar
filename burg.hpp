@@ -34,7 +34,7 @@
  * minimized.  Either a single model of given order or a hierarchy of models up
  * to and including a maximum order may returned.
  *
- * The input data \f$\vec{x}\f$ is read from <tt>[data_first,data_last)</tt>
+ * The input data \f$\vec{x}\f$ are read from <tt>[data_first,data_last)</tt>
  * in a single pass.  The mean is computed using pairwise summation,
  * returned in \c mean, and \e removed from further consideration whenever
  * \c subtract_mean is true.  The estimated model parameters \f$a_i\f$
