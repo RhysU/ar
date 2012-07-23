@@ -52,12 +52,13 @@
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
  * output for each model using \c sigma2e_first and \c gain_first.  The
- * autocorrelations for lags up to the maximum model order are output using \c
- * cor_first.  When \c hierarchy is true, Only lags <tt>[1,m]</tt> should be
- * applied for a model AR(<tt>m</tt>) when \c hierarchy is true.  The lag zero
- * autocorrelation is always one and is never output.  Autocovariances may be
- * computed by multiplying the autocorrelations by \f$\text{gain}
- * \sigma^2_\epsilon\f$.
+ * autocorrelations for lags <tt>[1,k]</tt> are output using \c cor_first.
+ * When \c hierarchy is true, only lags <tt>[1,m]</tt> should be applied for
+ * some AR(<tt>m</tt>) model.  The lag zero autocorrelation is always equal to
+ * one and is therefore never output.  Outputting the lag \c k autocorrelation
+ * is technically redundant as it may be computed from \f$a_i\f$ and lags
+ * <tt>1, ..., k-1</tt>.  Autocovariances may be computed by multiplying the
+ * autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
  *
  * The implementation has been refactored heavily from Cedrick Collomb's 2009
  * article <a
