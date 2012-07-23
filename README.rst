@@ -123,8 +123,8 @@ TODO
 ----
 
 1. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
-   following [Seghouane2004].  Add these as standalone routines but also
-   incorporate them into the class.
+   following [Seghouane2004].  Also the ``CIC`` following [Broersen2000].  Add
+   these as standalone routines but also incorporate them into the class.
 
 2. Add a class to encapsulate the sequence of AR(p) models produced.  Include
    prediction both with and without noise and prediction error computations
@@ -151,6 +151,8 @@ References
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
 
 -- [Box2008]       Box, George E. P., Gwilym M. Jenkins, and Gregory C. Reinsel. Time Series Analysis : Forecasting and Control. 4 edition. John Wiley, June 2008.
+
+-- [Broersen2000]  Broersen, P. M. T. "Finite sample criteria for autoregressive order selection." IEEE Transactions on Signal Processing 48 (December 2000): 3550-3558. http://dx.doi.org/10.1109/78.887047
 
 -- [Broersen2002]  Broersen, P. M. T. "Automatic spectral analysis with time series models." IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
 
