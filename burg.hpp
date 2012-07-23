@@ -63,17 +63,17 @@
  * <tt>1, ..., k-1</tt>.  Autocovariances may be computed by multiplying the
  * autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
  *
- * The implementation has been refactored heavily from Cedrick Collomb's 2009
- * article <a
+ * The implementation has been refactored
+ * heavily from Cedrick Collomb's 2009 article <a
  * href="http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf">"Burg’s
- * Method, Algorithm and Recursion"</a>.  In particular, iterators are
- * employed, the working precision depends on the output parameter precision,
- * the mean squared discrepancy calculation has been added, some loop index
- * transformations have been performed, and all lower order models may be
- * output during the recursion using \c hierarchy.  Gain and autocorrelation
- * calculations have been added based on sections 5.2 and 5.3 of Broersen, P.
- * M.  T. Automatic autocorrelation and spectral analysis. Springer, 2006.
- * http://dx.doi.org/10.1007/1-84628-329-9.
+ * Method, Algorithm and Recursion"</a>.  In particular, iterators
+ * are employed, the working precision is selectable using \c mean,
+ * the mean squared discrepancy calculation has been added, some loop
+ * index transformations have been performed, and all lower order models
+ * may be output during the recursion using \c hierarchy.  Gain and
+ * autocorrelation calculations have been added based on sections 5.2
+ * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
+ * analysis. Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.
  *
  * @returns the number data values processed within [data_first, data_last).
  */
@@ -224,7 +224,8 @@ std::size_t burgs_method(InputIterator     data_first,
  * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
  * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
  * iterate over the same data.  The Hermitian case requires two buffers with
- * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.
+ * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.  The working precision
+ * is fixed by the \c value_type of \c d_first.
  *
  * The algorithm is from Zohar, Shalhav. "The Solution of a Toeplitz Set of
  * Linear Equations." J. ACM 21 (April 1974): 272-276.
@@ -262,9 +263,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 
     // Tildes indicate transposes while hats indicate reversed vectors.
 
-    // OutputIterator::value_type determines the working precision
-    // FIXME OutputIterator has no value_type!
-    typedef typename std::iterator_traits<OutputIterator>::value_type value;
+    // InputIterator::value_type determines the working precision
+    typedef typename std::iterator_traits<InputIterator>::value_type value;
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
 
@@ -378,11 +378,12 @@ void zohar_linear_solve(RandomAccessIterator a_first,
  *                    r_n & L_n
  *                \end{smallmatrix}\bigr)
  * \f]
- * given \f$\vec{a}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of
- * the problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
+ * given \f$\vec{a}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
+ * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
  * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
  * iterate over the same data.  The Hermitian case requires two buffers with
- * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.
+ * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.  The working precision
+ * is fixed by the \c value_type of \c d_first.
  *
  * @param[in]     a_first Beginning of the range containing \f$\vec{a}\f$.
  * @param[in]     a_last  End of the range containing \f$\vec{a}\f$.
