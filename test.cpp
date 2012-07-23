@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         --argc;
     }
 
-    // Read "exact" coefficients from argv[1] or a default
+    // Read "exact" coefficients from file argv[1] or a default file
     vector<real> exact;
     {
         ifstream f;
@@ -49,23 +49,20 @@ int main(int argc, char *argv[])
     }
     vector<real> est(exact.size()), cor(exact.size());
 
-    // Read time series from argv[2] or a default
-    vector<real> data;
-    {
-        ifstream f;
-        f.exceptions(ifstream::badbit);
-        f.open(argc > 2 ? argv[2] : "test1.dat");
-        copy(istream_iterator<real>(f), istream_iterator<real>(),
-             back_inserter(data));
-    }
+    // Read time series from file argv[2] or a default file
+    ifstream f;
+    f.exceptions(ifstream::badbit);
+    f.open(argc > 2 ? argv[2] : "test1.dat");
 
     // Use burgs_method to fit an AR model and characterize it completely
-    // TODO Permit subtracting mean using a command line argument
     size_t maxorder = exact.size();
     real mean, sigma2e, gain;
-    burgs_method(data.begin(), data.end(), mean, maxorder,
-                 est.begin(), &sigma2e, &gain, cor.begin(),
+    burgs_method(istream_iterator<real>(f), istream_iterator<real>(),
+                 mean, maxorder, est.begin(), &sigma2e, &gain, cor.begin(),
                  subtract_mean, false);
+
+    // Close input file
+    f.close();
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
     // Given right hand side containing rho_1, ..., rho_p the solution should
