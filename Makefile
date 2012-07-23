@@ -1,22 +1,19 @@
 CXXFLAGS ?= -g -Wall -O3 # -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
 
-all:     autocor example zohar test
+all:     example zohar test
 
-autocor: autocor.cpp burg.hpp
 example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
 zohar:   zohar.cpp   burg.hpp
 clean:
-	rm -f autocor example zohar test
+	rm -f example zohar test
 
 # Test cases from http://paulbourke.net/miscellaneous/ar/
 check: all
 	@echo
-	./example
-	@echo
 	./zohar
 	@echo
-	./autocor
+	./example
 	@echo
 	./test test1.coeff     test1.dat
 	@echo
