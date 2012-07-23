@@ -17,36 +17,59 @@
 #include <vector>
 
 /**
- * Use Burg's recursion to find coefficients \f$a_i\f$ such that the sum
- * of the squared errors in both the forward linear prediction \f$x_n =
- * \sum_{i=1}^m - a_i x_{n-i}\f$ and backward linear prediction \f$x_n =
- * \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Input data \f$\vec{x}$
- * is taken from the range [data_first, data_last) in a single pass.
- * Each corresponding AR(p) prediction model has the form
- * \f[
- *   x_n + a_0 x_{n-1} + \dots + a_{p-1} x_{n - (p + 1)} = \epsilon_n
- * \f]
- * where \f$\epsilon_n\f$ has variance \f$\sigma^2_\epsilon\f$.
+ * Fit an autoregressive model to stationary, zero-mean time series data using
+ * Burg's algorithm.  That is, assuming the model
+ * \f{align}{
+ *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
+ *     &
+ *     \epsilon_n &\sim{} N\left(0, \sigma^2_epsilon\right)
+ *     \\
+ *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
+ *     &
+ *     k &\geq{} p
+ * \f}
+ * find coefficients \f$a_i\f$ such that the sum of the squared errors in both
+ * the forward prediction \f$x_n = \sum_{i=1}^m - a_i x_{n-i}\f$ and backward
+ * prediction \f$x_n = \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Either a
+ * single model of given order or a hierarchy of models up to and including a
+ * maximum order may returned.
  *
- * Parameters \f$\vec{a}\f$ are stored in [params_first, params_last) with the
- * model order determined by both <tt>k = distance(params_first,
- * params_last)</tt> and the \c hierarchy flag.  If \c hierarchy is false, the
- * coefficients for an AR(<tt>k</tt>) process are output.  If \c hierarchy is
- * true, the <tt>m*(m+1)/2</tt> coefficients for models AR(1), AR(2), ...,
- * AR(m) up to order <tt>m = floor(sqrt(2*k))</tt> are output.  The mean
- * squared discrepancy value \f$\sigma^2_\epsilon\f$ and gain \f$\sigma^2_x /
- * \sigma^2_\epsilon\f$ is also output for each model.  The autocorrelations
- * for lags <tt>[1,k]/<tt> are output with lags <tt>[1,m]</tt> being relevant
- * for model AR(m) when \c hierarchy is true.
+ * The input data \f$\vec{x}\f$, which should have zero mean, is read from
+ * <tt>[data_first,data_last)</tt> in a single pass.  The estimated model
+ * parameters \f$a_i\f$ are output into <tt>[params_first, params_last)</tt>
+ * with the behavior determined by both <tt>k = distance(params_first,
+ * params_last)</tt> and the \c hierarchy flag:
+ * <ul>
+ *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots, a_k\f$
+ *         parameters for an AR(<tt>k</tt>) process are output.</li>
+ *     <li>If \c hierarchy is true, the <tt>m*(m+1)/2</tt> coefficients for
+ *         models AR(1), AR(2), ..., AR(m) up to and including order <tt>m =
+ *         floor(sqrt(2*k))</tt> are output.</li>
+ * </ul>
+ * Note that the latter case is \e always computed;  The \c hierarchy flag
+ * merely controls what is output.
  *
- * The implementation has been refactored from of Cedrick Collomb's 2009
+ * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
+ * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
+ * output for each model using \c sigma2e_first and \c gain_first.  The
+ * autocorrelations for lags up to the maximum model order are output using \c
+ * cor_first.  When \c hierarchy is true, Only lags <tt>[1,m]</tt> should be
+ * applied for a model AR(<tt>m</tt>) when \c hierarchy is true.  The lag zero
+ * autocorrelation is always one and is never output.  Autocovariances may be
+ * computed by multiplying the autocorrelations by \f$\text{gain}
+ * \sigma^2_\epsilon\f$.
+ *
+ * The implementation has been refactored heavily from Cedrick Collomb's 2009
  * article <a
  * href="http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf">"Burg’s
  * Method, Algorithm and Recursion"</a>.  In particular, iterators are
- * employed, the working precision depends on the output coefficients
- * precision, a mean squared discrepancy calculation has been added, some loop
- * index transformations have been performed, and all lower order models may be
- * output during the recursion using \c hierarchy.
+ * employed, the working precision depends on the output parameter precision,
+ * the mean squared discrepancy calculation has been added, some loop index
+ * transformations have been performed, and all lower order models may be
+ * output during the recursion using \c hierarchy.  Gain and autocorrelation
+ * calculations have been added based on sections 5.2 and 5.3 of Broersen, P.
+ * M.  T. Automatic autocorrelation and spectral analysis. Springer, 2006.
+ * http://dx.doi.org/10.1007/1-84628-329-9.
  *
  * @returns the number data values processed within [data_first, data_last).
  */
@@ -61,7 +84,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
                            ForwardIterator1 params_last,
                            OutputIterator1  sigma2e_first,
                            OutputIterator2  gain_first,
-                           ForwardIterator2 rho_first,
+                           ForwardIterator2 cor_first,
                            const bool hierarchy = false)
 {
     using std::copy;
@@ -77,6 +100,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
     typedef typename vector::size_type size;
 
     // Initialize f from [data_first, data_last), b by copying f, and data size
+    // TODO Use pairwise summation here to stably compute and subtract mean
     vector f(data_first, data_last), b(f);
     const size N = f.size();
 
@@ -95,14 +119,14 @@ std::size_t burg_algorithm(InputIterator    data_first,
     vector Ak(m + 1, value(0));
     Ak[0] = 1;
     value gain = 1;
-    ForwardIterator2 rho(rho_first);
+    ForwardIterator2 cor(cor_first);
 
     // Perform Burg recursion
     for (size kp1 = 1; kp1 <= m; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
-        // By the recurrence, Ak[kp1] is also the current reflection coefficient
+        // By the recurrence, Ak[kp1] will also be the reflection coefficient
         const value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
                                             b.begin(), value(0));
         sigma2e *= (1 - mu*mu);
@@ -119,7 +143,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
 
         // Compute and output the next autocorrelation coefficient
         // See Broersen 2006 equations (5.28) and (5.31) for details
-        *rho++ = -inner_product(Ak.rend()-kp1, Ak.rend()-1, rho_first, Ak[kp1]);
+        *cor++ = -inner_product(Ak.rend()-kp1, Ak.rend()-1, cor_first, Ak[kp1]);
 
         // Output parameters and the input and output variances when requested
         if (hierarchy || kp1 == m)
@@ -297,7 +321,7 @@ void parameters(BidirectionalIterator first,
  *                          Values <i>will be overwritten</i> by parameters.
  * @param[in,out] k_last    The exclusive end of the reflection coefficients.
  * @param[out]    rho_first The beginning of the computed autocorrelations.
- *                       The zeroth output is the lag 1 autocorrelation.
+ *                          The zeroth output is the lag 1 autocorrelation.
  */
 template <class BidirectionalIterator,
           class ForwardIterator>
