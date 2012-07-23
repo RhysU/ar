@@ -121,36 +121,31 @@ Contents
 TODO
 ----
 
-1. Automatically remove the sample mean from the input to burgs_method(...).
-   Possibly return it to the user through an additional parameter or by
-   co-opting the returned value.
-
-2. Permit specifying a maximum model order to be fit rather than using the
-   current distance(params_first, params_last) approach as it would simplify
-   using a back_inserter.  It would also limit the work on large data sets.
-
-3. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
+1. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
    following [Seghouane2004].  Add these as standalone routines but also
    incorporate them into the class.
 
-4. Add a class to encapsulate the sequence of AR(p) models produced.  Include
+2. Add a class to encapsulate the sequence of AR(p) models produced.  Include
    prediction both with and without noise and prediction error computations
    against known data.
 
-5. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
+3. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
 
-6. Complete the ``Wule-Yalker`` write up by finding or deriving some suitable
-   algorithm.  Implement it as a way to find the lag(k) autocorrelation
-   boundary conditions for any process parameters.  The double Levinson
-   recursion discussed by [Broersen2006] section 5.4 appears to be too
-   numerically unstable to use in practice without requiring O(n^2) memory.
+4. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
+   process parameters, implement a ``Wule-Yalker`` solver based on the
+   WuleYalker.tex write up using the Toeplitz-plus-Hankel solver approach due
+   to [Merchant1982] which employs [Akaike1973].  The double Levinson recursion
+   discussed by [Broersen2006] section 5.4 appears to be too numerically
+   unstable to use in practice without requiring O(n^2) memory.
 
-7. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+5. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
 
 References
 ----------
+
+-- [Akaike1973]    Akaike, Hirotugu. "Block Toeplitz Matrix Inversion." SIAM Journal on Applied Mathematics 24 (March 1973): 234-241. http://dx.doi.org/10.1137/0124024
 
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
 
@@ -171,6 +166,8 @@ References
 -- [Ibrahim1987b]  Ibrahim, M. K. "On line splitting in the optimum tapered Burg algorithm." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1476–1479. http://dx.doi.org/10.1109/TASSP.1987.1165047
 
 -- [Ibrahim1989]   Ibrahim, M. K. "Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'." IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
+
+-- [Merchant1982]  Merchant, G. and T. Parks. "Efficient solution of a Toeplitz-plus-Hankel coefficient matrix system of equations." IEEE Transactions on Acoustics, Speech, and Signal Processing 30 (February 1982): 40-44. http://dx.doi.org/10.1109/TASSP.1982.1163845
 
 -- [Press2007]     Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 

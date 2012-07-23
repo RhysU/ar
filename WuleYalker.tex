@@ -328,18 +328,16 @@ non-symmetric algorithm, which we desire, is similar.
 
 \begin{enumerate}
  \item Actually write the general, closed-form expression for these matrices.
- \item Find or derive the algorithm for solving with a real-valued operator
-  that is the sum of a non-symmetric Toeplitz matrix and a Toeplitz matrix.
+ \item Implement Merchant and Parks 1982 to solve the problem.
 \end{enumerate}
 
 \subsection*{Comments}
 
-Of course, as suggested by Broersen 2006 in ``Automatic Autocorrelation and
-Spectral Analysis'' section 5.4, we could obtain the process reflection
-coefficients from the parameters and then the autocorrelations from the
-reflection coefficients, but what fun would that be?  Presumably any efficient
-solution we find will be equivalent to Broersen's suggested two-pass solution
-solution.  However, the two-pass solution exhibits numerical instabilities when
-implemented in a low-memory fashion (i.e. using Levinson recursion twice).
+As suggested by Broersen 2006 in ``Automatic Autocorrelation and Spectral
+Analysis'' section 5.4, we could obtain the process reflection coefficients
+from the parameters and then the autocorrelations from the reflection
+coefficients.  However, this double Levinson recursion approach appears to be
+too numerically unstable to use in practice without requiring $O(n^2)$ memory.
+This overhead is admittedly small, but something $O(n)$ would be nicer to have.
 
 \end{document}
