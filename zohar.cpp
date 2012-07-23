@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -89,11 +90,9 @@ int main(int argc, char *argv[])
     copy(err.begin(), err.end(), ostream_iterator<double>(cout," "));
     cout << endl;
 
-    double sserr = 0;
-    for (size_t i = 0; i < exp.size(); ++i) {
-        sserr += err[i]*err[i];
-    }
-    cout << "Sum of the squared errors is:\n\t" << sserr << endl;
+    double abserr = 0;
+    for (size_t i = 0; i < exp.size(); ++i) abserr += std::abs(err[i]);
+    cout << "Sum of the absolute errors is:\n\t" << abserr << endl;
 
     return 0;
 }
