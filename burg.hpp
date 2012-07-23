@@ -32,7 +32,7 @@
  * forward predictions \f$x_n = -a_1 x_{n-1} - \dots - a_p x_{n-p}\f$ and
  * backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p x_{n+p}\f$ are both
  * minimized.  Either a single model of given order or a hierarchy of models up
- * to and including a maximum order may returned.
+ * to and including a maximum order may fit.
  *
  * The input data \f$\vec{x}\f$ are read from <tt>[data_first,data_last)</tt>
  * in a single pass.  The mean is computed using pairwise summation,
@@ -55,7 +55,7 @@
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
  * output for each model using \c sigma2e_first and \c gain_first.  The
- * autocorrelations for lags <tt>[1,k]</tt> are output using \c cor_first.
+ * autocorrelations for lags <tt>[1,k]</tt> are output using \c autocor_first.
  * When \c hierarchy is true, only lags <tt>[1,m]</tt> should be applied for
  * some AR(<tt>m</tt>) model.  The lag zero autocorrelation is always equal to
  * one and is therefore never output.  Outputting the lag \c k autocorrelation
