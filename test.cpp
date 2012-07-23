@@ -6,11 +6,12 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
-#include <fstream>
 #include <vector>
 
 // Computes percent difference of \c b against theoretical result \c a.
@@ -28,6 +29,16 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
+    // Process a possible --subtract-mean flag shifting arguments if needed
+    bool subtract_mean = false;
+    if (argc > 0 && 0 == strcmp("--subtract-mean", argv[1])) {
+        subtract_mean = true;
+        argv[1] = argv[0];
+        ++argv;
+        --argc;
+    }
+
+    // Read "exact" coefficients from argv[1] or a default
     vector<real> exact;
     {
         ifstream f;
@@ -38,6 +49,7 @@ int main(int argc, char *argv[])
     }
     vector<real> est(exact.size()), cor(exact.size());
 
+    // Read time series from argv[2] or a default
     vector<real> data;
     {
         ifstream f;
@@ -53,7 +65,7 @@ int main(int argc, char *argv[])
     real mean, sigma2e, gain;
     burgs_method(data.begin(), data.end(), mean, maxorder,
                  est.begin(), &sigma2e, &gain, cor.begin(),
-                 false, false);
+                 subtract_mean, false);
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
     // Given right hand side containing rho_1, ..., rho_p the solution should
