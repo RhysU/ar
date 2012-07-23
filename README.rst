@@ -123,12 +123,12 @@ TODO
 ----
 
 1. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
-   following [Seghouane2004].  Also the ``CIC`` following [Broersen2000].  Add
-   these as standalone routines but also incorporate them into the class.
+   following [Seghouane2004].  Also the ``CIC`` following [Broersen2000].
 
 2. Add a class to encapsulate the sequence of AR(p) models produced.  Include
    prediction both with and without noise and prediction error computations
-   against known data.
+   against known data.  Include ability to return the best model according to
+   various criteria.
 
 3. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
