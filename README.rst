@@ -91,6 +91,7 @@ Contents
 
 *Makefile*
    Try ``make`` followed by ``./example`` or ``make check``.
+   On Linux, try ``make stress`` to examine the implementation's performance.
 
 *example.cpp*
    Extract a sequence of AR(p) models for a sample by [Collomb2009].
