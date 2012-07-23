@@ -5,10 +5,12 @@ Description
 -----------
 
 This is a precision-agnostic, extension of Burg's recursion as presented and
-implemented in [Collomb2009]. The expressions differ slightly from those
-presented in [Press2007], whose source cannot be distributed due to licensing
-restrictions. However, the results match Numerical Recipes code to floating
-point error against benchmark data by [Bourke1998]::
+implemented in [Collomb2009].   Many usability-related extensions have been
+added to permit simply obtaining autocorrelation information from the resulting
+estimated model.  The expressions differ slightly from those presented in
+[Press2007], whose source cannot be distributed due to licensing restrictions.
+However, the results match Numerical Recipes code to floating point error
+against benchmark data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
 
@@ -75,9 +77,8 @@ using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement of
 		-0.62963 0.148148 3.55556 -1.66667 7.10543e-15 -2 -1 2
 	Term-by-term errors are:
 		5.55112e-16 1.04361e-14 -2.70894e-14 9.99201e-15 -7.10543e-15 4.44089e-15 1.26565e-14 -9.32587e-15
-	Sum of the squared errors is:
-		1.26027e-27
-
+	Sum of the absolute errors is:
+		8.16014e-14
 See [Bunch1985] for a discussion of the stability of Trench-like algorithms and
 for faster, albeit much more complicated, variants.
 
@@ -108,14 +109,10 @@ Contents
    Sample turbulent total energy RMS fluctuation data and optimal coefficients
    found by automatically by ARMASA [Broersen2002].
 
-bj4ed.dat
-   Data from Table 2.1 on page 32 of [Box2008].  These may be used to test
-   AR(15) autocorrelation coefficients against Table 2.2 on page 33 and
-   reflection coefficients against Table 3.1 on page 70.
-
 *WuleYalker.tex*
    A derivation of some equations closely connected with the Yule--Walker
-   system.
+   system.  Solving these permits recovering autocorrelations from process
+   parameters.
 
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
@@ -123,26 +120,33 @@ bj4ed.dat
 TODO
 ----
 
-1. Add a class to encapsulate the sequence of AR(p) models produced.  Include
-   prediction both with and without noise and prediction error computations
-   against known data.
+1. Automatically remove the sample mean from the input to burg_algorithm(...).
+   Possibly return it to the user through an additional parameter or by
+   co-opting the returned value.
 
-2. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
+2. Permit specifying a maximum model order to be fit rather than using the
+   current distance(params_first, params_last) approach as it would simplify
+   using a back_inserter.  It would also limit the work on large data sets.
+
+3. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
    following [Seghouane2004].  Add these as standalone routines but also
    incorporate them into the class.
 
-3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
-   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
-
-4. Complete the ``Wule-Yalker`` write up by finding or deriving some
-   suitable algorithm.  Implement it as a way to find the lag(k)
-   autocorrelation boundary conditions.
+4. Add a class to encapsulate the sequence of AR(p) models produced.  Include
+   prediction both with and without noise and prediction error computations
+   against known data.
 
 5. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
 
-6. Automatically remove the sample mean from the input to burg_algorithm(...).
-   Return it to the user through an additional parameter.
+6. Complete the ``Wule-Yalker`` write up by finding or deriving some suitable
+   algorithm.  Implement it as a way to find the lag(k) autocorrelation
+   boundary conditions for any process parameters.  The double Levinson
+   recursion discussed by [Broersen2006] section 5.4 appears to be too
+   numerically unstable to use in practice without requiring O(n^2) memory.
+
+7. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
 
 References
 ----------
