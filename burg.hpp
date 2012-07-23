@@ -18,7 +18,7 @@
 
 /**
  * Fit an autoregressive model to stationary, zero-mean time series data using
- * Burg's algorithm.  That is, assuming the model
+ * Burg's method.  That is, assuming the model
  * \f{align}{
  *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
  *     &
@@ -79,14 +79,14 @@ template <class InputIterator,
           class OutputIterator2,
           class OutputIterator3,
           class OutputIterator4>
-std::size_t burg_algorithm(InputIterator     data_first,
-                           InputIterator     data_last,
-                           const std::size_t maxorder,
-                           OutputIterator1   params_first,
-                           OutputIterator2   sigma2e_first,
-                           OutputIterator3   gain_first,
-                           OutputIterator4   autocor_first,
-                           const bool        hierarchy = false)
+std::size_t burgs_method(InputIterator     data_first,
+                         InputIterator     data_last,
+                         const std::size_t maxorder,
+                         OutputIterator1   params_first,
+                         OutputIterator2   sigma2e_first,
+                         OutputIterator3   gain_first,
+                         OutputIterator4   autocor_first,
+                         const bool        hierarchy = false)
 {
     assert(maxorder > 0);
 

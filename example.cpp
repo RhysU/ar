@@ -11,7 +11,7 @@
 
 #include "burg.hpp"
 
-// Example program using burg_algorithm modified from Collomb's sample
+// Example program using burgs_method modified from Collomb's sample
 int main(int argc, char *argv[])
 {
     typedef long double real; // Try out "double" for kicks...
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     const size_t order = 7;
     vector<real> params(order*(order+1)/2);
     vector<real> sigma2e(order), gain(order), rho(order);
-    burg_algorithm(original.begin(), original.end(), order, params.begin(),
-                   sigma2e.begin(), gain.begin(), rho.begin(), true);
+    burgs_method(original.begin(), original.end(), order, params.begin(),
+                 sigma2e.begin(), gain.begin(), rho.begin(), true);
 
     // Display orders, mean squared discrepancy, and model coefficients
     printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");

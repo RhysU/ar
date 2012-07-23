@@ -23,7 +23,7 @@ template<typename T> struct sum_error : public std::binary_function<T,T,T> {
 // Set working precision
 typedef double real;
 
-// Test burg_algorithm against synthetic data
+// Test burgs_method against synthetic data
 int main(int argc, char *argv[])
 {
     using namespace std;
@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
              back_inserter(data));
     }
 
-    // Use burg_algorithm to fit an AR model and characterize it completely
+    // Use burgs_method to fit an AR model and characterize it completely
     real sigma2e, gain;
-    burg_algorithm(data.begin(), data.end(), exact.size(), est.begin(),
-                   &sigma2e, &gain, cor.begin());
+    burgs_method(data.begin(), data.end(), exact.size(), est.begin(),
+                 &sigma2e, &gain, cor.begin());
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
     // Given right hand side containing rho_1, ..., rho_p the solution should
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     transform(rhs.begin(), rhs.end(), est.begin(), rhs.begin(), plus<real>());
     real res = accumulate(rhs.begin(), rhs.end(), real(0), sum_error<real>());
 
-    printf("%22s %22s %22s\n", "Coefficient", "burg_algorithm", "PercentDiff");
+    printf("%22s %22s %22s\n", "Coefficient", "burgs_method", "PercentDiff");
     printf("%22s %22s %22s\n", "-----------", "--------------", "-----------");
     for (vector<real>::const_iterator i = exact.begin(), j = est.begin();
          i != exact.end(); ++i, ++j)
