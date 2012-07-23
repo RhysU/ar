@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
     transform(rhs.begin(), rhs.end(), est.begin(), rhs.begin(), plus<real>());
     real res = accumulate(rhs.begin(), rhs.end(), real(0), sum_error<real>());
 
-    printf("%22s %22s %22s\n", "Coefficient", "burgs_method", "PercentDiff");
-    printf("%22s %22s %22s\n", "-----------", "--------------", "-----------");
+    printf("%22s %22s %22s\n", "Nominal Value", "burgs_method", "Percent Diff");
+    printf("%22s %22s %22s\n", "-------------", "------------", "------------");
     for (vector<real>::const_iterator i = exact.begin(), j = est.begin();
          i != exact.end(); ++i, ++j)
     {
