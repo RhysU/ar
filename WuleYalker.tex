@@ -339,6 +339,7 @@ Spectral Analysis'' section 5.4, we could obtain the process reflection
 coefficients from the parameters and then the autocorrelations from the
 reflection coefficients, but what fun would that be?  Presumably any efficient
 solution we find will be equivalent to Broersen's suggested two-pass solution
-solution.
+solution.  However, the two-pass solution exhibits numerical instabilities when
+implemented in a low-memory fashion (i.e. using Levinson recursion twice).
 
 \end{document}
