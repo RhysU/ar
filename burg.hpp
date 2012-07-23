@@ -78,14 +78,14 @@ template <class InputIterator,
           class OutputIterator1,
           class OutputIterator2,
           class OutputIterator3,
-          class ForwardIterator>
+          class OutputIterator4>
 std::size_t burg_algorithm(InputIterator     data_first,
                            InputIterator     data_last,
                            const std::size_t maxorder,
                            OutputIterator1   params_first,
                            OutputIterator2   sigma2e_first,
                            OutputIterator3   gain_first,
-                           ForwardIterator   cor_first,
+                           OutputIterator4   autocor_first,
                            const bool        hierarchy = false)
 {
     assert(maxorder > 0);
@@ -114,7 +114,7 @@ std::size_t burg_algorithm(InputIterator     data_first,
     vector Ak(maxorder + 1, value(0));
     Ak[0] = 1;
     value gain = 1;
-    ForwardIterator cor(cor_first);
+    vector autocor; autocor.reserve(maxorder);
 
     // Perform Burg recursion
     for (size kp1 = 1; kp1 <= maxorder; ++kp1)
@@ -138,7 +138,8 @@ std::size_t burg_algorithm(InputIterator     data_first,
 
         // Compute and output the next autocorrelation coefficient
         // See Broersen 2006 equations (5.28) and (5.31) for details
-        *cor++ = -inner_product(Ak.rend()-kp1, Ak.rend()-1, cor_first, Ak[kp1]);
+        autocor.push_back(-inner_product(autocor.rbegin(), autocor.rend(),
+                                         Ak.begin() + 1, Ak[kp1]));
 
         // Output parameters and the input and output variances when requested
         if (hierarchy || kp1 == maxorder)
@@ -162,6 +163,9 @@ std::size_t burg_algorithm(InputIterator     data_first,
             Dk = (1 - mu*mu)*Dk - f[kp1]*f[kp1] - b[N - kp1 - 1]*b[N - kp1 - 1];
         }
     }
+
+    // Output the lag [1,maxorder] autocorrelation coefficients in single pass
+    copy(autocor.begin(), autocor.end(), autocor_first);
 
     // Return the number of values processed in [data_first, data_last)
     return N;
