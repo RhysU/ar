@@ -75,17 +75,17 @@
  * @returns the number data values processed within [data_first, data_last).
  */
 template <class InputIterator,
-          class ForwardIterator1,
           class OutputIterator1,
           class OutputIterator2,
-          class ForwardIterator2>
+          class OutputIterator3,
+          class ForwardIterator>
 std::size_t burg_algorithm(InputIterator     data_first,
                            InputIterator     data_last,
                            const std::size_t maxorder,
-                           ForwardIterator1  params_first,
-                           OutputIterator1   sigma2e_first,
-                           OutputIterator2   gain_first,
-                           ForwardIterator2  cor_first,
+                           OutputIterator1   params_first,
+                           OutputIterator2   sigma2e_first,
+                           OutputIterator3   gain_first,
+                           ForwardIterator   cor_first,
                            const bool        hierarchy = false)
 {
     assert(maxorder > 0);
@@ -95,8 +95,8 @@ std::size_t burg_algorithm(InputIterator     data_first,
     using std::fill;
     using std::inner_product;
 
-    // ForwardIterator1::value_type determines the working precision
-    typedef typename std::iterator_traits<ForwardIterator1>::value_type value;
+    // OutputIterator1::value_type determines the working precision
+    typedef typename std::iterator_traits<OutputIterator1>::value_type value;
     typedef typename std::vector<value> vector;
     typedef typename vector::size_type size;
 
@@ -114,7 +114,7 @@ std::size_t burg_algorithm(InputIterator     data_first,
     vector Ak(maxorder + 1, value(0));
     Ak[0] = 1;
     value gain = 1;
-    ForwardIterator2 cor(cor_first);
+    ForwardIterator cor(cor_first);
 
     // Perform Burg recursion
     for (size kp1 = 1; kp1 <= maxorder; ++kp1)
