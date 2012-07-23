@@ -21,3 +21,5 @@ check: all
 	@echo
 	./test test3.coeff test3.dat
 	@echo
+	./test --subtract-mean rhoe.coeff rhoe.dat
+	@echo
