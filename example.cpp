@@ -12,7 +12,7 @@
 #include "burg.hpp"
 
 // Example program using burgs_method modified from Collomb's sample
-int main(int argc, char *argv[])
+int main()
 {
     using namespace std;
 

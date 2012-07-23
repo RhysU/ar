@@ -12,7 +12,7 @@
 #include <vector>
 
 // Test zohar_linear_solve routine against an Octave-provided reference
-int main(int argc, char *argv[])
+int main()
 {
     using namespace std;
 
