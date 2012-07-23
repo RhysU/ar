@@ -38,8 +38,8 @@
  * in a single pass.  The mean is computed using pairwise summation,
  * returned in \c mean, and \e removed from further consideration whenever
  * \c subtract_mean is true.  The estimated model parameters \f$a_i\f$
- * are output using \c params_first with the behavior determined by both
- * <tt>maxorder</tt> and the \c hierarchy flag:
+ * are output using \c params_first with the behavior determined by
+ * the amount of data read, <tt>maxorder</tt>, and the \c hierarchy flag:
  * <ul>
  *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
  *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
@@ -49,7 +49,8 @@
  *         </li>
  * </ul>
  * Note that the latter case is \e always computed;  The \c hierarchy flag
- * merely controls what is output.
+ * merely controls what is output.  In both cases, the maximum order is limited
+ * by the number of data samples provided and is output to \c maxorder.
  *
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
@@ -84,8 +85,8 @@ template <class InputIterator,
           class OutputIterator4>
 std::size_t burgs_method(InputIterator     data_first,
                          InputIterator     data_last,
-                         const std::size_t maxorder,
                          Value&            mean,
+                         std::size_t&      maxorder,
                          OutputIterator1   params_first,
                          OutputIterator2   sigma2e_first,
                          OutputIterator3   gain_first,
@@ -93,13 +94,12 @@ std::size_t burgs_method(InputIterator     data_first,
                          const bool        subtract_mean = false,
                          const bool        hierarchy = false)
 {
-    assert(maxorder > 0);
-
     using std::bind2nd;
     using std::copy;
     using std::distance;
     using std::fill;
     using std::inner_product;
+    using std::min;
     using std::minus;
 
     typedef typename std::vector<Value> vector;
@@ -109,7 +109,7 @@ std::size_t burgs_method(InputIterator     data_first,
     vector f(data_first, data_last);
     const size N = f.size();
 
-    // Compute the mean of f using pairwise summation and output it
+    // Compute the mean of f using pairwise summation and output it.
     // Pairwise chosen instead of of Kahan for speed trade off and to avoid
     // algorithmic nonsense when working precision is exact (e.g. rational).
     vector b(N, 0);
@@ -131,6 +131,13 @@ std::size_t burgs_method(InputIterator     data_first,
     }
     mean = b[0] / N;
 
+    // At most maxorder N-1 can be fit from N samples.  Beware N may be zero.
+    maxorder = min(static_cast<size>(maxorder)+1, N)-1;
+
+    // Short circuit if no work was requested or is possible.
+    if (maxorder == 0) return N;
+
+    // Subtract the mean of the data if requested
     if (subtract_mean)
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
 

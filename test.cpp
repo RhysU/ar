@@ -49,9 +49,10 @@ int main(int argc, char *argv[])
 
     // Use burgs_method to fit an AR model and characterize it completely
     // TODO Permit subtracting mean using a command line argument
+    size_t maxorder = exact.size();
     real mean, sigma2e, gain;
-    burgs_method(data.begin(), data.end(), exact.size(),
-                 mean, est.begin(), &sigma2e, &gain, cor.begin(),
+    burgs_method(data.begin(), data.end(), mean, maxorder,
+                 est.begin(), &sigma2e, &gain, cor.begin(),
                  false, false);
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
