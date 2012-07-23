@@ -14,11 +14,10 @@
 // Example program using burgs_method modified from Collomb's sample
 int main(int argc, char *argv[])
 {
-    typedef long double real; // Try out "double" for kicks...
     using namespace std;
 
     // Create data to approximate
-    vector<real> original(128, 0.0);
+    vector<long double> original(128, 0.0);
     for (size_t i = 0; i < original.size(); i++)
     {
         original[i] =     cos(i*0.01) + 0.75*cos(i*0.03)
@@ -27,12 +26,12 @@ int main(int argc, char *argv[])
 
     // Get linear prediction coefficients for orders 1 through order
     size_t maxorder = 7;
-    real mean;
-    vector<real> params(maxorder*(maxorder+1)/2);
-    vector<real> sigma2e(maxorder), gain(maxorder), rho(maxorder);
-    burgs_method(original.begin(), original.end(), mean,
-                 maxorder, params.begin(), sigma2e.begin(), gain.begin(),
-                 rho.begin(), false, true);
+    long double mean;
+    vector<long double> params, sigma2e, gain, autocor;
+    burgs_method(original.begin(), original.end(), mean, maxorder,
+                 back_inserter(params), back_inserter(sigma2e),
+                 back_inserter(gain), back_inserter(autocor),
+                 false, true);
 
     // Display orders, mean squared discrepancy, and model coefficients
     printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");
