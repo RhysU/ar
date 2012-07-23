@@ -15,30 +15,29 @@
 int main(int argc, char *argv[])
 {
     typedef long double real; // Try out "double" for kicks...
+    using namespace std;
 
     // Create data to approximate
-    std::vector<real> original(128, 0.0);
+    vector<real> original(128, 0.0);
     for (size_t i = 0; i < original.size(); i++)
     {
-        using std::cos;
         original[i] =     cos(i*0.01) + 0.75*cos(i*0.03)
                     + 0.5*cos(i*0.05) + 0.25*cos(i*0.11);
     }
 
-    // Get linear prediction coefficients for orders 1 through maxorder
-    std::size_t maxorder = 7;
-    std::vector<real> coeffs(maxorder*(maxorder+1)/2);
-    std::vector<real> sigma2e(maxorder), gain(maxorder), rho(maxorder);
-    burg_algorithm(original.begin(), original.end(),
-                   coeffs.begin(), coeffs.end(),
+    // Get linear prediction coefficients for orders 1 through order
+    const size_t order = 7;
+    vector<real> params(order*(order+1)/2);
+    vector<real> sigma2e(order), gain(order), rho(order);
+    burg_algorithm(original.begin(), original.end(), order, params.begin(),
                    sigma2e.begin(), gain.begin(), rho.begin(), true);
 
     // Display orders, mean squared discrepancy, and model coefficients
     printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");
     printf("%5s  %9s %9s %9s\n", "-----", "-----", "----", "------------");
-    for (std::size_t p = 0, c = 0; p < maxorder; ++p) {
+    for (size_t p = 0, c = 0; p < order; ++p) {
         printf("%5lu  %9.4Lg %9.4Lg", p, sigma2e[p], gain[p]);
-        for (std::size_t i = 0; i < p+1; ++i) printf(" %9.4Lg", coeffs[c++]);
+        for (size_t i = 0; i < p+1; ++i) printf(" %9.4Lg", params[c++]);
         putchar('\n');
     }
 

@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     // Use burg_algorithm to fit an AR model and characterize it completely
     real sigma2e, gain;
-    burg_algorithm(data.begin(), data.end(), est.begin(), est.end(),
+    burg_algorithm(data.begin(), data.end(), exact.size(), est.begin(),
                    &sigma2e, &gain, cor.begin());
 
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check

@@ -9,10 +9,10 @@
 #define BURG_HPP
 
 #include <algorithm>
-#include <cmath>
+#include <cassert>
+#include <iterator>
 #include <limits>
 #include <numeric>
-#include <iterator>
 #include <stdexcept>
 #include <vector>
 
@@ -28,23 +28,23 @@
  *     &
  *     k &\geq{} p
  * \f}
- * find coefficients \f$a_i\f$ such that the sum of the squared errors in both
- * the forward prediction \f$x_n = \sum_{i=1}^m - a_i x_{n-i}\f$ and backward
- * prediction \f$x_n = \sum_{i=1}^m - a_i x_{n+i}\f$ are minimized.  Either a
- * single model of given order or a hierarchy of models up to and including a
- * maximum order may returned.
+ * find coefficients \f$a_i\f$ such that the sum of the squared errors in the
+ * forward predictions \f$x_n = -a_1 x_{n-1} - \dots - a_p x_{n-p}\f$ and
+ * backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p x_{n+p}\f$ are both
+ * minimized.  Either a single model of given order or a hierarchy of models up
+ * to and including a maximum order may returned.
  *
  * The input data \f$\vec{x}\f$, which should have zero mean, is read from
  * <tt>[data_first,data_last)</tt> in a single pass.  The estimated model
- * parameters \f$a_i\f$ are output into <tt>[params_first, params_last)</tt>
- * with the behavior determined by both <tt>k = distance(params_first,
- * params_last)</tt> and the \c hierarchy flag:
+ * parameters \f$a_i\f$ are output using \c params_first with the behavior
+ * determined by both <tt>maxorder</tt> and the \c hierarchy flag:
  * <ul>
- *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots, a_k\f$
- *         parameters for an AR(<tt>k</tt>) process are output.</li>
- *     <li>If \c hierarchy is true, the <tt>m*(m+1)/2</tt> coefficients for
- *         models AR(1), AR(2), ..., AR(m) up to and including order <tt>m =
- *         floor(sqrt(2*k))</tt> are output.</li>
+ *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
+ *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
+ *         are output.</li>
+ *     <li>If \c hierarchy is true, the <tt>maxorder*(maxorder+1)/2</tt>
+ *         coefficients for models AR(1), AR(2), ..., AR(maxorder) are output.
+ *         </li>
  * </ul>
  * Note that the latter case is \e always computed;  The \c hierarchy flag
  * merely controls what is output.
@@ -79,21 +79,21 @@ template <class InputIterator,
           class OutputIterator1,
           class OutputIterator2,
           class ForwardIterator2>
-std::size_t burg_algorithm(InputIterator    data_first,
-                           InputIterator    data_last,
-                           ForwardIterator1 params_first,
-                           ForwardIterator1 params_last,
-                           OutputIterator1  sigma2e_first,
-                           OutputIterator2  gain_first,
-                           ForwardIterator2 cor_first,
-                           const bool hierarchy = false)
+std::size_t burg_algorithm(InputIterator     data_first,
+                           InputIterator     data_last,
+                           const std::size_t maxorder,
+                           ForwardIterator1  params_first,
+                           OutputIterator1   sigma2e_first,
+                           OutputIterator2   gain_first,
+                           ForwardIterator2  cor_first,
+                           const bool        hierarchy = false)
 {
+    assert(maxorder > 0);
+
     using std::copy;
     using std::distance;
     using std::fill;
     using std::inner_product;
-    using std::numeric_limits;
-    using std::sqrt;
 
     // ForwardIterator1::value_type determines the working precision
     typedef typename std::iterator_traits<ForwardIterator1>::value_type value;
@@ -105,25 +105,19 @@ std::size_t burg_algorithm(InputIterator    data_first,
     vector f(data_first, data_last), b(f);
     const size N = f.size();
 
-    // Get the order or maximum order of autoregressive model(s) desired.
-    // When hierarchy is true, the maximum order is the index of the largest
-    // triangular number that will fit within [params_first, params_last).
-    const size m = hierarchy ? sqrt(2*distance(params_first, params_last))
-                             :        distance(params_first, params_last);
-
     // Initialize mean squared discrepancy sigma2e and Dk
     value sigma2e = inner_product(f.begin(), f.end(), f.begin(), value(0));
     value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
 
     // Initialize recursion
-    vector Ak(m + 1, value(0));
+    vector Ak(maxorder + 1, value(0));
     Ak[0] = 1;
     value gain = 1;
     ForwardIterator2 cor(cor_first);
 
     // Perform Burg recursion
-    for (size kp1 = 1; kp1 <= m; ++kp1)
+    for (size kp1 = 1; kp1 <= maxorder; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
@@ -147,7 +141,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
         *cor++ = -inner_product(Ak.rend()-kp1, Ak.rend()-1, cor_first, Ak[kp1]);
 
         // Output parameters and the input and output variances when requested
-        if (hierarchy || kp1 == m)
+        if (hierarchy || kp1 == maxorder)
         {
             params_first = copy(Ak.begin() + 1, Ak.begin() + kp1 + 1,
                                 params_first);
@@ -156,7 +150,7 @@ std::size_t burg_algorithm(InputIterator    data_first,
         }
 
         // Update f, b, and then Dk for the next iteration if another remains
-        if (kp1 < m)
+        if (kp1 < maxorder)
         {
             for (size n = 0; n < N - kp1; ++n)
             {
@@ -168,10 +162,6 @@ std::size_t burg_algorithm(InputIterator    data_first,
             Dk = (1 - mu*mu)*Dk - f[kp1]*f[kp1] - b[N - kp1 - 1]*b[N - kp1 - 1];
         }
     }
-
-    // Defensively NaN any unspecified locations within the coeffs range
-    if (numeric_limits<value>::has_quiet_NaN)
-        fill(params_first, params_last, numeric_limits<value>::quiet_NaN());
 
     // Return the number of values processed in [data_first, data_last)
     return N;
