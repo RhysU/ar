@@ -75,6 +75,25 @@
  * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
  * analysis. Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.
  *
+ * @param[in]     data_first    Beginning of the input data range.
+ * @param[in]     data_last     Exclusive end of the input data range.
+ * @param[out]    mean          Mean of data computed using pairwise summation.
+ * @param[in,out] maxorder      On input, the maximum model order desired.
+ *                              On output, the maximum model order computed.
+ * @param[out]    params_first  Model parameters for a single model or
+ *                              for an entire hierarchy of models
+ *                              depending upon \c hierarchy.
+ * @param[out]    sigma2e_first Mean squared discrepancy for a single model or
+ *                              for an entire hierarchy of models
+ *                              depending upon \c hierarchy.
+ * @param[out]    gain_first    Model gain for a single model
+ *                              for an entire hierarchy of models
+ *                              depending upon \c hierarchy.
+ * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
+ * @param[in]     subtract_mean Should \c mean be subtracted from the data?
+ * @param[in]     hierarchy     Should the entire hierarchy of model fits
+ *                              be output?
+ *
  * @returns the number data values processed within [data_first, data_last).
  */
 template <class InputIterator,
