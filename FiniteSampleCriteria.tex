@@ -7,6 +7,9 @@
 \mathtoolsset{showonlyrefs,showmanualtags}
 \allowdisplaybreaks[1]
 
+\newcommand{\RisingFactorial}[2]{{#1}^{\left(#2\right)}}
+\newcommand{\FallingFactorial}[2]{\left(#1\right)_{#2}}
+
 \begin{document}
 
 \section*{Finite sample criteria for autoregressive order selection}
@@ -155,7 +158,7 @@ penalty term is
 \begin{align}
     \text{overfit}\!\left(\text{FIC},N,p,v_\text{method},\alpha\right)
     &=
-    \alpha \sum_{i=0}^{p} v_\text{method}\!\left(i\right)
+    \alpha \sum_{i=0}^{p} v_\text{method}\!\left(N,i\right)
     \notag
     \\
     &=
@@ -257,9 +260,9 @@ penalty term
     &=
     \prod_{i=0}^{p}
     \frac{
-        1 + v_\text{method}\!\left(i\right)
+        1 + v_\text{method}\!\left(N,i\right)
     }{
-        1 - v_\text{method}\!\left(i\right)
+        1 - v_\text{method}\!\left(N,i\right)
     }
     - 1
     \notag
@@ -272,12 +275,47 @@ penalty term
     }
     \prod_{i=1}^{p}
     \frac{
-        1 + v_\text{method}\!\left(i\right)
+        1 + v_\text{method}\!\left(N,i\right)
     }{
-        1 - v_\text{method}\!\left(i\right)
+        1 - v_\text{method}\!\left(N,i\right)
     }
     - 1
     .
 \end{align}
+
+Considering the product term in the context of the Yule--Walker estimation,
+\begin{align}
+    \prod_{i=1}^{p}
+    \frac{
+        1 + v_\text{Yule--Walker}\!\left(N,i\right)
+    }{
+        1 - v_\text{Yule--Walker}\!\left(N,i\right)
+    }
+    =
+    \prod_{i=1}^{p}
+    \frac{
+        N^2 + 3N - i
+    }{
+        N^2 +  N + i
+    }
+    =
+    \left(-1\right)^p
+    \frac{
+        \RisingFactorial{\left(1-3n-n^2\right)}{p}
+    }{
+        \RisingFactorial{\left(1+ n-n^2\right)}{p}
+    }
+\end{align}
+where the Pochhammer function or ``rising factorial'' for positive integers
+denotes
+\begin{align}
+\RisingFactorial{x}{n} = \frac{\Gamma\left(x+n\right)}{\Gamma\left(x\right)}.
+\end{align}
+The Pochhammer symbol or ``falling factorial'' for positive integers represents
+\begin{align}
+\FallingFactorial{x}{n} =
+\frac{\Gamma\left(x+1\right)}{\Gamma\left(x-n+1\right)}.
+\end{align}
+% TODO Comment on possible confusion in interpretation
 
 \end{document}
