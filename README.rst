@@ -116,6 +116,9 @@ Contents
    system.  Solving these permits recovering autocorrelations from process
    parameters.
 
+*FiniteSampleCriteria.tex*
+   A catalog of finite sample size autoregressive model selection criteria.
+
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
 

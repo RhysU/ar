@@ -1,0 +1,238 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{amsmath, amssymb, graphics}
+\usepackage{hyperref}
+\usepackage{fullpage}
+
+% Allow grouped equations to be split across pages
+\allowdisplaybreaks[1]
+
+\begin{document}
+
+\section*{Finite sample criteria for autoregressive order selection}
+
+This document details autoregressive model selection criteria following
+% , predominantly,
+Broersen\footnote{ Broersen, P. M. T. ``Finite sample criteria
+for autoregressive order selection.'' IEEE Transactions on Signal Processing 48
+(December 2000): 3550-3558.  \url{http://dx.doi.org/10.1109/78.887047}.}.
+% and, in places, Seghouane and Bekara\footnote{Seghouane, A. K. and M. Bekara.
+% ``A Small Sample Model Selection Criterion Based on Kullback's Symmetric
+% Divergence.'' IEEE Transactions on Signal Processing 52 (December 2004):
+% 3314-3323.  \url{http://dx.doi.org/10.1109/TSP.2004.837416}}
+Emphasis is placed on converting formulas into computable forms.
+
+\section*{Setting}
+
+An AR(K) process and its AR(p) model are given by
+\begin{subequations}
+\begin{align}
+    x_n+a_1x_{n-1}+\dots+a_Kx_{n-K}&=\epsilon_n
+    \\
+    {x}_n+\hat{a}_1x_{n-1}+\dots+\hat{a}_px_{n-p}&=\hat{\epsilon}_n
+\end{align}
+\end{subequations}
+in which $\epsilon_n\sim N\left(0,\sigma_{\epsilon}^2\right)$ and
+$\hat{\epsilon}_n\sim N\left(0,\hat{\sigma}_{\epsilon}^2\right)$.
+Model selection criteria for ascertaining which of several candidates
+most parsimoniously fits an AR(K) process generally have the form
+\begin{align}
+    \label{eq:general}
+    \text{criterion}\!\left(N,p,v_\text{method},\alpha\right)
+    &=
+    \ln \text{residual}\!\left(p,v_\text{method}\right)
+    +
+    \text{overfit}\!\left(\text{criterion},N,p,v_\text{method},\alpha\right)
+    .
+\end{align}
+Among all candidates and using a given criterion, the ``best'' model minimizes
+the criterion.  Here, $N$ represents the number of samples used to estimate
+model parameters, $p$ denotes the order of the estimated model,
+$v_\text{method}=v_\text{method}\!\left(N,i\right)$ is the method-specific
+estimation variance for model order $i$, and $\alpha$ is an optional factor
+with a criterion-dependent meaning.  When estimating
+$\hat{a}_1,\dots,\hat{a}_p$ given sample data $x_n$, the residual variance is
+\begin{align}
+    \text{residual}\!\left(p,v_\text{method}\right)
+    =
+    \text{residual}\!\left(p\right)
+    &=
+    \hat{\sigma}_\epsilon^2
+    .
+\end{align}
+Therefore the left term in~\eqref{eq:general} penalizes misfitting the data
+independently of the estimation method used.  One may therefore distinguish
+among criterion using only the overfitting penalty term, namely
+$\text{overfit}\!\left(\text{criterion},N,p,v_\text{method},\alpha\right)$.
+
+In Broersen's work, the penalty term depends upon the model estimation
+method used through the estimation variance $v$:
+\begin{subequations}
+\label{eq:v1}
+\begin{align}
+    v_\text{Yule--Walker}\!\left(N,i\right) &= \frac{N-i}{N\left(N+2\right)}
+    &
+    &i \neq 0
+    \\
+    v_\text{Burg}\!\left(N,i\right) &= \frac{1}{N + 1 - i}
+    &
+    &i \neq 0
+    \\
+    v_\text{LSFB}\!\left(N,i\right) &= \frac{1}{N + 1.5 - 1.5i}
+    &
+    &i \neq 0
+    \\
+    v_\text{LSF}\!\left(N,i\right)  &= \frac{1}{N + 2 - 2i}
+    &
+    &i \neq 0
+\end{align}
+\end{subequations}
+Here ``LSFB'' and ``LSF'' are shorthand for least squares estimation minimizing
+both the forward and backward prediction or only the forward prediction,
+respectively.  The estimation variance for $i=0$ differs depends only on
+whether or not the sample mean has been subtracted:
+\begin{subequations}
+\label{eq:v0}
+\begin{align}
+    v\!\left(N,0\right) &= \frac{1}{N}
+    &
+    &\text{sample mean removed}
+    \\
+    v\!\left(N,0\right) &= 0
+    &
+    &\text{sample mean retained}
+\end{align}
+\end{subequations}
+
+\subsection*{Asymptotic overfit penalty terms}
+
+The asymptotic generalized information criterion (GIC) has overfitting penalty
+\begin{align}
+    \text{overfit}\!\left(\text{GIC},N,p,\alpha\right)
+    &=
+    \alpha \frac{p}{N}
+\end{align}
+independent of $v_\text{model}$.  The Akaike information criterion
+(AIC) has
+\begin{align}
+    \label{eq:aic}
+    \text{overfit}\!\left(\text{AIC},N,p\right)
+    &=
+    \text{overfit}\!\left(\text{GIC},N,p,2\right)
+\end{align}
+while the consistent criterion BIC and minimally consistent criterion
+(MCC) have
+\begin{align}
+    \label{eq:bic}
+    \text{overfit}\!\left(\text{BIC},N,p\right)
+    &=
+    \text{overfit}\!\left(\text{GIC},N,p,\ln{} N\right)
+    \\
+    \label{eq:mcc}
+    \text{overfit}\!\left(\text{MCC},N,p\right)
+    &=
+    \text{overfit}\!\left(\text{GIC},N,p,2\ln\ln{}N\right)
+    .
+\end{align}
+Additionally, Broersen suggests $\alpha = 3$.
+
+\subsection*{Finite sample overfit penalty terms}
+
+The finite sample information criterion (FIC) is an extension of GIC meant to
+account for finite sample size and the estimation method employed.  The FIC
+penalty term is
+\begin{align}
+    \text{overfit}\!\left(\text{FIC},N,p,v_\text{method},\alpha\right)
+    &=
+    \alpha \sum_{i=0}^{p} v_\text{method}\!\left(i\right)
+    \notag
+    \\
+    &=
+    \alpha\left(
+      v\!\left(N,0\right)
+    + \sum_{i=1}^{p} v_\text{method}\!\left(N,i\right)
+    \right)
+\end{align}
+where $v\!\left(N,0\right)$ is evaluated using \eqref{eq:v0} and
+$v_\text{method}\!\left(N,i\right)$ from \eqref{eq:v1}.  The factor $\alpha$
+may be chosen as in~\eqref{eq:aic}, \eqref{eq:bic}, or~\eqref{eq:mcc}.  Again,
+Broersen suggests $\alpha = 3$.
+
+By direct computation one finds the following:
+\begin{subequations}
+\begin{align}
+    \text{overfit}\!\left(\text{FIC},N,p,v_\text{Yule--Walker},\alpha\right)
+    &=
+    \alpha\left(
+      v\!\left(N,0\right)
+    - \frac{p \left(1-2 N+p\right)}{2 N \left(N+2\right)}
+    \right)
+\\
+    \text{overfit}\!\left(\text{FIC},N,p,v_\text{Burg},\alpha\right)
+    &=
+    \alpha\left(
+      v\!\left(N,0\right)
+    - \psi\!\left(N+1\right)
+    + \psi\!\left(N+1-p\right)
+    \right)
+\\
+    \text{overfit}\!\left(\text{FIC},N,p,v_\text{LSFB},\alpha\right)
+    &=
+    \alpha\left(
+      v\!\left(N,0\right)
+    - \frac{2}{3} \left(
+            \psi\!\left(\frac{3+2N}{3}\right)
+          - \psi\!\left(\frac{3+2N}{3}-p\right)
+      \right)
+    \right)
+\\
+    \text{overfit}\!\left(\text{FIC},N,p,v_\text{LSF},\alpha\right)
+    &=
+    \alpha\left(
+      v\!\left(N,0\right)
+    - \frac{1}{2} \left(
+            \psi\!\left(\frac{2+N}{2}\right)
+          - \psi\!\left(\frac{2+N}{2}-p\right)
+      \right)
+    \right)
+\end{align}
+\end{subequations}
+The simplifications underneath the Burg, LSFB, and LSF results use that
+\begin{align}
+    \sum_{i=1}^{p} \frac{1}{N+a-ai}
+    &=
+    \sum_{i=0}^{p-1} \frac{1}{N-ai}
+    =
+    \frac{1}{a} \sum_{i=0}^{p-1} \frac{1}{\frac{N}{a}-i}
+    =
+    \frac{1}{a} \left(
+          \psi\!\left(\frac{N}{a}+1\right)
+        - \psi\!\left(\frac{N}{a}-p+1\right)
+    \right)
+\end{align}
+holds $\forall{}a\in\mathcal{R}$ because the digamma function $\psi$
+telescopes according to
+\begin{align}
+    \psi\!\left(x+1\right)
+    =
+    \frac{1}{x}
+    +
+    \psi\!\left(x\right)
+    &\implies
+    \psi\!\left(x+k\right)
+    -
+    \psi\!\left(x\right)
+    =
+    \sum_{i=0}^{k-1} \frac{1}{x + i}
+    .
+\end{align}
+For strictly positive abscissae, $\psi$ may be numerically evaluated following
+Bernardo\footnote{Bernardo, J. M.  ``Algorithm AS 103: Psi (digamma)
+function.'' Journal of the Royal Statistical Society.  Series C (Applied
+Statistics) 25 (1976).  \url{http://www.jstor.org/stable/2347257}}.
+
+
+
+
+
+
+\end{document}

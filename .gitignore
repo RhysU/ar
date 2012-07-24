@@ -11,8 +11,21 @@
 *.la
 *.a
 
+# VIM Swap files
+*.swo
+*.swp
+
 # Binaries
 autocor
 example
 test
 zohar
+
+# Rebuildable LaTeX artifacts
+*.aux
+*.aux.bak
+*.dvi
+*.log
+*.out
+*.pdf
+*.ps
