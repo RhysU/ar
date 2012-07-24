@@ -149,36 +149,38 @@ TODO
 References
 ----------
 
--- [Akaike1973]    Akaike, Hirotugu. "Block Toeplitz Matrix Inversion." SIAM Journal on Applied Mathematics 24 (March 1973): 234-241. http://dx.doi.org/10.1137/0124024
+-- [Akaike1973]    Akaike, Hirotugu. ``Block Toeplitz Matrix Inversion.`` SIAM Journal on Applied Mathematics 24 (March 1973): 234-241. http://dx.doi.org/10.1137/0124024
+
+-- [Bernardo1976]  Bernardo, J. M.  ``Algorithm AS 103: Psi (digamma) function.`` Journal of the Royal Statistical Society.  Series C (Applied Statistics) 25 (1976). http://www.jstor.org/stable/2347257
 
 -- [Bourke1998]    Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
 
 -- [Box2008]       Box, George E. P., Gwilym M. Jenkins, and Gregory C. Reinsel. Time Series Analysis : Forecasting and Control. 4 edition. John Wiley, June 2008.
 
--- [Broersen2000]  Broersen, P. M. T. "Finite sample criteria for autoregressive order selection." IEEE Transactions on Signal Processing 48 (December 2000): 3550-3558. http://dx.doi.org/10.1109/78.887047
+-- [Broersen2000]  Broersen, P. M. T. ``Finite sample criteria for autoregressive order selection.`` IEEE Transactions on Signal Processing 48 (December 2000): 3550-3558. http://dx.doi.org/10.1109/78.887047
 
--- [Broersen2002]  Broersen, P. M. T. "Automatic spectral analysis with time series models." IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
+-- [Broersen2002]  Broersen, P. M. T. ``Automatic spectral analysis with time series models.`` IEEE Transactions on Instrumentation and Measurement 51 (April 2002): 211-216. http://dx.doi.org/10.1109/19.997814
 
 -- [Broersen2006]  Broersen, P. M. T. Automatic autocorrelation and spectral analysis. Springer, 2006. http://dx.doi.org/10.1007/1-84628-329-9
 
--- [Bunch1985]     Bunch, James R. "Stability of Methods for Solving Toeplitz Systems of Equations." SIAM Journal on Scientific and Statistical Computing 6 (1985): 349-364. http://dx.doi.org/10.1137/0906025
+-- [Bunch1985]     Bunch, James R. ``Stability of Methods for Solving Toeplitz Systems of Equations.`` SIAM Journal on Scientific and Statistical Computing 6 (1985): 349-364. http://dx.doi.org/10.1137/0906025
 
--- [Campbell1993]  Campbell, W. and D. N. Swingler. "Frequency estimation performance of several weighted Burg algorithms." IEEE Transactions on Signal Processing 41 (March 1993): 1237-1247. http://dx.doi.org/10.1109/78.205726
+-- [Campbell1993]  Campbell, W. and D. N. Swingler. ``Frequency estimation performance of several weighted Burg algorithms.`` IEEE Transactions on Signal Processing 41 (March 1993): 1237-1247. http://dx.doi.org/10.1109/78.205726
 
 -- [Collomb2009]   Cedrick Collomb. Burg's method, algorithm, and recursion, November 2009. http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf
 
--- [Ibrahim1987a]  Ibrahim, M. K. "Improvement in the speed of the data-adaptive weighted Burg technique." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1474–1476. http://dx.doi.org/10.1109/TASSP.1987.1165046
+-- [Ibrahim1987a]  Ibrahim, M. K. ``Improvement in the speed of the data-adaptive weighted Burg technique.`` IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1474–1476. http://dx.doi.org/10.1109/TASSP.1987.1165046
 
--- [Ibrahim1987b]  Ibrahim, M. K. "On line splitting in the optimum tapered Burg algorithm." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1476–1479. http://dx.doi.org/10.1109/TASSP.1987.1165047
+-- [Ibrahim1987b]  Ibrahim, M. K. ``On line splitting in the optimum tapered Burg algorithm.`` IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1476–1479. http://dx.doi.org/10.1109/TASSP.1987.1165047
 
--- [Ibrahim1989]   Ibrahim, M. K. "Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'." IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
+-- [Ibrahim1989]   Ibrahim, M. K. ``Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'.`` IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
 
--- [Merchant1982]  Merchant, G. and T. Parks. "Efficient solution of a Toeplitz-plus-Hankel coefficient matrix system of equations." IEEE Transactions on Acoustics, Speech, and Signal Processing 30 (February 1982): 40-44. http://dx.doi.org/10.1109/TASSP.1982.1163845
+-- [Merchant1982]  Merchant, G. and T. Parks. ``Efficient solution of a Toeplitz-plus-Hankel coefficient matrix system of equations.`` IEEE Transactions on Acoustics, Speech, and Signal Processing 30 (February 1982): 40-44. http://dx.doi.org/10.1109/TASSP.1982.1163845
 
 -- [Press2007]     Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 
--- [Seghouane2004] Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
+-- [Seghouane2004] Seghouane, A. K. and M. Bekara. ``A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence.`` IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
 
 -- [Trench1967]    Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510. http://www.jstor.org/stable/2099503
 
--- [Zohar1974]     Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
+-- [Zohar1974]     Zohar, Shalhav. ``The Solution of a Toeplitz Set of Linear Equations.`` J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
