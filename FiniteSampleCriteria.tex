@@ -1,9 +1,10 @@
 \documentclass[12pt,letterpaper]{article}
 \usepackage{amsmath, amssymb, graphics}
 \usepackage{hyperref}
+\usepackage{mathtools}
 \usepackage{fullpage}
 
-% Allow grouped equations to be split across pages
+\mathtoolsset{showonlyrefs,showmanualtags}
 \allowdisplaybreaks[1]
 
 \begin{document}
@@ -11,17 +12,12 @@
 \section*{Finite sample criteria for autoregressive order selection}
 
 This document details autoregressive model selection criteria following
-% , predominantly,
-Broersen\footnote{ Broersen, P. M. T. ``Finite sample criteria
+Broersen.\footnote{ Broersen, P. M. T. ``Finite sample criteria
 for autoregressive order selection.'' IEEE Transactions on Signal Processing 48
-(December 2000): 3550-3558.  \url{http://dx.doi.org/10.1109/78.887047}.}.
-% and, in places, Seghouane and Bekara\footnote{Seghouane, A. K. and M. Bekara.
-% ``A Small Sample Model Selection Criterion Based on Kullback's Symmetric
-% Divergence.'' IEEE Transactions on Signal Processing 52 (December 2004):
-% 3314-3323.  \url{http://dx.doi.org/10.1109/TSP.2004.837416}}
+(December 2000): 3550-3558.  \url{http://dx.doi.org/10.1109/78.887047}.}
 Emphasis is placed on converting formulas into computable forms.
 
-\section*{Setting}
+\subsection*{Setting}
 
 An AR(K) process and its AR(p) model are given by
 \begin{subequations}
@@ -103,7 +99,7 @@ whether or not the sample mean has been subtracted:
 \end{align}
 \end{subequations}
 
-\subsection*{Asymptotic overfit penalty terms}
+\subsection*{Infinite sample overfit penalty terms}
 
 The asymptotic generalized information criterion (GIC) has overfitting penalty
 \begin{align}
@@ -133,12 +129,28 @@ while the consistent criterion BIC and minimally consistent criterion
     \text{overfit}\!\left(\text{GIC},N,p,2\ln\ln{}N\right)
     .
 \end{align}
-Additionally, Broersen suggests $\alpha = 3$.
+Additionally, Broersen uses $\alpha = 3$ with GIC referring to the result as
+GIC(p,3).  The asymptotically-corrected Akaike information criterion
+($\text{AIC}_\text{C}$) of Hurvich and Tsai\footnote{Hurvich, Clifford M. and
+Chih-Ling Tsai. "Regression and time series model selection in small samples."
+Biometrika 76 (June 1989): 297-307.  http://dx.doi.org/10.1093/biomet/76.2.297}
+is
+\begin{align}
+    \text{overfit}\!\left(\text{AIC}_\text{C},N,p\right)
+    &=
+    \frac{2p}{N-p-1}
+    .
+\end{align}
 
 \subsection*{Finite sample overfit penalty terms}
 
-The finite sample information criterion (FIC) is an extension of GIC meant to
-account for finite sample size and the estimation method employed.  The FIC
+\subsubsection*{Finite information criterion\footnote{FIC is mistakenly called
+the ``finite sample information criterion'' on page 3551 of Broersen 2000 but
+referred to correctly as the ``finite information criterion'' on page 187 of
+Broersen's 2006 book.}}
+
+The finite information criterion (FIC) is an extension of GIC meant to account
+for finite sample size and the estimation method employed.  The FIC overfit
 penalty term is
 \begin{align}
     \text{overfit}\!\left(\text{FIC},N,p,v_\text{method},\alpha\right)
@@ -155,7 +167,7 @@ penalty term is
 where $v\!\left(N,0\right)$ is evaluated using \eqref{eq:v0} and
 $v_\text{method}\!\left(N,i\right)$ from \eqref{eq:v1}.  The factor $\alpha$
 may be chosen as in~\eqref{eq:aic}, \eqref{eq:bic}, or~\eqref{eq:mcc}.  Again,
-Broersen suggests $\alpha = 3$.
+Broersen uses $\alpha = 3$ calling the result FIC(p,3).
 
 By direct computation one finds the following:
 \begin{subequations}
@@ -226,8 +238,46 @@ telescopes according to
     .
 \end{align}
 For strictly positive abscissae, $\psi$ may be numerically evaluated following
-Bernardo\footnote{Bernardo, J. M.  ``Algorithm AS 103: Psi (digamma)
+Bernardo.\footnote{Bernardo, J. M.  ``Algorithm AS 103: Psi (digamma)
 function.'' Journal of the Royal Statistical Society.  Series C (Applied
-Statistics) 25 (1976).  \url{http://www.jstor.org/stable/2347257}}.
+Statistics) 25 (1976).  \url{http://www.jstor.org/stable/2347257}}
+
+\subsubsection*{Finite sample information criterion}
+
+The finite sample information criterion (FSIC) is a finite sample approximation
+to the Kullback--Leibler discrepancy\footnote{ Presumably FSIC could be related
+to the KICc and AKICc criteria based on the Kullback symmetric divergence
+proposed by Seghouane, A. K. and M. Bekara.  ``A Small Sample Model Selection
+Criterion Based on Kullback's Symmetric Divergence.'' IEEE Transactions on
+Signal Processing 52 (December 2004): 3314-3323.
+\url{http://dx.doi.org/10.1109/TSP.2004.837416}.}. FSIC has the overfit
+penalty term
+\begin{align}
+    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{method}\right)
+    &=
+    \prod_{i=0}^{p}
+    \frac{
+        1 + v_\text{method}\!\left(i\right)
+    }{
+        1 - v_\text{method}\!\left(i\right)
+    }
+    - 1
+    \notag
+    \\
+    &=
+    \frac{
+        1 + v\!\left(N,0\right)
+    }{
+        1 - v\!\left(N,0\right)
+    }
+    \prod_{i=1}^{p}
+    \frac{
+        1 + v_\text{method}\!\left(i\right)
+    }{
+        1 - v_\text{method}\!\left(i\right)
+    }
+    - 1
+    .
+\end{align}
 
 \end{document}

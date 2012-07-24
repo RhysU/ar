@@ -169,6 +169,8 @@ References
 
 -- [Collomb2009]   Cedrick Collomb. Burg's method, algorithm, and recursion, November 2009. http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf
 
+-- [Hurvich1989]   Hurvich, Clifford M. and Chih-Ling Tsai. "Regression and time series model selection in small samples." Biometrika 76 (June 1989): 297-307. http://dx.doi.org/10.1093/biomet/76.2.297
+
 -- [Ibrahim1987a]  Ibrahim, M. K. "Improvement in the speed of the data-adaptive weighted Burg technique." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1474–1476. http://dx.doi.org/10.1109/TASSP.1987.1165046
 
 -- [Ibrahim1987b]  Ibrahim, M. K. "On line splitting in the optimum tapered Burg algorithm." IEEE Transactions on Acoustics, Speech, and Signal Processing 35 (October 1987): 1476–1479. http://dx.doi.org/10.1109/TASSP.1987.1165047
