@@ -634,10 +634,9 @@ template <class EstimationMethod,
 struct empirical_variance_function
     : public std::binary_function<Result,Integer1,Integer2>
 {
-    Result operator() (Integer1 N, Integer2 i) const {
-        return EstimationMethod::template empirical_variance<
-                Result, Integer1, Integer2
-            >(N, i);
+    Result operator() (Integer1 N, Integer2 i) const
+    {
+        return EstimationMethod::template empirical_variance<Result>(N, i);
     }
 };
 
@@ -665,10 +664,9 @@ public:
 
     empirical_variance_generator(Integer1 N) : N(N), i(0) {}
 
-    Result operator() () {
-        return EstimationMethod::template empirical_variance<
-                Result, Integer1, Integer2
-            >(N, i++);
+    Result operator() ()
+    {
+        return EstimationMethod::template empirical_variance<Result>(N, i++);
     }
 };
 
@@ -790,18 +788,14 @@ public:
     {
         assert(i <= N);
 
-        return EstimationMethod::template empirical_variance<
-                Result, Integer1, Integer2
-            >(N, i);
+        return EstimationMethod::template empirical_variance<Result>(N, i);
     }
 
     value_type operator[](const difference_type &k) const
     {
         assert(i + k <= N);
 
-        return EstimationMethod::template empirical_variance<
-                Result, Integer1, Integer2
-            >(N, i + k);
+        return EstimationMethod::template empirical_variance<Result>(N, i + k);
     }
 };
 
@@ -823,6 +817,22 @@ public:
  *
  * @{
  */
+
+/** A tag type for autoregressive model selection criterion. */
+struct criterion {};
+
+/** A tag type for the generalized information criterion (GIC). */
+template <class PenaltyFactor>
+struct GIC : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result alpha = PenaltyFactor(N);
+        return alpha * p / N;
+    }
+};
 
 // TODO Implement GIC
 // TODO Implement AIC
