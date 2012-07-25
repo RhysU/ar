@@ -1,6 +1,6 @@
-CXXFLAGS ?= -g -Werror -Wall -Wextra -std=c++98 -ansi -pedantic
-CXXFLAGS += -O3
-#  CXXFLAGS += -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
+STRICTER ?= -Werror -Wall -Wextra -std=c++98 -ansi -pedantic
+CXXFLAGS ?= $(STRICTER) -g -O3 -DNDEBUG
+#  CXXFLAGS ?= $(STRICTER) -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
 
 all:     zohar example test
 

@@ -9,6 +9,7 @@
 #define BURG_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -490,6 +491,8 @@ struct mean_subtracted
     template <typename Result, typename Integer>
     static Result empirical_variance_zero(Integer N)
     {
+        assert(N >= 1);
+
         Result den = N;
         return 1 / den;
     }
@@ -519,7 +522,7 @@ struct estimation_method {};
 
 /** Represents estimation by solving the Yule--Walker equations. */
 template <class MeanHandling>
-class YW : public estimation_method
+class YuleWalker : public estimation_method
 {
 public:
 
@@ -528,11 +531,15 @@ public:
      * @param N Number of observations.
      * @param i Variance order.
      */
-    template <typename Result, typename Integer>
-    static Result empirical_variance(Integer N, Integer i)
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result empirical_variance(Integer1 N, Integer2 i)
     {
+        assert(N >= 1);
+        assert(i >= 0);
+        assert(i <= N);
+
         if (i == 0)
-            return typename MeanHandling::template empirical_variance_zero<Result>(i);
+            return MeanHandling::template empirical_variance_zero<Result>(N);
 
         Result num = N - i, den = N*(N + 2);
         return num / den;
@@ -550,11 +557,15 @@ public:
      * @param N Number of observations.
      * @param i Variance order.
      */
-    template <typename Result, typename Integer>
-    static Result empirical_variance(Integer N, Integer i)
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result empirical_variance(Integer1 N, Integer2 i)
     {
+        assert(N >= 1);
+        assert(i >= 0);
+        assert(i <= N);
+
         if (i == 0)
-            return MeanHandling::template empirical_variance_zero<Result>(i);
+            return MeanHandling::template empirical_variance_zero<Result>(N);
 
         Result den = N + 1 - i;
         return 1 / den;
@@ -572,13 +583,17 @@ public:
      * @param N Number of observations.
      * @param i Variance order.
      */
-    template <typename Result, typename Integer>
-    static Result empirical_variance(Integer N, Integer i)
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result empirical_variance(Integer1 N, Integer2 i)
     {
-        if (i == 0)
-            return MeanHandling::template empirical_variance_zero<Result>(i);
+        assert(N >= 1);
+        assert(i >= 0);
+        assert(i <= N);
 
-        // Factorizing will cause problems in unsigned arithmetic
+        if (i == 0)
+            return MeanHandling::template empirical_variance_zero<Result>(N);
+
+        // Factorizing expression will cause problems in unsigned arithmetic
         Result den = N + Result(3)/2 - Result(3)/2 * i;
         return 1 / den;
     }
@@ -595,16 +610,66 @@ public:
      * @param N Number of observations.
      * @param i Variance order.
      */
-    template <typename Result, typename Integer>
-    static Result empirical_variance(Integer N, Integer i)
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result empirical_variance(Integer1 N, Integer2 i)
     {
-        if (i == 0)
-            return MeanHandling::template empirical_variance_zero<Result>(i);
+        assert(N >= 1);
+        assert(i >= 0);
+        assert(i <= N);
 
-        // Factorizing will cause problems in unsigned arithmetic
+        if (i == 0)
+            return MeanHandling::template empirical_variance_zero<Result>(N);
+
+        // Factorizing expression will cause problems in unsigned arithmetic
         Result den = N + 2 - 2*i;
         return 1 / den;
     }
+};
+
+/** An STL-ready binary_function for a given method's empirical variance. */
+template <class EstimationMethod,
+          typename Result,
+          typename Integer1 = std::size_t,
+          typename Integer2 = Integer1>
+struct empirical_variance_function
+    : public std::binary_function<Result,Integer1,Integer2>
+{
+    Result operator() (Integer1 N, Integer2 i) const {
+        return EstimationMethod::template empirical_variance<
+                Result, Integer1, Integer2
+            >(N, i);
+    }
+};
+
+/**
+ * An STL-ready AdaptableGenerator for a given method's empirical variance.
+ *
+ * On each <tt>operator()</tt> invocation the method's empirical variance is
+ * returned for the current model order.  The first invocation returns the
+ * result for model order zero.
+ */
+template <class EstimationMethod,
+          typename Result,
+          typename Integer1 = std::size_t,
+          typename Integer2 = Integer1>
+class empirical_variance_generator
+{
+public:
+
+    typedef Result result_type;
+
+    empirical_variance_generator(Integer1 N) : N(N), i(0) {}
+
+    Result operator() () {
+        return EstimationMethod::template empirical_variance<
+                Result, Integer1, Integer2
+            >(N, i++);
+    }
+
+private:
+
+    Integer1 N;
+    Integer2 i;
 };
 
 /////////////////////////////////////////////////////////////////////////////
