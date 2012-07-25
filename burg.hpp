@@ -673,7 +673,8 @@ public:
 };
 
 /**
- * An immutable ForwardIterator over a method's empirical variance sequence.
+ * An immutable RandomAccessIterator over a method's empirical variance
+ * sequence.
  *
  * Facilitates using algorithms like <tt>std::copy</tt>,
  * <tt>std::accumulate</tt>, and <tt>std::partial_sum</tt> when comparing a
@@ -687,10 +688,10 @@ template <class EstimationMethod,
           typename Integer1 = std::size_t,
           typename Integer2 = Integer1>
 class empirical_variance_iterator
-    : public std::iterator<std::forward_iterator_tag, Result>
+    : public std::iterator<std::random_access_iterator_tag, Result>
 {
 private:
-    typedef std::iterator<std::forward_iterator_tag, Result> base;
+    typedef std::iterator<std::random_access_iterator_tag, Result> base;
 
     empirical_variance_iterator(Integer1 N, Integer2) : N(N), i(i) {}
 
@@ -711,18 +712,56 @@ public:
     empirical_variance_iterator(Integer1 N) : N(N), i(0)
         { assert(N >= 1); }
 
+    // Forward traversal
+
     empirical_variance_iterator& operator++()
         { assert(N >= 1); ++i; return *this; }
 
     empirical_variance_iterator operator++(int)
         { assert(N >= 1); return empirical_variance_iterator(N, i++); }
 
+    empirical_variance_iterator operator+(const difference_type& k)
+        { assert(N >= 1); return empirical_variance_iterator(N, i + k); }
+
+    empirical_variance_iterator& operator+=(const difference_type& k)
+        { assert(N >= 1); i += k; return *this; }
+
+    // Backward traversal
+
+    empirical_variance_iterator& operator--()
+        { assert(N >= 1); --i; return *this; }
+
+    empirical_variance_iterator operator--(int)
+        { assert(N >= 1); return empirical_variance_iterator(N, i--); }
+
+    empirical_variance_iterator operator-(const difference_type& k)
+        { assert(N >= 1); return empirical_variance_iterator(N, i - k); }
+
+    empirical_variance_iterator& operator-=(const difference_type& k)
+        { assert(N >= 1); i -= k; return *this; }
+
+    // Distance support
+
+    difference_type operator-(const empirical_variance_iterator& other)
+    {
+        if (!this->N) {
+            return 1 + other.N - other.i;
+        } else if (!other.N) {
+            return -static_cast<difference_type>(1 + this->N - this->i);
+        } else {
+            assert(this->N == other.N);
+            return this->i - other.i;
+        }
+    }
+
+    // EqualityComparable
+
     bool operator==(const empirical_variance_iterator& other)
     {
         if (!this->N) {
-            return other.i == other.N + 1;
+            return other.i >= other.N + 1;
         } else if (!other.N) {
-            return this->i == this->N + 1;
+            return this->i >= this->N + 1;
         } else {
             return this->N == other.N && this->i == other.i;
         }
@@ -731,6 +770,22 @@ public:
     bool operator!=(const empirical_variance_iterator& other)
         { return !(*this == other); }
 
+    // LessThanComparable will trigger assertion on nonsense N cases
+
+    bool operator<(const empirical_variance_iterator& other)
+        { return (*this - other) < 0; }
+
+    bool operator<=(const empirical_variance_iterator& other)
+        { return (*this - other) <= 0; }
+
+    bool operator>(const empirical_variance_iterator& other)
+        { return (*this - other) > 0; }
+
+    bool operator>=(const empirical_variance_iterator& other)
+        { return (*this - other) >= 0; }
+
+    // Dereference operations
+
     value_type operator*() const
     {
         assert(i <= N);
@@ -738,6 +793,15 @@ public:
         return EstimationMethod::template empirical_variance<
                 Result, Integer1, Integer2
             >(N, i);
+    }
+
+    value_type operator[](const difference_type &k) const
+    {
+        assert(i + k <= N);
+
+        return EstimationMethod::template empirical_variance<
+                Result, Integer1, Integer2
+            >(N, i + k);
     }
 };
 
