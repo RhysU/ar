@@ -102,16 +102,16 @@ template <class InputIterator,
           class OutputIterator2,
           class OutputIterator3,
           class OutputIterator4>
-std::size_t burgs_method(InputIterator     data_first,
-                         InputIterator     data_last,
-                         Value&            mean,
-                         std::size_t&      maxorder,
-                         OutputIterator1   params_first,
-                         OutputIterator2   sigma2e_first,
-                         OutputIterator3   gain_first,
-                         OutputIterator4   autocor_first,
-                         const bool        subtract_mean = false,
-                         const bool        hierarchy = false)
+std::size_t burg_method(InputIterator     data_first,
+                        InputIterator     data_last,
+                        Value&            mean,
+                        std::size_t&      maxorder,
+                        OutputIterator1   params_first,
+                        OutputIterator2   sigma2e_first,
+                        OutputIterator3   gain_first,
+                        OutputIterator4   autocor_first,
+                        const bool        subtract_mean = false,
+                        const bool        hierarchy = false)
 {
     using std::bind2nd;
     using std::copy;

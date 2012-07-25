@@ -15,8 +15,8 @@ data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
 
-	         Coefficient   NumericalRecipes       burgs_method           PercentDiff
-	         -----------   ----------------       ------------           -----------
+	         Coefficient   NumericalRecipes        burg_method           PercentDiff
+	         -----------   ----------------        -----------           -----------
 	                 1.4    1.3722815374162    1.3722815374161  -7.4431168445089e-12
 	                -0.7  -0.69066992983051   -0.6906699298305  -1.9289498094656e-12
 	                0.04  0.034482949286973  0.034482949287216   7.0461579987592e-10
@@ -27,8 +27,8 @@ data by [Bourke1998]::
 
 	./test test2.coeff test2.dat
 
-	         Coefficient   NumericalRecipes       burgs_method           PercentDiff
-	         -----------   ----------------       ------------           -----------
+	         Coefficient   NumericalRecipes        burg_method           PercentDiff
+	         -----------   ----------------        -----------           -----------
 	               0.677   0.65876631854655   0.65876631854655  -1.1797144076101e-13
 	               0.175   0.20659300731471   0.20659300731471  -4.2991698085266e-13
 	               0.297   0.28423342541501   0.28423342541501  -3.5154230038347e-13
@@ -41,8 +41,8 @@ data by [Bourke1998]::
 
 	./test test3.coeff test3.dat
 
-	         Coefficient   NumericalRecipes       burgs_method           PercentDiff
-	         -----------   ----------------       ------------           -----------
+	         Coefficient   NumericalRecipes        burg_method           PercentDiff
+	         -----------   ----------------        -----------           -----------
 	                1.02    1.0251761581124    1.0251761581124   3.4654665451271e-13
 	               -0.53  -0.52577027224279  -0.52577027224279   4.8567085121517e-13
 

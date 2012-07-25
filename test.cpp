@@ -24,7 +24,7 @@ template<typename T> struct sum_error : public std::binary_function<T,T,T> {
 // Set working precision
 typedef double real;
 
-// Test burgs_method against synthetic data
+// Test burg_method against synthetic data
 int main(int argc, char *argv[])
 {
     using namespace std;
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
     f.exceptions(ifstream::badbit);
     f.open(argc > 2 ? argv[2] : "test1.dat");
 
-    // Use burgs_method to fit an AR model and characterize it completely
+    // Use burg_method to fit an AR model and characterize it completely
     size_t maxorder = exact.size();
     real mean, sigma2e, gain;
-    burgs_method(istream_iterator<real>(f), istream_iterator<real>(),
-                 mean, maxorder, est.begin(), &sigma2e, &gain, cor.begin(),
-                 subtract_mean, false);
+    burg_method(istream_iterator<real>(f), istream_iterator<real>(),
+                mean, maxorder, est.begin(), &sigma2e, &gain, cor.begin(),
+                subtract_mean, false);
 
     // Close input file
     f.close();
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
     transform(rhs.begin(), rhs.end(), est.begin(), rhs.begin(), plus<real>());
     real res = accumulate(rhs.begin(), rhs.end(), real(0), sum_error<real>());
 
-    printf("%22s %22s %22s\n", "Nominal Value", "burgs_method", "Percent Diff");
-    printf("%22s %22s %22s\n", "-------------", "------------", "------------");
+    printf("%22s %22s %22s\n", "Nominal Value", "burg_method", "Percent Diff");
+    printf("%22s %22s %22s\n", "-------------", "-----------", "------------");
     for (vector<real>::const_iterator i = exact.begin(), j = est.begin();
          i != exact.end(); ++i, ++j)
     {
