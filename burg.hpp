@@ -483,8 +483,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
  * @{
  */
 
-/** Denotes the sample mean was removed from a signal before estimation. */
-struct mean_removed
+/** Denotes the sample mean was subtracted from a signal before estimation. */
+struct mean_subtracted
 {
     /** Computes the empirical variance estimate for order zero. */
     template <typename Result, typename Integer>
@@ -532,7 +532,7 @@ public:
     static Result empirical_variance(Integer N, Integer i)
     {
         if (i == 0)
-            return MeanHandling::empirical_variance_zero(i);
+            return typename MeanHandling::template empirical_variance_zero<Result>(i);
 
         Result num = N - i, den = N*(N + 2);
         return num / den;
@@ -554,7 +554,7 @@ public:
     static Result empirical_variance(Integer N, Integer i)
     {
         if (i == 0)
-            return MeanHandling::empirical_variance_zero(i);
+            return MeanHandling::template empirical_variance_zero<Result>(i);
 
         Result den = N + 1 - i;
         return 1 / den;
@@ -576,7 +576,7 @@ public:
     static Result empirical_variance(Integer N, Integer i)
     {
         if (i == 0)
-            return MeanHandling::empirical_variance_zero(i);
+            return MeanHandling::template empirical_variance_zero<Result>(i);
 
         // Factorizing will cause problems in unsigned arithmetic
         Result den = N + Result(3)/2 - Result(3)/2 * i;
@@ -599,7 +599,7 @@ public:
     static Result empirical_variance(Integer N, Integer i)
     {
         if (i == 0)
-            return MeanHandling::empirical_variance_zero(i);
+            return MeanHandling::template empirical_variance_zero<Result>(i);
 
         // Factorizing will cause problems in unsigned arithmetic
         Result den = N + 2 - 2*i;
