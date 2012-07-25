@@ -5,10 +5,9 @@
 \usepackage{fullpage}
 
 \mathtoolsset{showonlyrefs,showmanualtags}
-\allowdisplaybreaks[1]
+% \allowdisplaybreaks[1]
 
-\newcommand{\RisingFactorial}[2]{{#1}^{\left(#2\right)}}
-\newcommand{\FallingFactorial}[2]{\left(#1\right)_{#2}}
+\newcommand{\Pochhammer}[2]{\left(#1\right)_{#2}}
 
 \begin{document}
 
@@ -291,31 +290,38 @@ Considering the product term in the context of the Yule--Walker estimation,
     }{
         1 - v_\text{Yule--Walker}\!\left(N,i\right)
     }
-    =
+    &=
     \prod_{i=1}^{p}
     \frac{
         N^2 + 3N - i
     }{
         N^2 +  N + i
     }
-    =
+    \notag
+    \\
+    &=
     \left(-1\right)^p
     \frac{
-        \RisingFactorial{\left(1-3n-n^2\right)}{p}
+        \Pochhammer{1-3n-n^2}{p}
     }{
-        \RisingFactorial{\left(1+ n-n^2\right)}{p}
+        \Pochhammer{1+ n-n^2}{p}
+    }
+    =
+    \frac{
+        \Pochhammer{n^2+3n-p}{p}
+    }{
+        \Pochhammer{1+n-n^2}{p}
     }
 \end{align}
-where the Pochhammer function or ``rising factorial'' for positive integers
-denotes
+where the ``rising factorial'' is denoted by the Pochhammer symbol
 \begin{align}
-\RisingFactorial{x}{n} = \frac{\Gamma\left(x+n\right)}{\Gamma\left(x\right)}.
+\Pochhammer{a}{n} &= \frac{\Gamma\left(a+n\right)}{\Gamma\left(a\right)}.
 \end{align}
-The Pochhammer symbol or ``falling factorial'' for positive integers represents
-\begin{align}
-\FallingFactorial{x}{n} =
-\frac{\Gamma\left(x+1\right)}{\Gamma\left(x-n+1\right)}.
-\end{align}
-% TODO Comment on possible confusion in interpretation
+Routines for computing the Pochhammer symbol may be found in SLATEC\footnote{
+Vandevender, W. H. and K. H. Haskell. ``The SLATEC mathematical subroutine
+library.'' ACM SIGNUM Newsletter 17 (September 1982): 16-21.
+\url{http://dx.doi.org/10.1145/1057594.1057595} } or the GNU Scientific
+Library\footnote{ M. Galassi et al, GNU Scientific Library Reference Manual
+(3rd Ed.), ISBN 0954612078. \url{http://www.gnu.org/software/gsl/} }.
 
 \end{document}
