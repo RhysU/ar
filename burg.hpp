@@ -9,12 +9,22 @@
 #define BURG_HPP
 
 #include <algorithm>
-#include <cassert>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Algorithms for autoregressive parameter estimation and manipulation.
+ *
+ * @{
+ */
 
 /**
  * Fit an autoregressive model to stationary time series data using
@@ -422,6 +432,7 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     return zohar_linear_solve(a_first, a_last, r_first, d_first, d_first);
 }
 
+
 /**
  * Solve a real-valued, symmetric Toeplitz set of linear equations in-place.
  * That is, compute
@@ -452,5 +463,152 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 {
     return zohar_linear_solve(a_first, a_last, a_first, d_first);
 }
+
+/**
+ * @}
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Criteria for autoregressive model order selection following Broersen.
+ *
+ * For details, see either the FiniteSampleCriteria.tex write up or Broersen,
+ * P. M. T. "Finite sample criteria for autoregressive order selection." IEEE
+ * Transactions on Signal Processing 48 (December 2000): 3550-3558.
+ * http://dx.doi.org/10.1109/78.887047.
+ *
+ * @{
+ */
+
+/** Denotes the sample mean was removed from a signal before estimation. */
+struct mean_removed
+{
+    /** Computes the empirical variance estimate for order zero. */
+    template <typename Result, typename Integer>
+    static Result empirical_variance_zero(Integer N)
+    {
+        Result den = N;
+        return 1 / den;
+    }
+};
+
+/** Denotes the sample mean was retained in a signal during estimation. */
+struct mean_retained
+{
+    /** Computes the empirical variance estimate for order zero. */
+    template <typename Result, typename Integer>
+    static Result empirical_variance_zero(Integer)
+    {
+        return 0;
+    }
+};
+
+/**
+ * A parent type for autoregressive process parameter estimation techniques.
+ *
+ * Each subclass should have an <tt>empirical_variance(N,i)</tt> method
+ * following Broersen, P. M. and H. E. Wensink. "On Finite Sample Theory for
+ * Autoregressive Model Order Selection." IEEE Transactions on Signal
+ * Processing 41 (January 1993): 194+.
+ * http://dx.doi.org/10.1109/TSP.1993.193138.
+ */
+struct estimation_method {};
+
+/** Represents estimation by solving the Yule--Walker equations. */
+template <class MeanHandling>
+class YW : public estimation_method
+{
+public:
+
+    /**
+     * Approximates the empirical variance estimate.
+     * @param N Number of observations.
+     * @param i Variance order.
+     */
+    template <typename Result, typename Integer>
+    static Result empirical_variance(Integer N, Integer i)
+    {
+        if (i == 0)
+            return MeanHandling::empirical_variance_zero(i);
+
+        Result num = N - i, den = N*(N + 2);
+        return num / den;
+    }
+};
+
+/** Represents estimation using Burg's recursive method. */
+template <class MeanHandling>
+class Burg : public estimation_method
+{
+public:
+
+    /**
+     * Approximates the empirical variance estimate.
+     * @param N Number of observations.
+     * @param i Variance order.
+     */
+    template <typename Result, typename Integer>
+    static Result empirical_variance(Integer N, Integer i)
+    {
+        if (i == 0)
+            return MeanHandling::empirical_variance_zero(i);
+
+        Result den = N + 1 - i;
+        return 1 / den;
+    }
+};
+
+/** Represents forward and backward prediction least squares minimization. */
+template <class MeanHandling>
+class LSFB : public estimation_method
+{
+public:
+
+    /**
+     * Approximates the empirical variance estimate.
+     * @param N Number of observations.
+     * @param i Variance order.
+     */
+    template <typename Result, typename Integer>
+    static Result empirical_variance(Integer N, Integer i)
+    {
+        if (i == 0)
+            return MeanHandling::empirical_variance_zero(i);
+
+        // Factorizing will cause problems in unsigned arithmetic
+        Result den = N + Result(3)/2 - Result(3)/2 * i;
+        return 1 / den;
+    }
+};
+
+/** Represents forward prediction least squares minimization. */
+template <class MeanHandling>
+class LSF : public estimation_method
+{
+public:
+
+    /**
+     * Approximates the empirical variance estimate.
+     * @param N Number of observations.
+     * @param i Variance order.
+     */
+    template <typename Result, typename Integer>
+    static Result empirical_variance(Integer N, Integer i)
+    {
+        if (i == 0)
+            return MeanHandling::empirical_variance_zero(i);
+
+        // Factorizing will cause problems in unsigned arithmetic
+        Result den = N + 2 - 2*i;
+        return 1 / den;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 
 #endif /* BURG_HPP */
