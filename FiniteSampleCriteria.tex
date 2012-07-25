@@ -421,5 +421,19 @@ By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
     - 1
 \end{align}
 
+\subsubsection*{Combined information criterion}
+
+The combined information criterion (CIC) takes the behavior of FIC(p,3) at low
+orders and FSIC at high orders.  For any estimation method CIC has the
+overfit penalty term
+\begin{align}
+    \text{overfit}\!\left(\text{CIC},N,p,v_\ast\right)
+    &=
+    \max\left(
+        \text{overfit}\!\left(\text{FSIC},N,p,v_\ast\right),
+        \text{overfit}\!\left(\text{FIC},N,p,v_\ast,3\right)
+    \right)
+    .
+\end{align}
 
 \end{document}
