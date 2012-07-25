@@ -474,9 +474,9 @@ void zohar_linear_solve(RandomAccessIterator a_first,
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * Criteria for autoregressive model order selection following Broersen.
+ * Method-specific estimation variance routines following Broersen.
  *
- * For details, see either the FiniteSampleCriteria.tex write up or Broersen,
+ * For details see either the FiniteSampleCriteria.tex write up or Broersen,
  * P. M. T. "Finite sample criteria for autoregressive order selection." IEEE
  * Transactions on Signal Processing 48 (December 2000): 3550-3558.
  * http://dx.doi.org/10.1109/78.887047.
@@ -642,7 +642,7 @@ struct empirical_variance_function
 };
 
 /**
- * An STL-ready AdaptableGenerator for a given method's empirical variance.
+ * An STL AdaptableGenerator for a given method's empirical variance.
  *
  * On each <tt>operator()</tt> invocation the method's empirical variance is
  * returned for the current model order.  The first invocation returns the
@@ -654,6 +654,11 @@ template <class EstimationMethod,
           typename Integer2 = Integer1>
 class empirical_variance_generator
 {
+private:
+
+    Integer1 N;
+    Integer2 i;
+
 public:
 
     typedef Result result_type;
@@ -665,15 +670,106 @@ public:
                 Result, Integer1, Integer2
             >(N, i++);
     }
+};
 
+/**
+ * An immutable ForwardIterator over a method's empirical variance sequence.
+ *
+ * Facilitates using algorithms like <tt>std::copy</tt>,
+ * <tt>std::accumulate</tt>, and <tt>std::partial_sum</tt> when comparing a
+ * hierarchy of models during model order selection.
+ *
+ * The (N+1)-length sequence of orders 0, 1, ..., N is iterated given sample
+ * size N.  Default constructed instances represent past-end iterators.
+ */
+template <class EstimationMethod,
+          typename Result,
+          typename Integer1 = std::size_t,
+          typename Integer2 = Integer1>
+class empirical_variance_iterator
+    : public std::iterator<std::forward_iterator_tag, Result>
+{
 private:
+    typedef std::iterator<std::forward_iterator_tag, Result> base;
+
+    empirical_variance_iterator(Integer1 N, Integer2) : N(N), i(i) {}
 
     Integer1 N;
     Integer2 i;
+
+public:
+    typedef typename base::difference_type   difference_type;
+    typedef typename base::iterator_category iterator_category;
+    typedef typename base::pointer           pointer;
+    typedef typename base::reference         reference;
+    typedef typename base::value_type        value_type;
+
+    /** Construct a past-end iterator */
+    empirical_variance_iterator() : N(0), i(1) {}  // Null
+
+    /** Construct an iterator over sequence order 0, 1, ..., N (inclusive). */
+    empirical_variance_iterator(Integer1 N) : N(N), i(0)
+        { assert(N >= 1); }
+
+    empirical_variance_iterator& operator++()
+        { assert(N >= 1); ++i; return *this; }
+
+    empirical_variance_iterator operator++(int)
+        { assert(N >= 1); return empirical_variance_iterator(N, i++); }
+
+    bool operator==(const empirical_variance_iterator& other)
+    {
+        if (!this->N) {
+            return other.i == other.N + 1;
+        } else if (!other.N) {
+            return this->i == this->N + 1;
+        } else {
+            return this->N == other.N && this->i == other.i;
+        }
+    }
+
+    bool operator!=(const empirical_variance_iterator& other)
+        { return !(*this == other); }
+
+    value_type operator*() const
+    {
+        assert(i <= N);
+
+        return EstimationMethod::template empirical_variance<
+                Result, Integer1, Integer2
+            >(N, i);
+    }
 };
+
+/**
+ * @}
+ */
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Criteria for autoregressive model order selection following Broersen.
+ *
+ * For details see either the FiniteSampleCriteria.tex write up or Broersen,
+ * P. M. T. "Finite sample criteria for autoregressive order selection." IEEE
+ * Transactions on Signal Processing 48 (December 2000): 3550-3558.
+ * http://dx.doi.org/10.1109/78.887047.
+ *
+ * @{
+ */
+
+// TODO Implement GIC
+// TODO Implement AIC
+// TODO Implement BIC
+// TODO Implement MCC
+// TODO Implement FIC
+// TODO Implement FSIC
+// TODO Implement CIC
+
+/**
+ * @}
+ */
 
 #endif /* BURG_HPP */
