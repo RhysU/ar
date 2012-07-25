@@ -37,11 +37,11 @@ Model selection criteria for evaluating which of several candidates most
 parsimoniously fits an AR(K) process generally have the form
 \begin{align}
     \label{eq:general}
-    \text{criterion}\!\left(N,p,v_\text{method},\alpha\right)
+    \text{criterion}\!\left(v_\text{method},N,p,\alpha\right)
     &=
     \ln \text{residual}\!\left(p,v_\text{method}\right)
     +
-    \text{overfit}\!\left(\text{criterion},N,p,v_\text{method},\alpha\right)
+    \text{overfit}\!\left(\text{criterion},v_\text{method},N,p,\alpha\right)
     .
 \end{align}
 Among all candidates and using a given criterion, the ``best'' model minimizes
@@ -52,7 +52,7 @@ estimation variance for model order $i$, and $\alpha$ is an optional factor
 with a criterion-dependent meaning.  When estimating
 $\hat{a}_1,\dots,\hat{a}_p$ given sample data $x_n$, the residual variance is
 \begin{align}
-    \text{residual}\!\left(p,v_\text{method}\right)
+    \text{residual}\!\left(v_\text{method},p\right)
     =
     \text{residual}\!\left(p\right)
     &=
@@ -62,7 +62,7 @@ $\hat{a}_1,\dots,\hat{a}_p$ given sample data $x_n$, the residual variance is
 Therefore the left term in~\eqref{eq:general} penalizes misfitting the data
 independently of the estimation method used.  One may therefore distinguish
 among criterion using only the overfitting penalty term, namely
-$\text{overfit}\!\left(\text{criterion},N,p,v_\text{method},\alpha\right)$.
+$\text{overfit}\!\left(\text{criterion},v_\text{method},N,p,\alpha\right)$.
 
 In Broersen's work, the penalty term depends upon the model estimation
 method used through the estimation variance $v$:
@@ -105,7 +105,8 @@ the sample mean has been subtracted:
 
 \subsection*{Infinite sample overfit penalty terms}
 
-The asymptotic generalized information criterion (GIC) has overfitting penalty
+The method-independent generalized information criterion (GIC) has overfitting
+penalty
 \begin{align}
     \text{overfit}\!\left(\text{GIC},N,p,\alpha\right)
     &=
@@ -157,7 +158,7 @@ The finite information criterion (FIC) is an extension of GIC meant to account
 for finite sample size and the estimation method employed.  The FIC overfit
 penalty term is
 \begin{align}
-    \text{overfit}\!\left(\text{FIC},N,p,v_\text{method},\alpha\right)
+    \text{overfit}\!\left(\text{FIC},v_\text{method},N,p,\alpha\right)
     &=
     \alpha \sum_{i=0}^{p} v_\text{method}\!\left(N,i\right)
     \notag
@@ -176,14 +177,14 @@ Broersen uses $\alpha = 3$ calling the result FIC(p,3).
 By direct computation one finds the following:
 \begin{subequations}
 \begin{align}
-    \text{overfit}\!\left(\text{FIC},N,p,v_\text{Yule--Walker},\alpha\right)
+    \text{overfit}\!\left(\text{FIC},v_\text{Yule--Walker},N,p,\alpha\right)
     &=
     \alpha\left(
       v\!\left(N,0\right)
     - \frac{p \left(1-2 N+p\right)}{2 N \left(N+2\right)}
     \right)
 \\
-    \text{overfit}\!\left(\text{FIC},N,p,v_\text{Burg},\alpha\right)
+    \text{overfit}\!\left(\text{FIC},v_\text{Burg},N,p,\alpha\right)
     &=
     \alpha\left(
       v\!\left(N,0\right)
@@ -191,7 +192,7 @@ By direct computation one finds the following:
     + \psi\!\left(N+1-p\right)
     \right)
 \\
-    \text{overfit}\!\left(\text{FIC},N,p,v_\text{LSFB},\alpha\right)
+    \text{overfit}\!\left(\text{FIC},v_\text{LSFB},N,p,\alpha\right)
     &=
     \alpha\left(
       v\!\left(N,0\right)
@@ -201,7 +202,7 @@ By direct computation one finds the following:
       \right)
     \right)
 \\
-    \text{overfit}\!\left(\text{FIC},N,p,v_\text{LSF},\alpha\right)
+    \text{overfit}\!\left(\text{FIC},v_\text{LSF},N,p,\alpha\right)
     &=
     \alpha\left(
       v\!\left(N,0\right)
@@ -257,7 +258,7 @@ Signal Processing 52 (December 2004): 3314-3323.
 \url{http://dx.doi.org/10.1109/TSP.2004.837416}.}. FSIC has the overfit penalty
 term
 \begin{align}
-    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{method}\right)
+    \text{overfit}\!\left(\text{FSIC},v_\text{method},N,p\right)
     &=
     \prod_{i=0}^{p}
     \frac{
@@ -360,7 +361,7 @@ particular, both suggested sources handle negative integer input correctly.
 By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
 \eqref{eq:fsicGeneral} one obtains:
 \begin{align}
-    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{Yule--Walker}\right)
+    \text{overfit}\!\left(\text{FSIC},v_\text{Yule--Walker},N,p\right)
     &=
     \frac{
         1 + v\!\left(N,0\right)
@@ -375,7 +376,7 @@ By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
     }
     - 1
     \\
-    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{Burg}\right)
+    \text{overfit}\!\left(\text{FSIC},v_\text{Burg},N,p\right)
     &=
     \frac{
         1 + v\!\left(N,0\right)
@@ -390,7 +391,7 @@ By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
     }
     - 1
     \\
-    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{LSFB}\right)
+    \text{overfit}\!\left(\text{FSIC},v_\text{LSFB},N,p\right)
     &=
     \frac{
         1 + v\!\left(N,0\right)
@@ -405,7 +406,7 @@ By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
     }
     - 1
     \\
-    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{LSF}\right)
+    \text{overfit}\!\left(\text{FSIC},v_\text{LSF},N,p\right)
     &=
     \frac{
         1 + v\!\left(N,0\right)
@@ -427,12 +428,12 @@ The combined information criterion (CIC) takes the behavior of FIC(p,3) at low
 orders and FSIC at high orders.  For any estimation method CIC has the
 overfit penalty term
 \begin{align}
-    \text{overfit}\!\left(\text{CIC},N,p,v_\text{method}\right)
+    \text{overfit}\!\left(\text{CIC},v_\text{method},N,p\right)
     =
     \max\Bigl\{
-        &\text{overfit}\!\left(\text{FSIC},N,p,v_\text{method}\right),
+        &\text{overfit}\!\left(\text{FSIC},v_\text{method},N,p\right),
 \\
-        &\text{overfit}\!\left(\text{FIC},N,p,v_\text{method},3\right)
+        &\text{overfit}\!\left(\text{FIC},v_\text{method},N,p,3\right)
     \Bigr\}
     .
 \end{align}
