@@ -14,10 +14,12 @@
 \section*{Finite sample criteria for autoregressive order selection}
 
 This document details autoregressive model selection criteria following
-Broersen.\footnote{ Broersen, P. M. T. ``Finite sample criteria
-for autoregressive order selection.'' IEEE Transactions on Signal Processing 48
+Broersen.\footnote{ Broersen, P. M. T. ``Finite sample criteria for
+autoregressive order selection.'' IEEE Transactions on Signal Processing 48
 (December 2000): 3550-3558.  \url{http://dx.doi.org/10.1109/78.887047}.}
-Emphasis is placed on converting formulas into computable forms.
+Emphasis is placed on converting the criteria formulas into forms efficiently
+computable when evaluating a single result.  Cases where many sequential
+evaluations are required may employ intermediate results.
 
 \subsection*{Setting}
 
@@ -272,6 +274,7 @@ penalty term
     }{
         1 - v\!\left(N,0\right)
     }
+    \cdot
     \prod_{i=1}^{p}
     \frac{
         1 + v_\text{method}\!\left(N,i\right)
@@ -280,9 +283,10 @@ penalty term
     }
     - 1
     .
+    \label{eq:fsicGeneral}
 \end{align}
 
-Considering the product term in the context of the Yule--Walker estimation,
+The product in the context of the Yule--Walker estimation may be reexpressed as
 \begin{align}
     \prod_{i=1}^{p}
     \frac{
@@ -312,16 +316,110 @@ Considering the product term in the context of the Yule--Walker estimation,
     }{
         \Pochhammer{1+n-n^2}{p}
     }
+    \label{eq:pochYW}
 \end{align}
 where the ``rising factorial'' is denoted by the Pochhammer symbol
 \begin{align}
-\Pochhammer{a}{n} &= \frac{\Gamma\left(a+n\right)}{\Gamma\left(a\right)}.
+    \Pochhammer{x}{k} &= \frac{\Gamma\left(x+k\right)}{\Gamma\left(x\right)}
+    .
 \end{align}
-Routines for computing the Pochhammer symbol may be found in SLATEC\footnote{
-Vandevender, W. H. and K. H. Haskell. ``The SLATEC mathematical subroutine
-library.'' ACM SIGNUM Newsletter 17 (September 1982): 16-21.
-\url{http://dx.doi.org/10.1145/1057594.1057595} } or the GNU Scientific
+When $x$ is a negative integer and $\Gamma$ is therefore undefined, the
+limiting value of the ratio is implied.  The product in the context of the
+Burg, LSFB, or LSF estimation methods becomes
+\begin{align}
+    \prod_{i=1}^{p}
+    \frac{
+        1 + v_\text{Burg$\vert{}$LSFB$\vert{}$LSF}\!\left(N,i\right)
+    }{
+        1 - v_\text{Burg$\vert{}$LSFB$\vert{}$LSF}\!\left(N,i\right)
+    }
+    &=
+    \prod_{i=1}^{p}
+    \frac{
+        N + a\left(1-i\right) + 1
+    }{
+        N + a\left(1-i\right) - 1
+    }
+    =
+    \frac{
+        \Pochhammer{-\frac{1+N}{a}}{p}
+    }{
+        \Pochhammer{\frac{1-N}{a}}{p}
+    }
+    \label{eq:pochCommon}
+\end{align}
+where $a\in\mathbb{R}$ is a placeholder for a method-specific constant.
+Routines for computing the Pochhammer symbol may be found in, for example,
+SLATEC\footnote{ Vandevender, W. H. and K. H. Haskell. ``The SLATEC
+mathematical subroutine library.'' ACM SIGNUM Newsletter 17 (September 1982):
+16-21.  \url{http://dx.doi.org/10.1145/1057594.1057595} } or the GNU Scientific
 Library\footnote{ M. Galassi et al, GNU Scientific Library Reference Manual
-(3rd Ed.), ISBN 0954612078. \url{http://www.gnu.org/software/gsl/} }.
+(3rd Ed.), ISBN 0954612078. \url{http://www.gnu.org/software/gsl/} }.  In
+particular, both suggested sources handle negative integer input correctly.
+
+By direct substitution of \eqref{eq:pochYW} or \eqref{eq:pochCommon} into
+\eqref{eq:fsicGeneral} one obtains:
+\begin{align}
+    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{Yule--Walker}\right)
+    &=
+    \frac{
+        1 + v\!\left(N,0\right)
+    }{
+        1 - v\!\left(N,0\right)
+    }
+    \cdot
+    \frac{
+        \Pochhammer{n^2+3n-p}{p}
+    }{
+        \Pochhammer{1+n-n^2}{p}
+    }
+    - 1
+    \\
+    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{Burg}\right)
+    &=
+    \frac{
+        1 + v\!\left(N,0\right)
+    }{
+        1 - v\!\left(N,0\right)
+    }
+    \cdot
+    \frac{
+        \Pochhammer{-1-N}{p}
+    }{
+        \Pochhammer{1-N}{p}
+    }
+    - 1
+    \\
+    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{LSFB}\right)
+    &=
+    \frac{
+        1 + v\!\left(N,0\right)
+    }{
+        1 - v\!\left(N,0\right)
+    }
+    \cdot
+    \frac{
+        \Pochhammer{\frac{-2-2N}{3}}{p}
+    }{
+        \Pochhammer{\frac{2-2N}{3}}{p}
+    }
+    - 1
+    \\
+    \text{overfit}\!\left(\text{FSIC},N,p,v_\text{LSF}\right)
+    &=
+    \frac{
+        1 + v\!\left(N,0\right)
+    }{
+        1 - v\!\left(N,0\right)
+    }
+    \cdot
+    \frac{
+        \Pochhammer{\frac{-1-N}{2}}{p}
+    }{
+        \Pochhammer{\frac{1-N}{2}}{p}
+    }
+    - 1
+\end{align}
+
 
 \end{document}
