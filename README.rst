@@ -91,7 +91,6 @@ Also included are a variety of model selection criteria implementations followin
 * consistent criterion BIC,
 * minimally consistent criterion (MMC),
 * asymptotically-corrected Akaike information criterion (AICC),
-* asymptotically-corrected Akaike information criterion (AICC),
 * finite information criterion (FIC),
 * finite sample information criterion (FSIC), and
 * combined information criterion (CIC)
