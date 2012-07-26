@@ -13,8 +13,8 @@
 #include <cmath>
 #include <functional>
 #include <iterator>
-#include <limits>
 #include <numeric>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -1032,6 +1032,68 @@ struct CIC : public criterion
             );
     }
 };
+
+/**
+ * @}
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Algorithmic helpers for autoregressive model order selection.
+ *
+ * @{
+ */
+
+/**
+ * Determine the best model from a hierarchy of candidates using a given \ref
+ * criterion for a given number of samples \c N.
+ *
+ * @param[in] N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in] first Beginning of the input range containing \f$\sigma^2_\epsilon\f$
+ * @param[in] last  Exclusive end of the input range.
+ * @param[in] off   Model order contained in \c first.
+ *
+ * @return The distance from \c first to the best model.
+ */
+template <class Criterion, typename Integer, typename InputIterator>
+typename std::iterator_traits<InputIterator>::difference_type
+select_model(
+        Integer N,
+        InputIterator first,
+        InputIterator last,
+        typename std::iterator_traits<InputIterator>::difference_type off = 1)
+{
+    using std::iterator_traits;
+    using std::numeric_limits;
+
+    typedef InputIterator iterator;
+    typedef typename iterator_traits<iterator>::difference_type difference;
+    typedef typename iterator_traits<iterator>::value_type      value;
+
+    value best_val = numeric_limits<value>::max();
+    difference best_pos = -1, dist = -1;
+
+    while (first != last) {
+
+        const value underfit
+                = Criterion::template underfit_penalty<value>(*first++);
+        const value overfit
+                = Criterion::template overfit_penalty<value>(N, ++dist + off);
+        const value candidate
+                = underfit + overfit;
+
+        if (candidate < best_val) {
+            best_val = candidate;
+            best_pos = dist;
+        }
+
+    }
+
+    return best_pos;;
+}
 
 /**
  * @}
