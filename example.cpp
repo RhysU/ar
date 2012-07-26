@@ -14,12 +14,20 @@
 #include <vector>
 
 // Example program using burg_method and model selection
-int main()
+int main(int argc, char *argv[])
 {
     using namespace std;
 
-    // Sample size decreased to show model selection criteria differences.
-    const std::size_t N = 10;
+    // Maximum model estimation order to perform (limited by N)
+    size_t maxorder = argc > 1 && atol(argv[1]) >= 0
+                      ? atol(argv[1])
+                      : 7;
+
+    // Default sample size shows model selection criteria differences
+    const std::size_t N = argc > 2 && atol(argv[2]) > 0
+                        ? atol(argv[2])
+                        : 10;
+
 
     // Create data to approximate from [Collomb2009]'s example.
     //
@@ -33,8 +41,10 @@ int main()
                 + 0.5*cos(i*0.05) + 0.25*cos(i*0.11);
     }
 
-    // Get linear prediction coefficients for orders 0 through maxorder
-    size_t maxorder = 7;
+    // Estimate process parameters using Burg's method
+    printf("Estimating at most an AR(%lu) model using %lu samples\n\n",
+           maxorder, N);
+
     long double mean;
     vector<long double> params, sigma2e, gain, autocor;
     burg_method(data.begin(), data.end(), mean, maxorder,
