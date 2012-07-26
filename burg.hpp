@@ -79,14 +79,12 @@
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
  * output for each model, including the trivial zeroth order model when \c
  * maxorder is zero or \c hierarchy is true, using \c sigma2e_first and \c
- * gain_first.  The autocorrelations for lags <tt>[1,k]</tt> are output using
- * \c autocor_first.  When \c hierarchy is true, only lags <tt>[1,m]</tt>
- * should be applied for some AR(<tt>m</tt>) model.  The lag zero
- * autocorrelation is always equal to one and is therefore never output.
- * Outputting the lag \c k autocorrelation is technically redundant as it may
- * be computed from \f$a_i\f$ and lags <tt>1, ..., k-1</tt>.  Autocovariances
- * may be computed by multiplying the autocorrelations by \f$\text{gain}
- * \sigma^2_\epsilon\f$.
+ * gain_first.  The autocorrelations for lags <tt>[0,k]</tt> are output using
+ * \c autocor_first.  When \c hierarchy is true, only lags <tt>[0,m]</tt>
+ * should be applied for some AR(<tt>m</tt>) model.  Outputting the lag \c k
+ * autocorrelation is technically redundant as it may be computed from
+ * \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.  Autocovariances may be computed by
+ * multiplying the autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
  *
  * The implementation has been refactored
  * heavily from Cedrick Collomb's 2009 article <a
@@ -118,7 +116,8 @@
  *                              or an entire hierarchy.  Either one or at most
  *                              <tt>maxorder + 1</tt> values will be output.
  * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
- *                              At most \c maxorder values will be output.
+ *                              At most <tt>maxorder + 1</tt> values will be
+ *                              output.
  * @param[in]     subtract_mean Should \c mean be subtracted from the data?
  * @param[in]     hierarchy     Should the entire hierarchy of estimated
  *                              models be output?
@@ -159,7 +158,7 @@ std::size_t burg_method(InputIterator     data_first,
 
     // Compute the mean of f using pairwise summation and output it.
     // Pairwise chosen instead of of Kahan for speed trade off and to avoid
-    // algorithmic nonsense when working precision is exact (e.g. rational).
+    // algorithmic nonsense when working precision is exact (e.g. rationals).
     vector b(N, 0);
     {
         // First pass copies f into b reducing by up to a factor of 2
@@ -199,18 +198,14 @@ std::size_t burg_method(InputIterator     data_first,
     // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
     maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
 
-    // Short circuit if no further work was requested or is possible.
-    if (maxorder == 0)
-        return N;
-
-    // Initialize recursion
-    copy(f.begin(), f.end(), b.begin());
+    // Initialize Burg recursion following Collomb
+    if (maxorder) copy(f.begin(), f.end(), b.begin()); // Copy iff non-trivial
     vector Ak(maxorder + 1, Value(0));
     Ak[0] = 1;
     vector autocor;
     autocor.reserve(maxorder);
 
-    // Perform Burg recursion
+    // Perform Burg recursion following Collomb
     for (size kp1 = 1; kp1 <= maxorder; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
@@ -258,7 +253,9 @@ std::size_t burg_method(InputIterator     data_first,
         }
     }
 
-    // Output the lag [1,maxorder] autocorrelation coefficients in single pass
+
+    // Output the lag [0,maxorder] autocorrelation coefficients in single pass
+    *autocor_first++ = 1;
     copy(autocor.begin(), autocor.end(), autocor_first);
 
     // Return the number of values processed in [data_first, data_last)

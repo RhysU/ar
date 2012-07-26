@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         copy(istream_iterator<real>(f), istream_iterator<real>(),
              back_inserter(exact));
     }
-    vector<real> est(exact.size()), cor(exact.size());
+    vector<real> est(exact.size()), cor(exact.size() + 1);
 
     // Read time series from file argv[2] or a default file
     ifstream f;
@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
     // Solve Yule-Walker equations using Zohar's algorithm as consistency check
     // Given right hand side containing rho_1, ..., rho_p the solution should
     // be -a_1, ..., -a_p on success so adding to it a_1, ..., a_p gives errors.
-    vector<real> rhs(cor);
-    zohar_linear_solve(cor.begin(), --cor.end(), rhs.begin());
+    vector<real> rhs(++cor.begin(), cor.end());
+    zohar_linear_solve(++cor.begin(), --cor.end(), rhs.begin());
     transform(rhs.begin(), rhs.end(), est.begin(), rhs.begin(), plus<real>());
     real res = accumulate(rhs.begin(), rhs.end(), real(0), sum_error<real>());
 
