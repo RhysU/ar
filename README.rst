@@ -51,24 +51,29 @@ data by [Bourke1998]::
 The implementation also permits extracting a sequence of AR(p) models for p
 from one up to some maximum order::
 
-	Order       RMS/N Coefficients
-	-----       ----- ------------
-	    0    0.001172     0.9995
-	    1  5.0336e-06     1.9969   -0.99785
-	    2  2.7649e-08      2.992    -2.9892    0.99725
-	    3  6.0467e-11     3.9881    -5.9751     3.9859   -0.99891
-	    4  6.6639e-14     4.9865    -9.9589     9.9578    -4.9848    0.99945
-	    5  1.2883e-16      5.985    -14.939     19.906    -14.934     5.9811   -0.99903
-	    6  4.8869e-17      6.772    -19.651     31.672    -30.617      17.75    -5.7142    0.78783
-	    7  4.8602e-17     6.7138    -19.229      30.36    -28.354      15.41    -4.2621    0.28742   0.073894
+	AR     RMS/N     Gain Coefficients
+	--     -----     ---- ------------
+	 1  0.000602 9.82e+03
+	 2  1.91e-05 3.09e+05       -1
+	 3  3.33e-07 1.78e+07    -1.98    0.984
+	 4  3.54e-08 1.67e+08    -2.96     2.95   -0.991
+	 5  2.82e-09  2.1e+09     -3.9     5.74    -3.79    0.945
+	 6  6.26e-10 9.44e+09     -4.8     9.37     -9.3     4.68   -0.959
+	 7  1.15e-10 5.15e+10    -5.65     13.5    -17.5       13     -5.2    0.882
+	 8  4.15e-11 1.42e+11    -6.45     18.2    -29.2     28.8    -17.4     5.99   -0.904
+	 9   1.3e-11 4.55e+11    -7.17       23    -43.1     51.7    -40.7     20.5    -6.05    0.799
+	
+	AIC  selects model order 9 as best
+	AICC selects model order 6 as best
+	CIC  selects model order 6 as best
 
-A variety of finite sample model selection criteria are implementationed
-following [Broersen2000].  In particular, the
+A variety of finite sample model selection criteria are implemented following
+[Broersen2000].  In particular, the
 
 * generalized information criterion (GIC),
 * Akaike information criterion (AIC),
 * consistent criterion BIC,
-* minimally consistent criterion (MMC),
+* minimally consistent criterion (MCC),
 * asymptotically-corrected Akaike information criterion (AICC),
 * finite information criterion (FIC),
 * finite sample information criterion (FSIC), and
@@ -140,7 +145,7 @@ Contents
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
 
-TODO
+Todo
 ----
 
 1. Finish performance-related TODOs in FIC and FSIC model selection criteria.
