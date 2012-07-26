@@ -1063,12 +1063,11 @@ template <class Criterion,
           typename InputIterator,
           typename OutputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(
-        Integer N,
-        InputIterator first,
-        InputIterator last,
-        typename std::iterator_traits<InputIterator>::difference_type p_off,
-        OutputIterator crit)
+select_model(Integer N,
+             InputIterator first,
+             InputIterator last,
+             OutputIterator crit,
+             Integer p_off = 1)
 {
     using std::iterator_traits;
     using std::numeric_limits;
@@ -1131,13 +1130,12 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
  */
 template <class Criterion, typename Integer, typename InputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(
-        Integer N,
-        InputIterator first,
-        InputIterator last,
-        typename std::iterator_traits<InputIterator>::difference_type p_off = 1)
+select_model(Integer N,
+             InputIterator first,
+             InputIterator last,
+             Integer p_off = 1)
 {
-    return select_model<Criterion>(N, first, last, p_off, null_output());
+    return select_model<Criterion>(N, first, last, null_output(), p_off);
 }
 
 /**

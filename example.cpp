@@ -4,12 +4,14 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+#include "burg.hpp"
 
 #include <cmath>
 #include <cstdio>
+#include <iostream>
+#include <iterator>
 #include <vector>
-
-#include "burg.hpp"
 
 // Example program using burg_method modified from Collomb's sample
 int main()
@@ -25,7 +27,7 @@ int main()
     }
 
     // Get linear prediction coefficients for orders 1 through order
-    size_t maxorder = 7;
+    size_t maxorder = 8;
     long double mean;
     vector<long double> params, sigma2e, gain, autocor;
     burg_method(original.begin(), original.end(), mean, maxorder,
@@ -34,14 +36,18 @@ int main()
                 false, true);
 
     // Display orders, mean squared discrepancy, and model coefficients
-    printf("%5s  %9s %9s %9s\n", "Order", "RMS/N", "Gain", "Coefficients");
-    printf("%5s  %9s %9s %9s\n", "-----", "-----", "----", "------------");
+    printf("%5s  %8s %8s %8s\n", "Order", "RMS/N", "Gain", "Coefficients");
+    printf("%5s  %8s %8s %8s\n", "-----", "-----", "----", "------------");
     for (size_t p = 0, c = 0; p < maxorder; ++p) {
-        printf("%5lu  %9.4Lg %9.4Lg", p, sigma2e[p], gain[p]);
-        for (size_t i = 0; i < p+1; ++i) printf(" %9.4Lg", params[c++]);
+        printf("%5lu  %8.3Lg %8.3Lg", p+1, sigma2e[p], gain[p]);
+        for (size_t i = 1; i < p+1; ++i) printf(" %8.3Lg", params[c++]);
         putchar('\n');
     }
 
+    vector<long double>::difference_type best
+            = 1 + select_model<CIC<Burg<mean_retained> > >(
+                    original.size(), sigma2e.begin(), sigma2e.end());
+    printf("\nCIC selects model order %d as best\n", (int) best);
+
     return 0;
 }
-
