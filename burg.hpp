@@ -758,9 +758,9 @@ public:
     bool operator==(const empirical_variance_iterator& other)
     {
         if (!this->N) {
-            return other.i >= other.N + 1;
+            return other.i >= static_cast<Integer2>(other.N + 1);
         } else if (!other.N) {
-            return this->i >= this->N + 1;
+            return this->i >= static_cast<Integer2>(this->N + 1);
         } else {
             return this->N == other.N && this->i == other.i;
         }
@@ -1050,24 +1050,27 @@ struct CIC : public criterion
 /**
  * Find the best model from a hierarchy of candidates using a \ref criterion.
  *
- * @param[in]  N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
- * @param[in]  first Beginning of the range containing \f$\sigma^2_\epsilon\f$
- * @param[in]  last  Exclusive end of input range.
- * @param[in]  p_off Model order contained in \c first.
- * @param[out] crit  Numerical value assigned to each model by the criterion.
+ * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in]  ordfirst The model order corresponding to \c first.
+ *                      When \f$sigma^2_epsilon\f$ is produced entirely by
+ *                      \ref burg_method, this should be \c 1u.
+ * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
+ * @param[in]  last     Exclusive end of input range.
+ * @param[out] crit     Value assigned to each model by the criterion.
  *
  * @return The distance from \c first to the best model.
  */
-template <class Criterion,
-          typename Integer,
-          class InputIterator,
-          class OutputIterator>
+template <class    Criterion,
+          typename Integer1,
+          typename Integer2,
+          class    InputIterator,
+          class    OutputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(Integer N,
-             InputIterator first,
-             InputIterator last,
-             OutputIterator crit,
-             Integer p_off = 1)
+select_model(Integer1       N,
+             Integer2       ordfirst,
+             InputIterator  first,
+             InputIterator  last,
+             OutputIterator crit)
 {
     using std::iterator_traits;
     using std::numeric_limits;
@@ -1081,12 +1084,11 @@ select_model(Integer N,
 
     while (first != last) {
 
-        const value underfit
-                = Criterion::template underfit_penalty<value>(*first++);
-        const value overfit
-                = Criterion::template overfit_penalty<value>(N, ++dist + p_off);
-        const value candidate
-                = underfit + overfit;
+        value underfit  = Criterion::template underfit_penalty<value>(
+                                *first++);
+        value overfit   = Criterion::template overfit_penalty<value>(
+                                N, ++dist + ordfirst);
+        value candidate = underfit + overfit;
         *crit++ = candidate;
 
         if (candidate < best_val) {
@@ -1121,21 +1123,26 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
 /**
  * Find the best model from a hierarchy of candidates using a \ref criterion.
  *
- * @param[in]  N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
- * @param[in]  first Beginning of the range containing \f$\sigma^2_\epsilon\f$
- * @param[in]  last  Exclusive end of input range.
- * @param[in]  p_off Model order contained in \c first.
+ * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in]  ordfirst The model order corresponding to \c first.
+ *                      When \f$sigma^2_epsilon\f$ is produced entirely by
+ *                      \ref burg_method, this should be \c 1u.
+ * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
+ * @param[in]  last     Exclusive end of input range.
  *
  * @return The distance from \c first to the best model.
  */
-template <class Criterion, typename Integer, class InputIterator>
+template <class    Criterion,
+          typename Integer1,
+          typename Integer2,
+          class    InputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(Integer N,
+select_model(Integer1      N,
+             Integer2      ordfirst,
              InputIterator first,
-             InputIterator last,
-             Integer p_off = 1)
+             InputIterator last)
 {
-    return select_model<Criterion>(N, first, last, null_output(), p_off);
+    return select_model<Criterion>(N, ordfirst, first, last, null_output());
 }
 
 /**
