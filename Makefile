@@ -2,13 +2,14 @@ STRICTER ?= -Werror -Wall -Wextra -std=c++98 -ansi -pedantic
 CXXFLAGS ?= $(STRICTER) -g -O3 -DNDEBUG
 #  CXXFLAGS ?= $(STRICTER) -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
 
-all:     zohar example test
+all:     zohar example test arsel
 
 zohar:   zohar.cpp   burg.hpp
 example: example.cpp burg.hpp
 test:    test.cpp    burg.hpp
+arsel:   arsel.cpp   burg.hpp
 clean:
-	rm -f example zohar test
+	rm -f example zohar test arsel
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: all
