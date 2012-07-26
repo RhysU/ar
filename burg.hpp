@@ -1060,8 +1060,8 @@ struct CIC : public criterion
  */
 template <class Criterion,
           typename Integer,
-          typename InputIterator,
-          typename OutputIterator>
+          class InputIterator,
+          class OutputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
 select_model(Integer N,
              InputIterator first,
@@ -1128,7 +1128,7 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
  *
  * @return The distance from \c first to the best model.
  */
-template <class Criterion, typename Integer, typename InputIterator>
+template <class Criterion, typename Integer, class InputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
 select_model(Integer N,
              InputIterator first,
