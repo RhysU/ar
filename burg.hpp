@@ -915,7 +915,72 @@ struct FIC
 // TODO Specialize FIC for LSFB estimation for efficiency reasons
 // TODO Specialize FIC for LSF estimation for efficiency reasons
 
-// TODO Implement FSIC
+/**
+ * Represents the finite sample information criterion (FSIC) as applied to a
+ * particular \ref estimation_method.
+ */
+template <class EstimationMethod>
+struct FSIC
+{
+
+private:
+
+    /** A helper to compute \f$\frac{1+v}{1-v}\f$ for the method in use. */
+    template <typename Result, typename Integer1, typename Integer2>
+    class product_iterator
+        : public empirical_variance_iterator<
+                EstimationMethod, Result, Integer1, Integer2
+          >
+    {
+    private:
+        typedef empirical_variance_iterator<
+                EstimationMethod, Result, Integer1, Integer2
+            > base;
+
+    public:
+        typedef typename base::difference_type   difference_type;
+        typedef typename base::iterator_category iterator_category;
+        typedef typename base::pointer           pointer;
+        typedef typename base::reference         reference;
+        typedef typename base::value_type        value_type;
+
+        product_iterator(Integer1 N) : base(N) {}
+
+        value_type operator*() const
+        {
+            const value_type v = this->base::operator*();
+            return (1 + v) / (1 - v);
+        }
+
+        value_type operator[](const difference_type &k) const
+        {
+            const value_type v = this->base::operator[](k);
+            return (1 + v) / (1 - v);
+        }
+
+    };
+
+public:
+
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        // This accumulate invocation is inefficient but always correct
+        using std::multiplies;
+        using std::accumulate;
+        product_iterator<Result, Integer1, Integer2> first(N), last(N);
+        last += p; // Avoids overloading requirements for (last + p)
+
+        return accumulate(first, last, Result(1), multiplies<Result>()) - 1;
+    }
+};
+
+// TODO Specialize FSIC for YuleWalker estimation for efficiency reasons
+// TODO Specialize FSIC for Burg estimation for efficiency reasons
+// TODO Specialize FSIC for LSFB estimation for efficiency reasons
+// TODO Specialize FSIC for LSF estimation for efficiency reasons
+//
 // TODO Implement CIC
 
 /**
