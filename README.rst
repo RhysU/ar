@@ -8,8 +8,8 @@ This is a precision-agnostic implementation of Burg's recursive method for
 estimating autoregressive model parameters based on the presentation in
 [Collomb2009].   Many usability-related extensions have been added to permit
 simply obtaining autocorrelation information from the resulting estimated
-model.  The expressions differ slightly from those presented in [Press2007],
-whose source cannot be distributed due to licensing restrictions.  However, the
+model.  The expressions differ slightly from those presented in [Press2007]
+(whose source cannot be distributed due to licensing restrictions).  Still, the
 results match Numerical Recipes code to floating point error against benchmark
 data by [Bourke1998]::
 
@@ -62,9 +62,25 @@ from one up to some maximum order::
 	    6  4.8869e-17      6.772    -19.651     31.672    -30.617      17.75    -5.7142    0.78783
 	    7  4.8602e-17     6.7138    -19.229      30.36    -28.354      15.41    -4.2621    0.28742   0.073894
 
+A variety of finite sample model selection criteria are implementationed
+following [Broersen2000].  In particular, the
+
+* generalized information criterion (GIC),
+* Akaike information criterion (AIC),
+* consistent criterion BIC,
+* minimally consistent criterion (MMC),
+* asymptotically-corrected Akaike information criterion (AICC),
+* finite information criterion (FIC),
+* finite sample information criterion (FSIC), and
+* combined information criterion (CIC)
+
+are all implemented.
+
 Also included is a Toeplitz linear equation solver for a single right hand side
-using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement of
-[Trench1967]'s work::
+using O(3m^2) operations.  This solver is useful for investigating the
+correctness and numerical stability of the estimated process parameters and
+estimated autocorrelation information.  It may be useful to others in its own
+right.  The algorithm is [Zohar1974]'s improvement of [Trench1967]'s work::
 
 	Topmost row of Toeplitz matrix is:
 		1 2 3 5 7 11 13 17
@@ -80,23 +96,9 @@ using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement of
 		5.55112e-16 1.04361e-14 -2.70894e-14 9.99201e-15 -7.10543e-15 4.44089e-15 1.26565e-14 -9.32587e-15
 	Sum of the absolute errors is:
 		8.16014e-14
+
 See [Bunch1985] for a discussion of the stability of Trench-like algorithms and
 for faster, albeit much more complicated, variants.
-
-Also included are a variety of model selection criteria implementations following
-[Broersen2000].  In particular, the
-
-* generalized information criterion (GIC),
-* Akaike information criterion (AIC),
-* consistent criterion BIC,
-* minimally consistent criterion (MMC),
-* asymptotically-corrected Akaike information criterion (AICC),
-* finite information criterion (FIC),
-* finite sample information criterion (FSIC), and
-* combined information criterion (CIC)
-
-are all implemented.
-
 
 Contents
 --------
@@ -117,12 +119,10 @@ Contents
 *test.cpp*
    A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
 
-*test\*.coeff*
-*test\*.dat*
+*test\*.coeff* *test\*.dat*
    Sample data and exact coefficients from [Bourke1998] used for ``make check``.
 
-*rhoe.coeff*
-*rhoe.dat*
+*rhoe.coeff* *rhoe.dat*
    Sample turbulent total energy RMS fluctuation data and optimal coefficients
    found by automatically by ARMASA [Broersen2002].
 
@@ -203,6 +203,6 @@ References
 
 -- [Trench1967]      Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510. http://www.jstor.org/stable/2099503
 
--- [Vandevender1982] Vandevender, W. H. and K. H. Haskell. ``The SLATEC mathematical subroutine library.'' ACM SIGNUM Newsletter 17 (September 1982): 16-21.  http://dx.doi.org/10.1145/1057594.1057595
+-- [Vandevender1982] Vandevender, W. H. and K. H. Haskell. "The SLATEC mathematical subroutine library." ACM SIGNUM Newsletter 17 (September 1982): 16-21.  http://dx.doi.org/10.1145/1057594.1057595
 
 -- [Zohar1974]       Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
