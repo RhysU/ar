@@ -107,18 +107,22 @@
  * @param[in,out] maxorder      On input, the maximum model order desired.
  *                              On output, the maximum model order computed.
  * @param[out]    params_first  Model parameters for a single model or
- *                              for an entire hierarchy of models
- *                              depending upon \c hierarchy.
- * @param[out]    sigma2e_first Mean squared discrepancy for
- *                              AR(<tt>maxorder</tt>) or an entire hierarchy
- *                              of models depending upon \c hierarchy.
- * @param[out]    gain_first    Model gain for AR(<tt>maxorder</tt>) or an
- *                              entire hierarchy of models
- *                              depending upon \c hierarchy.
+ *                              for an entire hierarchy of models.  At most
+ *                              <tt>!hierarchy ? maxorder :
+ *                              maxorder*(maxorder+1)/2</tt> values will be
+ *                              output.
+ * @param[out]    sigma2e_first The mean squared discrepancy for only
+ *                              AR(<tt>maxorder</tt>) or for an entire
+ *                              hierarchy.  Either one or at most
+ *                              <tt>maxorder + 1</tt> values will be output.
+ * @param[out]    gain_first    The model gain for only AR(<tt>maxorder</tt>)
+ *                              or an entire hierarchy.  Either one or at most
+ *                              <tt>maxorder + 1</tt> values will be output.
  * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
+ *                              At most \c maxorder values will be output.
  * @param[in]     subtract_mean Should \c mean be subtracted from the data?
- * @param[in]     hierarchy     Should the entire hierarchy of model fits
- *                              be output?
+ * @param[in]     hierarchy     Should the entire hierarchy of estimated
+ *                              models be output?
  *
  * @returns the number data values processed within [data_first, data_last).
  */
