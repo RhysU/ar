@@ -906,14 +906,14 @@ struct FIC
             > evi_type;
         Result sum = accumulate(evi_type(N), evi_type(N) + p, Result(0));
 
-        return AlphaNumerator * sum / AlphaNumerator;
+        return AlphaNumerator * sum / AlphaDenominator;
     }
 };
 
-// TODO Specialize FIC for YuleWalker estimation for efficiency reasons
-// TODO Specialize FIC for Burg estimation for efficiency reasons
-// TODO Specialize FIC for LSFB estimation for efficiency reasons
-// TODO Specialize FIC for LSF estimation for efficiency reasons
+// TODO Specialize FIC for YuleWalker estimation for efficiency
+// TODO Specialize FIC for Burg estimation for efficiency (digamma?)
+// TODO Specialize FIC for LSFB estimation for efficiency (digamma?)
+// TODO Specialize FIC for LSF estimation for efficiency (digamma?)
 
 /**
  * Represents the finite sample information criterion (FSIC) as applied to a
@@ -976,12 +976,29 @@ public:
     }
 };
 
-// TODO Specialize FSIC for YuleWalker estimation for efficiency reasons
-// TODO Specialize FSIC for Burg estimation for efficiency reasons
-// TODO Specialize FSIC for LSFB estimation for efficiency reasons
-// TODO Specialize FSIC for LSF estimation for efficiency reasons
-//
-// TODO Implement CIC
+// TODO Specialize FSIC for YuleWalker estimation for efficiency (Pochhammer?)
+// TODO Specialize FSIC for Burg estimation for efficiency (Pochhammer?)
+// TODO Specialize FSIC for LSFB estimation for efficiency (Pochhammer?)
+// TODO Specialize FSIC for LSF estimation for efficiency (Pochhammer?)
+
+/**
+ * Represents the combined information criterion (CIC) as applied to a
+ * particular \ref estimation_method.
+ */
+template <class EstimationMethod>
+struct CIC
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        using std::max;
+        return max(
+                FSIC<EstimationMethod>::template overfit_penalty<Result>(N, p),
+                FIC <EstimationMethod>::template overfit_penalty<Result>(N, p)
+            );
+    }
+};
 
 /**
  * @}
