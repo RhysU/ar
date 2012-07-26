@@ -1048,23 +1048,27 @@ struct CIC : public criterion
  */
 
 /**
- * Determine the best model from a hierarchy of candidates using a given \ref
- * criterion for a given number of samples \c N.
+ * Find the best model from a hierarchy of candidates using a \ref criterion.
  *
- * @param[in] N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
- * @param[in] first Beginning of the input range containing \f$\sigma^2_\epsilon\f$
- * @param[in] last  Exclusive end of the input range.
- * @param[in] off   Model order contained in \c first.
+ * @param[in]  N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in]  first Beginning of the range containing \f$\sigma^2_\epsilon\f$
+ * @param[in]  last  Exclusive end of input range.
+ * @param[in]  p_off Model order contained in \c first.
+ * @param[out] crit  Numerical value assigned to each model by the criterion.
  *
  * @return The distance from \c first to the best model.
  */
-template <class Criterion, typename Integer, typename InputIterator>
+template <class Criterion,
+          typename Integer,
+          typename InputIterator,
+          typename OutputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
 select_model(
         Integer N,
         InputIterator first,
         InputIterator last,
-        typename std::iterator_traits<InputIterator>::difference_type off = 1)
+        typename std::iterator_traits<InputIterator>::difference_type p_off,
+        OutputIterator crit)
 {
     using std::iterator_traits;
     using std::numeric_limits;
@@ -1081,9 +1085,10 @@ select_model(
         const value underfit
                 = Criterion::template underfit_penalty<value>(*first++);
         const value overfit
-                = Criterion::template overfit_penalty<value>(N, ++dist + off);
+                = Criterion::template overfit_penalty<value>(N, ++dist + p_off);
         const value candidate
                 = underfit + overfit;
+        *crit++ = candidate;
 
         if (candidate < best_val) {
             best_val = candidate;
@@ -1093,6 +1098,46 @@ select_model(
     }
 
     return best_pos;;
+}
+
+namespace { // anonymous
+
+// Used to discard output per http://stackoverflow.com/questions/335930/
+struct null_output : std::iterator< std::output_iterator_tag, null_output >
+{
+    template <typename T> void operator=(const T&) {}
+
+    null_output& operator++()
+        { return *this; }
+
+    null_output operator++(int)
+        { null_output it(*this); ++*this; return it; }
+
+    null_output& operator*()
+        { return *this; }
+};
+
+}
+
+/**
+ * Find the best model from a hierarchy of candidates using a \ref criterion.
+ *
+ * @param[in]  N     Number of samples used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in]  first Beginning of the range containing \f$\sigma^2_\epsilon\f$
+ * @param[in]  last  Exclusive end of input range.
+ * @param[in]  p_off Model order contained in \c first.
+ *
+ * @return The distance from \c first to the best model.
+ */
+template <class Criterion, typename Integer, typename InputIterator>
+typename std::iterator_traits<InputIterator>::difference_type
+select_model(
+        Integer N,
+        InputIterator first,
+        InputIterator last,
+        typename std::iterator_traits<InputIterator>::difference_type p_off = 1)
+{
+    return select_model<Criterion>(N, first, last, p_off, null_output());
 }
 
 /**
