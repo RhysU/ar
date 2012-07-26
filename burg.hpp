@@ -78,14 +78,16 @@
  *
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
- * output for each model using \c sigma2e_first and \c gain_first.  The
- * autocorrelations for lags <tt>[1,k]</tt> are output using \c autocor_first.
- * When \c hierarchy is true, only lags <tt>[1,m]</tt> should be applied for
- * some AR(<tt>m</tt>) model.  The lag zero autocorrelation is always equal to
- * one and is therefore never output.  Outputting the lag \c k autocorrelation
- * is technically redundant as it may be computed from \f$a_i\f$ and lags
- * <tt>1, ..., k-1</tt>.  Autocovariances may be computed by multiplying the
- * autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
+ * output for each model, including the trivial zeroth order model when \c
+ * maxorder is zero or \c hierarchy is true, using \c sigma2e_first and \c
+ * gain_first.  The autocorrelations for lags <tt>[1,k]</tt> are output using
+ * \c autocor_first.  When \c hierarchy is true, only lags <tt>[1,m]</tt>
+ * should be applied for some AR(<tt>m</tt>) model.  The lag zero
+ * autocorrelation is always equal to one and is therefore never output.
+ * Outputting the lag \c k autocorrelation is technically redundant as it may
+ * be computed from \f$a_i\f$ and lags <tt>1, ..., k-1</tt>.  Autocovariances
+ * may be computed by multiplying the autocorrelations by \f$\text{gain}
+ * \sigma^2_\epsilon\f$.
  *
  * The implementation has been refactored
  * heavily from Cedrick Collomb's 2009 article <a
@@ -107,11 +109,11 @@
  * @param[out]    params_first  Model parameters for a single model or
  *                              for an entire hierarchy of models
  *                              depending upon \c hierarchy.
- * @param[out]    sigma2e_first Mean squared discrepancy for a single model or
- *                              for an entire hierarchy of models
- *                              depending upon \c hierarchy.
- * @param[out]    gain_first    Model gain for a single model
- *                              for an entire hierarchy of models
+ * @param[out]    sigma2e_first Mean squared discrepancy for
+ *                              AR(<tt>maxorder</tt>) or an entire hierarchy
+ *                              of models depending upon \c hierarchy.
+ * @param[out]    gain_first    Model gain for AR(<tt>maxorder</tt>) or an
+ *                              entire hierarchy of models
  *                              depending upon \c hierarchy.
  * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
  * @param[in]     subtract_mean Should \c mean be subtracted from the data?
@@ -174,26 +176,34 @@ std::size_t burg_method(InputIterator     data_first,
     }
     mean = b[0] / N;
 
-    // At most maxorder N-1 can be fit from N samples.  Beware N may be zero.
-    maxorder = min(static_cast<size>(maxorder)+1, N)-1;
-
-    // Short circuit if no work was requested or is possible.
-    if (maxorder == 0) return N;
-
     // Subtract the mean of the data if requested
     if (subtract_mean)
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
 
-    // Initialize mean squared discrepancy sigma2e and Dk
+    // Initialize gain, mean squared discrepancy sigma2e, and Dk.
+    Value gain = 1;
     Value sigma2e = inner_product(f.begin(), f.end(), f.begin(), Value(0));
     Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
+
+    // Output sigma2e and gain for a zeroth order model, if requested.
+    if (hierarchy || maxorder == 0)
+    {
+        *sigma2e_first++ = sigma2e;
+        *gain_first++    = gain;
+    }
+
+    // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
+    maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
+
+    // Short circuit if no further work was requested or is possible.
+    if (maxorder == 0)
+        return N;
 
     // Initialize recursion
     copy(f.begin(), f.end(), b.begin());
     vector Ak(maxorder + 1, Value(0));
     Ak[0] = 1;
-    Value gain = 1;
     vector autocor;
     autocor.reserve(maxorder);
 
@@ -1216,7 +1226,7 @@ struct CIC : public criterion
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
  *                      When \f$sigma^2_epsilon\f$ is produced entirely by
- *                      \ref burg_method, this should be \c 1u.
+ *                      \ref burg_method, this should be \c 0u.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
  * @param[out] crit     Value assigned to each model by the criterion.
@@ -1289,7 +1299,7 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
  *                      When \f$sigma^2_epsilon\f$ is produced entirely by
- *                      \ref burg_method, this should be \c 1u.
+ *                      \ref burg_method, this should be \c 0u.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
  *

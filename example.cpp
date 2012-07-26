@@ -9,7 +9,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <deque>
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -34,37 +33,30 @@ int main()
                 + 0.5*cos(i*0.05) + 0.25*cos(i*0.11);
     }
 
-    // Get linear prediction coefficients for orders 1 through order
+    // Get linear prediction coefficients for orders 0 through maxorder
     size_t maxorder = 7;
     long double mean;
-    deque<long double> params, sigma2e, gain, autocor;
+    vector<long double> params, sigma2e, gain, autocor;
     burg_method(data.begin(), data.end(), mean, maxorder,
                 back_inserter(params), back_inserter(sigma2e),
                 back_inserter(gain), back_inserter(autocor),
-                false, true);
+                /* subtract mean?    */ false,
+                /* output hierarchy? */ true);
 
     // Display orders, mean squared discrepancy, and model coefficients
     printf("%2s  %9s %9s %s\n", "AR", "RMS/N", "Gain", "Filter Coefficients");
     printf("%2s  %9s %9s %s\n", "--", "-----", "----", "-------------------");
-    for (size_t p = 0, c = 0; p < maxorder; ++p)
+    for (size_t p = 0, c = 0; p <= maxorder; ++p)
     {
-        printf("%2lu  %9.2Le %9.2Le [ 1 %8.4Lg",
-               p+1, sigma2e[p], gain[p], params[c++]);
-        for (size_t i = 1; i < p+1; ++i)
+        printf("%2lu  %9.2Le %9.2Le [ 1 ", p, sigma2e[p], gain[p]);
+        for (size_t i = 0; i < p; ++i)
             printf(" %8.4Lg", params[c++]);
         printf(" ]\n");
     }
 
-    // Compute the data's uncentered second moment for model selection
-    // (otherwise we cannot hypothetically detect a white noise process).
-    sigma2e.push_front(0);
-    for (vector<long double>::iterator i = data.begin(); i != data.end(); ++i)
-        sigma2e[0] += (*i)*(*i);
-    sigma2e[0] /= (N - 1);
-
     // Display model selection results
     printf("\n");
-    deque<long double>::difference_type best;
+    vector<long double>::difference_type best;
     best = select_model<AIC>(N, 0u, sigma2e.begin(), sigma2e.end());
     printf("AIC  selects model order %d as best\n", (int) best);
     best = select_model<AICC>(N, 0u, sigma2e.begin(), sigma2e.end());
