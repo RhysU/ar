@@ -8,6 +8,18 @@
 #ifndef BURG_HPP
 #define BURG_HPP
 
+// The selection criteria routines might be sped up for floating point
+// arguments given an appropriate digamma (psi) or Pochhammer symbol
+// implementation.  To do so with the GNU Scientific Library, e.g., try
+//
+//     #include <gsl/gsl_sf_psi.h>
+//     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
+//
+//     #include <gsl/gsl_sf_gamma.h>
+//     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
+//
+// before including this header.  Be sure to link the GSL with your binary.
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -944,9 +956,79 @@ struct FIC<YuleWalker<MeanHandling>, AlphaNumerator, AlphaDenominator>
     }
 };
 
-// TODO Specialize FIC for Burg estimation for efficiency (digamma?)
-// TODO Specialize FIC for LSFB estimation for efficiency (digamma?)
-// TODO Specialize FIC for LSF estimation for efficiency (digamma?)
+// Specializations of the FIC for efficiency when digamma is available.
+#ifdef BURG_DIGAMMA
+
+/**
+ * Represents the finite information criterion (FIC) as applied to the \ref
+ * Burg \ref estimation_method.  The penalty factor \f$\alpha\f$ is controlled
+ * by <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
+template <class MeanHandling,
+          int AlphaNumerator,
+          int AlphaDenominator>
+struct FIC<Burg<MeanHandling>, AlphaNumerator, AlphaDenominator>
+    : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result t  = Burg<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        t -= BURG_DIGAMMA(N + 1);
+        t += BURG_DIGAMMA(N + 1 - p);
+        return AlphaNumerator * t / AlphaDenominator;
+    }
+};
+
+/**
+ * Represents the finite information criterion (FIC) as applied to the \ref
+ * LSFB \ref estimation_method.  The penalty factor \f$\alpha\f$ is controlled
+ * by <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
+template <class MeanHandling,
+          int AlphaNumerator,
+          int AlphaDenominator>
+struct FIC<LSFB<MeanHandling>, AlphaNumerator, AlphaDenominator>
+    : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result t  = LSFB<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_DIGAMMA((3 + 2*N) / Result(3)    );
+        Result b = BURG_DIGAMMA((3 + 2*N) / Result(3) - p);
+        return AlphaNumerator * (t - 2*(a - b)/3) / AlphaDenominator;
+    }
+};
+
+/**
+ * Represents the finite information criterion (FIC) as applied to the \ref
+ * LSF \ref estimation_method.  The penalty factor \f$\alpha\f$ is controlled
+ * by <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
+template <class MeanHandling,
+          int AlphaNumerator,
+          int AlphaDenominator>
+struct FIC<LSF<MeanHandling>, AlphaNumerator, AlphaDenominator>
+    : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result t  = LSF<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_DIGAMMA((2 + N) / Result(2)    );
+        Result b = BURG_DIGAMMA((2 + N) / Result(2) - p);
+        return AlphaNumerator * (t - (a - b)/2) / AlphaDenominator;
+    }
+};
+
+#endif
 
 /**
  * Represents the finite sample information criterion (FSIC) as applied to a
