@@ -1028,7 +1028,7 @@ struct FIC<LSF<MeanHandling>, AlphaNumerator, AlphaDenominator>
     }
 };
 
-#endif
+#endif /* BURG_DIGAMMA */
 
 /**
  * Represents the finite sample information criterion (FSIC) as applied to a
@@ -1091,10 +1091,91 @@ public:
     }
 };
 
-// TODO Specialize FSIC for YuleWalker estimation for efficiency (Pochhammer?)
-// TODO Specialize FSIC for Burg estimation for efficiency (Pochhammer?)
-// TODO Specialize FSIC for LSFB estimation for efficiency (Pochhammer?)
-// TODO Specialize FSIC for LSF estimation for efficiency (Pochhammer?)
+// Specializations of the FIC for efficiency when Pochhammer is available.
+#ifdef BURG_POCHHAMMER
+
+/**
+ * Represents the finite information criterion (FSIC) as applied to the \ref
+ * YuleWalker \ref estimation_method.
+ */
+template <class MeanHandling>
+struct FSIC<YuleWalker<MeanHandling> > : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result v0  = YuleWalker<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_POCHHAMMER(N*(N+3) - p, p);
+        Result b = BURG_POCHHAMMER(Result(1 + N) - N*N);
+
+        return (1 + v0) / (1 - v0) * (a / b) - 1;
+    }
+};
+
+/**
+ * Represents the finite information criterion (FSIC) as applied to the \ref
+ * Burg \ref estimation_method.
+ */
+template <class MeanHandling>
+struct FSIC<Burg<MeanHandling> > : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result v0  = Burg<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_POCHHAMMER(-Result(1) - N, p);
+        Result b = BURG_POCHHAMMER( Result(1) - N, p);
+
+        return (1 + v0) / (1 - v0) * (a / b) - 1;
+    }
+};
+
+/**
+ * Represents the finite information criterion (FSIC) as applied to the \ref
+ * LSFB \ref estimation_method.
+ */
+template <class MeanHandling>
+struct FSIC<LSFB<MeanHandling> > : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result v0  = LSFB<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_POCHHAMMER((-Result(2)-2*N)/3, p);
+        Result b = BURG_POCHHAMMER(( Result(2)-2*N)/3, p);
+
+        return (1 + v0) / (1 - v0) * (a / b) - 1;
+    }
+};
+
+/**
+ * Represents the finite information criterion (FSIC) as applied to the \ref
+ * LSF \ref estimation_method.
+ */
+template <class MeanHandling>
+struct FSIC<LSF<MeanHandling> > : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result v0  = LSF<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+        Result a = BURG_POCHHAMMER((-Result(1)-N)/2, p);
+        Result b = BURG_POCHHAMMER(( Result(1)-N)/2, p);
+
+        return (1 + v0) / (1 - v0) * (a / b) - 1;
+    }
+};
+
+#endif /* BURG_POCHHAMMER */
+
 
 /**
  * Represents the combined information criterion (CIC) as applied to a
