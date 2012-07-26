@@ -820,7 +820,7 @@ public:
  */
 
 /**
- * A tag type for autoregressive model selection criterion.
+ * A parent type for autoregressive model selection criterion.
  *
  * Each subclass should have an <tt>overfit_penalty(N, p)</tt> method
  * following Broersen, P. M. and H. E. Wensink. "On Finite Sample Theory for
@@ -828,7 +828,16 @@ public:
  * Processing 41 (January 1993): 194+.
  * http://dx.doi.org/10.1109/TSP.1993.193138.
  */
-struct criterion {};
+struct criterion
+{
+    /** Compute the underfit penalty given \f$\sigma^2_\epsilon. */
+    template <typename Result, typename Input>
+    static Result underfit_penalty(Input sigma2e)
+    {
+        using std::log;
+        return log(Result(sigma2e));
+    }
+};
 
 /**
  * Represents the generalized information criterion (GIC).  The penalty factor
@@ -893,7 +902,7 @@ struct AICC : public criterion
 template <class EstimationMethod,
           int AlphaNumerator = 3,
           int AlphaDenominator = 1 >
-struct FIC
+struct FIC : public criterion
 {
     /** Compute overfit penalty given \c N observations at model order \c p. */
     template <typename Result, typename Integer1, typename Integer2>
@@ -919,6 +928,7 @@ template <class MeanHandling,
           int AlphaNumerator,
           int AlphaDenominator>
 struct FIC<YuleWalker<MeanHandling>, AlphaNumerator, AlphaDenominator>
+    : public criterion
 {
     /** Compute overfit penalty given \c N observations at model order \c p. */
     template <typename Result, typename Integer1, typename Integer2>
@@ -943,7 +953,7 @@ struct FIC<YuleWalker<MeanHandling>, AlphaNumerator, AlphaDenominator>
  * particular \ref estimation_method.
  */
 template <class EstimationMethod>
-struct FSIC
+struct FSIC : public criterion
 {
 
 private:
@@ -1009,7 +1019,7 @@ public:
  * particular \ref estimation_method.
  */
 template <class EstimationMethod>
-struct CIC
+struct CIC : public criterion
 {
     /** Compute overfit penalty given \c N observations at model order \c p. */
     template <typename Result, typename Integer1, typename Integer2>
