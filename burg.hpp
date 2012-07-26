@@ -692,7 +692,7 @@ class empirical_variance_iterator
 private:
     typedef std::iterator<std::random_access_iterator_tag, Result> base;
 
-    empirical_variance_iterator(Integer1 N, Integer2) : N(N), i(i) {}
+    empirical_variance_iterator(Integer1 N, Integer2 i) : N(N), i(i) {}
 
     Integer1 N;
     Integer2 i;
@@ -830,7 +830,10 @@ public:
  */
 struct criterion {};
 
-/** Represents the generalized information criterion (GIC). */
+/**
+ * Represents the generalized information criterion (GIC).  The penalty factor
+ * \f$\alpha\f$ is controlled by <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
 template <int AlphaNumerator = 3, int AlphaDenominator = 1>
 struct GIC : public criterion
 {
@@ -882,7 +885,36 @@ struct AICC : public criterion
     }
 };
 
-// TODO Implement FIC
+/**
+ * Represents the finite information criterion (FIC) as applied to a particular
+ * \ref estimation_method.  The penalty factor \f$\alpha\f$ is controlled by
+ * <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
+template <class EstimationMethod,
+          int AlphaNumerator = 3,
+          int AlphaDenominator = 1 >
+struct FIC
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        // This accumulate invocation is inefficient but always correct
+        using std::accumulate;
+        typedef empirical_variance_iterator<
+                EstimationMethod, Result, Integer1, Integer2
+            > evi_type;
+        Result sum = accumulate(evi_type(N), evi_type(N) + p, Result(0));
+
+        return AlphaNumerator * sum / AlphaNumerator;
+    }
+};
+
+// TODO Specialize FIC for YuleWalker estimation for efficiency reasons
+// TODO Specialize FIC for Burg estimation for efficiency reasons
+// TODO Specialize FIC for LSFB estimation for efficiency reasons
+// TODO Specialize FIC for LSF estimation for efficiency reasons
+
 // TODO Implement FSIC
 // TODO Implement CIC
 
