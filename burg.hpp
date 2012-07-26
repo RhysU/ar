@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -512,7 +513,7 @@ struct mean_retained
 /**
  * A parent type for autoregressive process parameter estimation techniques.
  *
- * Each subclass should have an <tt>empirical_variance(N,i)</tt> method
+ * Each subclass should have an <tt>empirical_variance(N, i)</tt> method
  * following Broersen, P. M. and H. E. Wensink. "On Finite Sample Theory for
  * Autoregressive Model Order Selection." IEEE Transactions on Signal
  * Processing 41 (January 1993): 194+.
@@ -818,26 +819,69 @@ public:
  * @{
  */
 
-/** A tag type for autoregressive model selection criterion. */
+/**
+ * A tag type for autoregressive model selection criterion.
+ *
+ * Each subclass should have an <tt>overfit_penalty(N, p)</tt> method
+ * following Broersen, P. M. and H. E. Wensink. "On Finite Sample Theory for
+ * Autoregressive Model Order Selection." IEEE Transactions on Signal
+ * Processing 41 (January 1993): 194+.
+ * http://dx.doi.org/10.1109/TSP.1993.193138.
+ */
 struct criterion {};
 
-/** A tag type for the generalized information criterion (GIC). */
-template <class PenaltyFactor>
+/** Represents the generalized information criterion (GIC). */
+template <int AlphaNumerator = 3, int AlphaDenominator = 1>
 struct GIC : public criterion
 {
     /** Compute overfit penalty given \c N observations at model order \c p. */
     template <typename Result, typename Integer1, typename Integer2>
     static Result overfit_penalty(Integer1 N, Integer2 p)
     {
-        Result alpha = PenaltyFactor(N);
-        return alpha * p / N;
+        return Result(AlphaNumerator) * p / (N * AlphaDenominator);
     }
 };
 
-// TODO Implement GIC
-// TODO Implement AIC
-// TODO Implement BIC
-// TODO Implement MCC
+/** Represents the Akaike information criterion (AIC). */
+struct AIC : public GIC<2> {};
+
+/** Represents the consistent criterion BIC. */
+struct BIC : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        using std::log;
+        return log(Result(N)) * p / N;
+    }
+};
+
+/** Represents the minimally consistent criterion (MCC). */
+struct MCC : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        using std::log;
+        return 2*log(log(Result(N))) * p / N;
+    }
+};
+
+/**
+ * Represents the asymptotically-corrected Akaike information criterion (AICC).
+ */
+struct AICC : public criterion
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        return 2 * Result(p) / (N - p - 1);
+    }
+};
+
 // TODO Implement FIC
 // TODO Implement FSIC
 // TODO Implement CIC
