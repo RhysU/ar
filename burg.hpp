@@ -910,7 +910,30 @@ struct FIC
     }
 };
 
-// TODO Specialize FIC for YuleWalker estimation for efficiency
+/**
+ * Represents the finite information criterion (FIC) as applied to the \ref
+ * YuleWalker \ref estimation_method.  The penalty factor \f$\alpha\f$ is
+ * controlled by <tt>AlphaNumerator / AlphaDenominator</tt>.
+ */
+template <class MeanHandling,
+          int AlphaNumerator,
+          int AlphaDenominator>
+struct FIC<YuleWalker<MeanHandling>, AlphaNumerator, AlphaDenominator>
+{
+    /** Compute overfit penalty given \c N observations at model order \c p. */
+    template <typename Result, typename Integer1, typename Integer2>
+    static Result overfit_penalty(Integer1 N, Integer2 p)
+    {
+        Result v0  = YuleWalker<MeanHandling>
+            ::template empirical_variance<Result>(N, Integer2(0));
+
+        Result num = (2*N - p - 1)*p;  // Avoids non-positive values
+        Result den = 2*N*(N + 2);
+
+        return AlphaNumerator * (v0 + num/den) / AlphaDenominator;
+    }
+};
+
 // TODO Specialize FIC for Burg estimation for efficiency (digamma?)
 // TODO Specialize FIC for LSFB estimation for efficiency (digamma?)
 // TODO Specialize FIC for LSF estimation for efficiency (digamma?)
