@@ -78,9 +78,12 @@ are all implemented.
 
 Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
-correctness and numerical stability of the estimated process parameters and
-estimated autocorrelation information.  It may be useful to others in its own
-right.  The algorithm is [Zohar1974]'s improvement of [Trench1967]'s work::
+correctness and numerical stability of estimated process parameters and
+autocorrelation information.  The algorithm is [Zohar1974]'s improvement of
+[Trench1967]'s work See [Bunch1985] for a discussion of the stability of
+Trench-like algorithms and for faster, albeit much more complicated, variants.
+
+::
 
 	Topmost row of Toeplitz matrix is:
 		1 2 3 5 7 11 13 17
@@ -97,32 +100,32 @@ right.  The algorithm is [Zohar1974]'s improvement of [Trench1967]'s work::
 	Sum of the absolute errors is:
 		8.16014e-14
 
-See [Bunch1985] for a discussion of the stability of Trench-like algorithms and
-for faster, albeit much more complicated, variants.
 
 Contents
 --------
 
 *burg.hpp*
-  Standalone header implementing the Burg recursion and the Zohar Toeplitz solver.
+  Standalone header implementing Burg's recursive method, the Zohar Toeplitz
+  solver, and a variety of finite sample model selection criteria.
 
 *Makefile*
-   Try ``make`` followed by ``./example`` or ``make check``.
-   On Linux, try ``make stress`` to examine the implementation's performance.
+   Try ``make`` followed by ``./example`` or ``make check``.  On Linux, try
+   ``make stress`` to examine the implementation's performance when piping in
+   textual data.
 
 *example.cpp*
-   Extract a sequence of AR(p) models for a sample by [Collomb2009].
+   Extracts a sequence of AR(p) models for the sample given in [Collomb2009].
 
 *zohar.cpp*
-   Solve a nonsymmetric, real-valued Toeplitz set of linear equations.
+   Solves a nonsymmetric, real-valued Toeplitz set of linear equations.
 
 *test.cpp*
    A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
 
-*test\*.coeff* *test\*.dat*
+*test\*.coeff*, *test\*.dat*
    Sample data and exact coefficients from [Bourke1998] used for ``make check``.
 
-*rhoe.coeff* *rhoe.dat*
+*rhoe.coeff*, *rhoe.dat*
    Sample turbulent total energy RMS fluctuation data and optimal coefficients
    found by automatically by ARMASA [Broersen2002].
 
@@ -132,7 +135,7 @@ Contents
    parameters.
 
 *FiniteSampleCriteria.tex*
-   A catalog of finite sample size autoregressive model selection criteria.
+   A catalog of the autoregressive model selection criteria implemented.
 
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
