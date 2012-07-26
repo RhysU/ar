@@ -213,4 +213,6 @@ References
 
 -- [Vandevender1982] Vandevender, W. H. and K. H. Haskell. "The SLATEC mathematical subroutine library." ACM SIGNUM Newsletter 17 (September 1982): 16-21.  http://dx.doi.org/10.1145/1057594.1057595
 
+-- [Welford1962]     Welford, B. P. "Note on a Method for Calculating Corrected Sums of Squares and Products." Technometrics 4 (1962). http://www.jstor.org/stable/1266577
+
 -- [Zohar1974]       Zohar, Shalhav. "The Solution of a Toeplitz Set of Linear Equations." J. ACM 21 (April 1974): 272-276. http://dx.doi.org/10.1145/321812.321822
