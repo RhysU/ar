@@ -83,6 +83,22 @@ using O(3m^2) operations.  The algorithm is [Zohar1974]'s improvement of
 See [Bunch1985] for a discussion of the stability of Trench-like algorithms and
 for faster, albeit much more complicated, variants.
 
+Also included are a variety of model selection criteria implementations following
+[Broersen2000].  In particular, the
+
+* generalized information criterion (GIC),
+* Akaike information criterion (AIC),
+* consistent criterion BIC,
+* minimally consistent criterion (MMC),
+* asymptotically-corrected Akaike information criterion (AICC),
+* asymptotically-corrected Akaike information criterion (AICC),
+* finite information criterion (FIC),
+* finite sample information criterion (FSIC), and
+* combined information criterion (CIC)
+
+are all implemented.
+
+
 Contents
 --------
 
@@ -125,8 +141,9 @@ Contents
 TODO
 ----
 
-1. Implement the ``AIC``, ``AICc``, and ``AKICc`` model selection criteria
-   following [Seghouane2004].  Also the ``CIC`` following [Broersen2000].
+1. Finish performance-related TODOs in FIC and FSIC model selection criteria.
+   The chief hold up for FIC is access to a digamma function and for FSIC
+   access to a Pochhammer symbol function.
 
 2. Add a class to encapsulate the sequence of AR(p) models produced.  Include
    prediction both with and without noise and prediction error computations
