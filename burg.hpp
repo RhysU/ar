@@ -26,7 +26,6 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
-#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -866,6 +865,26 @@ struct criterion
 };
 
 /**
+ * Evaluate a given \ref criterion for \c N samples and model order \c p.
+ *
+ * @param[in] sigma2e The residual \f$\sigma^2_\epsilon\f$
+ * @param[in] N       Sample count used to compute \f$\sigma^2_\epsilon\f$
+ * @param[in] p       The model order use to compute \f$sigma^2_epsilon\f$
+ *
+ * @return the evaluated criterion.
+ */
+template <class    Criterion,
+          typename Result,
+          typename Integer1,
+          typename Integer2>
+Result evaluate(Result sigma2e, Integer1 N, Integer2 p)
+{
+    Result underfit = Criterion::template underfit_penalty<Result>(sigma2e);
+    Result overfit  = Criterion::template overfit_penalty<Result>(N, p);
+    return underfit + overfit;
+}
+
+/**
  * Represents the generalized information criterion (GIC).  The penalty factor
  * \f$\alpha\f$ is controlled by <tt>AlphaNumerator / AlphaDenominator</tt>.
  */
@@ -1250,22 +1269,24 @@ select_model(Integer1       N,
              OutputIterator crit)
 {
     using std::iterator_traits;
-    using std::numeric_limits;
 
     typedef InputIterator iterator;
     typedef typename iterator_traits<iterator>::difference_type difference;
     typedef typename iterator_traits<iterator>::value_type      value;
 
-    value best_val = numeric_limits<value>::max();
-    difference best_pos = -1, dist = -1;
+    // Short circuit on trivial input
+    if (first == last)
+        return -1;
 
-    while (first != last) {
+    // Handle first iteration without comparison as AICC blows up on N == 1
+    value best_val = evaluate<Criterion>(*first++, N, ordfirst);
+    difference best_pos = 0, dist = 0;
 
-        value underfit  = Criterion::template underfit_penalty<value>(
-                                *first++);
-        value overfit   = Criterion::template overfit_penalty<value>(
-                                N, ++dist + ordfirst);
-        value candidate = underfit + overfit;
+    // Scan through remainder of candidates updating best as we go
+    while (first != last)
+    {
+
+        value candidate = evaluate<Criterion>(*first++, N, ++dist + ordfirst);
         *crit++ = candidate;
 
         if (candidate < best_val) {
