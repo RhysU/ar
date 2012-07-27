@@ -52,10 +52,10 @@ std::size_t process(In& in,
                     N, 0u, sigma2e.begin(), sigma2e.end());
     }
 
-    // Trim away everything but the best model
+    // Trim away everything but the best model (ranges might overlap)
     std::copy_backward(params.begin() + best*(best+1)/2,
-                       params.begin() + best*(best+1)/2 + order,
-                       params.begin());
+                       params.begin() + best*(best+1)/2 + best,
+                       params.begin() + best);
     params.resize(best);
     sigma2e[0] = sigma2e[best]; sigma2e.resize(1);
     gain   [0] = gain   [best]; gain   .resize(1);
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
     double mean;
     size_t order = 512;
     vector<double> params, sigma2e, gain, autocor;
-    size_t N = process(cin, mean, order,
-                       params, sigma2e, gain, autocor, subtract_mean);
+    size_t N = process(cin, mean, order, params,
+                       sigma2e, gain, autocor, subtract_mean);
 
     append_real(cout << "# N                   ", N                 ) << endl;
     append_real(cout << "# Mean                ", mean              ) << endl;
