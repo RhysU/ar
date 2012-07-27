@@ -1270,7 +1270,9 @@ struct CIC : public criterion
  */
 
 /**
- * Find the best model from a hierarchy of candidates using a \ref criterion.
+ * Evaluate a \ref criterion for each model in a hierarchy of models.  The
+ * index of the best model, i.e. the one with minimum criterion value, is
+ * returned.
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
@@ -1345,7 +1347,8 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
 }
 
 /**
- * Find the best model from a hierarchy of candidates using a \ref criterion.
+ * Find the index of the best model from a hierarchy of candidates using a \ref
+ * criterion.
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
