@@ -1,5 +1,5 @@
-Burg's method in header-only C++
-================================
+Burg's method and autoregressive model selection in header-only C++
+===================================================================
 
 Description
 -----------
@@ -78,7 +78,23 @@ A variety of finite sample model selection criteria are implemented following
 * finite sample information criterion (FSIC), and
 * combined information criterion (CIC)
 
-are all implemented.
+are all implemented.  An included sample program called ``arsel`` uses CIC to
+select the best model order given data from standard input.  For example,
+``arsel --subtract-mean < rhoe.dat`` reproduces results from ARMASA
+[Broersen2002] on a turbulence signal::
+
+	# N                   1753
+	# AR(p)               6
+	# Mean                +0.2095528795620023
+	# \sigma^2_\epsilon   +8.3374933107465524e-09
+	# Gain                +4249.4034177677795
+	# \sigma^2_x          +3.5429372570302398e-05
+	-2.6990358158025196
+	+2.8771725720036141
+	-1.7247889420225018
+	+0.75024991289684761
+	-0.26867206160585461
+	+0.067007468591674405
 
 Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
@@ -110,27 +126,33 @@ Contents
 
 *burg.hpp*
   Standalone header implementing Burg's recursive method, the Zohar Toeplitz
-  solver, and a variety of finite sample model selection criteria.
+  solver, a variety of finite sample model selection criteria, and algorithmic
+  helper routines.
 
 *Makefile*
-   Try ``make`` followed by ``./example`` or ``make check``.  On Linux, try
-   ``make stress`` to examine the implementation's performance when piping in
-   textual data.
+   Try ``make`` followed by ``make check``.  On Linux, try ``make stress`` to
+   examine the implementation's performance when piping in plain text data.
+
+*arsel.cpp*
+   Given data on standard input, use Burg's method to compute a hierarchy
+   of candidate models and select the best one using CIC.
 
 *example.cpp*
-   Extracts a sequence of AR(p) models for the sample given in [Collomb2009].
+   A test driver extracting a hierarchy of AR(p) models for a sample given by
+   [Collomb2009].
 
 *zohar.cpp*
-   Solves a nonsymmetric, real-valued Toeplitz set of linear equations.
+   A test driver solving a nonsymmetric, real-valued Toeplitz set of linear
+   equations.
 
 *test.cpp*
    A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
 
 *test\*.coeff*, *test\*.dat*
-   Sample data and exact coefficients from [Bourke1998] used for ``make check``.
+   Sample data and exact parameters from [Bourke1998] used for ``make check``.
 
 *rhoe.coeff*, *rhoe.dat*
-   Sample turbulent total energy RMS fluctuation data and optimal coefficients
+   Sample turbulent total energy RMS fluctuation data and optimal parameters
    found by automatically by ARMASA [Broersen2002].
 
 *WuleYalker.tex*
@@ -147,27 +169,23 @@ Contents
 Todo
 ----
 
-1. Finish performance-related TODOs in FIC and FSIC model selection criteria.
-   The chief hold up for FIC is access to a digamma function and for FSIC
-   access to a Pochhammer symbol function.
+1. Add a class to encapsulate a single AR(p) model.  Include prediction both
+   with and without noise and prediction error computations against known data.
 
-2. Add a class to encapsulate the sequence of AR(p) models produced.  Include
-   prediction both with and without noise and prediction error computations
-   against known data.  Include ability to return the best model according to
-   various criteria.
-
-3. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
+2. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
    autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
 
-4. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
+3. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
    process parameters, implement a ``Wule-Yalker`` solver based on the
    WuleYalker.tex write up using the Toeplitz-plus-Hankel solver approach due
    to [Merchant1982] which employs [Akaike1973].  The double Levinson recursion
    discussed by [Broersen2006] section 5.4 appears to be too numerically
    unstable to use in practice without requiring O(n^2) memory.
 
-5. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
-   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].
+4. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].  This
+   should reduce the sensitivity to phase shifted input signals when working
+   with small data sets.
 
 References
 ----------
