@@ -1356,23 +1356,20 @@ template <class    Criterion,
           class    OutputIterator>
 typename Sequence1::difference_type
 best_model(Integer        N,
-           Sequence1      params,
-           Sequence2      sigma2e,
-           Sequence3      gain,
-           Sequence4      autocor,
+           Sequence1&     params,
+           Sequence2&     sigma2e,
+           Sequence3&     gain,
+           Sequence4&     autocor,
            OutputIterator crit)
 {
     using std::advance;
     using std::copy_backward;
 
-    // Determine the maximum order (inclusive) based on sigma2e
+    // Ensure all inputs have conformant sizes
     assert(sigma2e.size() > 0);
-    const typename Sequence2::size_type order = sigma2e.size() - 1;
-
-    // Ensure other inputs have conformant sizes
-    assert(params .size() == order*(order + 1)/2);
-    assert(gain   .size() == order + 1);
-    assert(autocor.size() == order + 1);
+    assert(params .size() == (sigma2e.size()-1)*(sigma2e.size())/2);
+    assert(gain   .size() == sigma2e.size());
+    assert(autocor.size() == sigma2e.size());
 
     // Find the best model index according to the given criterion
     const typename Sequence1::difference_type best = evaluate_models<Criterion>(
@@ -1494,12 +1491,13 @@ template <class    Criterion,
           class    Sequence4>
 typename Sequence1::difference_type
 best_model(Integer        N,
-           Sequence1      params,
-           Sequence2      sigma2e,
-           Sequence3      gain,
-           Sequence4      autocor)
+           Sequence1&     params,
+           Sequence2&     sigma2e,
+           Sequence3&     gain,
+           Sequence4&     autocor)
 {
-    return best_model(N, params, sigma2e, gain, autocor, null_output());
+    return best_model<Criterion>(N, params, sigma2e, gain,
+                                 autocor, null_output());
 }
 
 /**
