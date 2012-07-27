@@ -890,7 +890,7 @@ public:
  */
 struct criterion
 {
-    /** Compute the underfit penalty given \f$\sigma^2_\epsilon. */
+    /** Compute the underfit penalty given \f$\sigma^2_\epsilon\f$. */
     template <typename Result, typename Input>
     static Result underfit_penalty(Input sigma2e)
     {
@@ -904,7 +904,7 @@ struct criterion
  *
  * @param[in] sigma2e The residual \f$\sigma^2_\epsilon\f$
  * @param[in] N       Sample count used to compute \f$\sigma^2_\epsilon\f$
- * @param[in] p       The model order use to compute \f$sigma^2_epsilon\f$
+ * @param[in] p       The model order use to compute \f$sigma^2_\epsilon\f$
  *
  * @return the evaluated criterion.
  */

@@ -7,7 +7,7 @@
 //
 
 /** @file
- * Example program using \ref burg_method and \evaluate_models.
+ * Example program using \ref burg_method and \ref evaluate_models.
  */
 
 #include "burg.hpp"
