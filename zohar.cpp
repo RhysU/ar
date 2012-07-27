@@ -56,7 +56,7 @@ int main()
 
     assert(d.size() == a.size() + 1);
 
-    cout << "Right hand size data is:\n\t";
+    cout << "Right hand side data is:\n\t";
     copy(d.begin(), d.end(), ostream_iterator<double>(cout," "));
     cout << endl;
 

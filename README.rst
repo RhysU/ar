@@ -109,7 +109,7 @@ Trench-like algorithms and for faster, albeit much more complicated, variants.
 		1 2 3 5 7 11 13 17
 	Leftmost column of Toeplitz matrix is:
 		1 2 4 8 16 32 64 128
-	Right hand size data is:
+	Right hand side data is:
 		1 2 3 4 5 6 7 8
 	Expected solution is:
 		-0.62963 0.148148 3.55556 -1.66667 0 -2 -1 2
