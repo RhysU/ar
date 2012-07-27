@@ -52,9 +52,10 @@ std::size_t process(In& in,
                     N, 0u, sigma2e.begin(), sigma2e.end());
     }
 
-    // Trim away everything but the best model (ranges might overlap)
-    std::copy_backward(params.begin() + best*(best+1)/2,
-                       params.begin() + best*(best+1)/2 + best,
+    // Trim away everything but the best model (where ranges might overlap)
+    // AR(0) is trivial and AR(1) starts at params.begin(), hence off by one.
+    std::copy_backward(params.begin() + ((best-1)*best)/2,
+                       params.begin() + ((best-1)*best)/2 + best,
                        params.begin() + best);
     params.resize(best);
     sigma2e[0] = sigma2e[best]; sigma2e.resize(1);
@@ -87,6 +88,7 @@ int main(int argc, char *argv[])
     cout.precision(std::numeric_limits<double>::digits10 + 2);
     cout << showpos
          <<   "# N                   "   << N
+         << "\n# AR(p)               "   << params.size()
          << "\n# Mean                "   << mean
          << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
          << "\n# Gain                "   << gain[0]
