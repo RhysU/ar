@@ -64,48 +64,12 @@ std::size_t process(In& in,
     return N;
 }
 
-// Provides nice formatting of real-valued quantities to maximum precision
-template<class CharT, class Traits, class Number>
-static std::basic_ostream<CharT,Traits>& append_real(
-        std::basic_ostream<CharT,Traits>& os,
-        Number value)
-{
-    // Compute the displayed precision:
-    //     Magic 2 is the width of a sign and a decimal point
-    //     Magic 3 is the width of a sign, leading zero, and decimal point
-    using std::pow;
-    static const int append_prec  = std::numeric_limits<Number>::digits10;
-    static const int append_width = append_prec + 5;
-    static const double fixedmax = pow(10.0,   append_width - append_prec - 2 );
-    static const double fixedmin = pow(10.0, -(append_width - append_prec - 3));
-
-    // Format in fixed or scientific form as appropriate in given width
-    // Care taken to not perturb observable ostream state after function call
-    std::ios::fmtflags savedflags;
-    std::streamsize savedprec;
-    if (value >= fixedmin && value <= fixedmax) {
-        savedflags = os.setf(std::ios::fixed      | std::ios::right,
-                             std::ios::floatfield | std::ios::adjustfield);
-        savedprec = os.precision(append_prec);
-    } else {
-        savedflags = os.setf(std::ios::scientific | std::ios::right,
-                             std::ios::floatfield | std::ios::adjustfield);
-        savedprec = os.precision(append_width - 9);
-    }
-    os << std::setw(append_width) << value;
-    os.precision(savedprec);
-    os.setf(savedflags);
-
-    return os;
-}
-
-
 // Test burg_method against synthetic data
 int main(int argc, char *argv[])
 {
     using namespace std;
 
-    // Process a possible --subtract-mean flag shifting arguments if needed
+    // Process a possible --subtract-mean flag, shifting arguments if needed
     bool subtract_mean = false;
     if (argc > 1 && 0 == strcmp("--subtract-mean", argv[1])) {
         subtract_mean = true;
@@ -120,14 +84,16 @@ int main(int argc, char *argv[])
     size_t N = process(cin, mean, order, params,
                        sigma2e, gain, autocor, subtract_mean);
 
-    append_real(cout << "# N                   ", N                 ) << endl;
-    append_real(cout << "# Mean                ", mean              ) << endl;
-    append_real(cout << "# \\sigma^2_\\epsilon ", sigma2e[0]        ) << endl;
-    append_real(cout << "# Gain                ", gain[0]           ) << endl;
-    append_real(cout << "# \\sigma^2_x         ", gain[0]*sigma2e[0]) << endl;
-
-    for (size_t i = 0; i < params.size(); ++i)
-        append_real(cout, params[i]) << endl;
+    cout.precision(std::numeric_limits<double>::digits10 + 2);
+    cout << showpos
+         <<   "# N                   "   << N
+         << "\n# Mean                "   << mean
+         << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
+         << "\n# Gain                "   << gain[0]
+         << "\n# \\sigma^2_x          "  << gain[0]*sigma2e[0]
+         << '\n';
+    copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
+    cout.flush();
 
     return 0;
 }
