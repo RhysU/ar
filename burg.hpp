@@ -1287,11 +1287,11 @@ template <class    Criterion,
           class    InputIterator,
           class    OutputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(Integer1       N,
-             Integer2       ordfirst,
-             InputIterator  first,
-             InputIterator  last,
-             OutputIterator crit)
+evaluate_models(Integer1       N,
+                Integer2       ordfirst,
+                InputIterator  first,
+                InputIterator  last,
+                OutputIterator crit)
 {
     using std::iterator_traits;
 
@@ -1360,12 +1360,12 @@ template <class    Criterion,
           typename Integer2,
           class    InputIterator>
 typename std::iterator_traits<InputIterator>::difference_type
-select_model(Integer1      N,
-             Integer2      ordfirst,
-             InputIterator first,
-             InputIterator last)
+evaluate_models(Integer1      N,
+                Integer2      ordfirst,
+                InputIterator first,
+                InputIterator last)
 {
-    return select_model<Criterion>(N, ordfirst, first, last, null_output());
+    return evaluate_models<Criterion>(N, ordfirst, first, last, null_output());
 }
 
 /**

@@ -67,11 +67,11 @@ int main(int argc, char *argv[])
     // Display model selection results
     printf("\n");
     vector<long double>::difference_type best;
-    best = select_model<AIC>(N, 0u, sigma2e.begin(), sigma2e.end());
+    best = evaluate_models<AIC>(N, 0u, sigma2e.begin(), sigma2e.end());
     printf("AIC  selects model order %d as best\n", (int) best);
-    best = select_model<AICC>(N, 0u, sigma2e.begin(), sigma2e.end());
+    best = evaluate_models<AICC>(N, 0u, sigma2e.begin(), sigma2e.end());
     printf("AICC selects model order %d as best\n", (int) best);
-    best = select_model<CIC<Burg<mean_retained> > >(
+    best = evaluate_models<CIC<Burg<mean_retained> > >(
                 N, 0u, sigma2e.begin(), sigma2e.end());
     printf("CIC  selects model order %d as best\n", (int) best);
 

@@ -45,10 +45,10 @@ std::size_t process(In& in,
     // Find the best model according to CIC accounting for subtract_mean.
     typename std::vector<Real>::difference_type best;
     if (subtract_mean) {
-        best = select_model<CIC<Burg<mean_subtracted> > >(
+        best = evaluate_models<CIC<Burg<mean_subtracted> > >(
                     N, 0u, sigma2e.begin(), sigma2e.end());
     } else {
-        best = select_model<CIC<Burg<mean_retained> > >(
+        best = evaluate_models<CIC<Burg<mean_retained> > >(
                     N, 0u, sigma2e.begin(), sigma2e.end());
     }
 
