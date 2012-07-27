@@ -8,17 +8,26 @@
 #ifndef BURG_HPP
 #define BURG_HPP
 
-// The selection criteria routines might be sped up for floating point
-// arguments given an appropriate digamma (psi) or Pochhammer symbol
-// implementation.  To do so with the GNU Scientific Library, e.g., try
-//
-//     #include <gsl/gsl_sf_psi.h>
-//     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
-//
-//     #include <gsl/gsl_sf_gamma.h>
-//     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
-//
-// before including this header.  Be sure to link the GSL with your binary.
+/**
+ * @mainpage
+ * See http://github.com/RhysU/burg for project details.
+ */
+
+/** @file
+ * Burg's method and autoregressive model selection.
+ *
+ * The selection criteria routines might be sped up for floating point
+ * arguments given an appropriate digamma (psi) or Pochhammer symbol
+ * implementation.  To do so with the GNU Scientific Library, e.g., try
+ * @code
+ *     #include <gsl/gsl_sf_psi.h>
+ *     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
+ *
+ *     #include <gsl/gsl_sf_gamma.h>
+ *     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
+ * @endcode
+ * before including this header and link the GSL with your binary.
+ */
 
 #include <algorithm>
 #include <cassert>

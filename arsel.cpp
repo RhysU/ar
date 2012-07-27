@@ -2,6 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+/** @file
+ * Estimate the best AR(p) model given data on standard input.
+ */
+
 #include "burg.hpp"
 
 #include <algorithm>
@@ -16,7 +20,6 @@
 #include <limits>
 #include <vector>
 
-// Estimate the best AR(p) model given data on standard input
 int main(int argc, char *argv[])
 {
     using namespace std;

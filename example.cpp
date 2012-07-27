@@ -5,6 +5,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
+
+/** @file
+ * Example program using \ref burg_method and \evaluate_models.
+ */
+
 #include "burg.hpp"
 
 #include <cmath>
@@ -13,7 +18,6 @@
 #include <iterator>
 #include <vector>
 
-// Example program using burg_method and model selection
 int main(int argc, char *argv[])
 {
     using namespace std;

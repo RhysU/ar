@@ -1,17 +1,17 @@
-Burg's method and autoregressive model selection in header-only C++
-===================================================================
+Burg's method and autoregressive model selection
+================================================
 
 Description
 -----------
 
-This is a precision-agnostic implementation of Burg's recursive method for
-estimating autoregressive model parameters based on the presentation in
-[Collomb2009].   Many usability-related extensions have been added to permit
-simply obtaining autocorrelation information from the resulting estimated
-model.  The expressions differ slightly from those presented in [Press2007]
-(whose source cannot be distributed due to licensing restrictions).  Still, the
-results match Numerical Recipes code to floating point error against benchmark
-data by [Bourke1998]::
+This is a precision-agnostic, header-only, C++ implementation of Burg's
+recursive method for estimating autoregressive model parameters based on the
+presentation in [Collomb2009].   Many usability-related extensions have been
+added to permit simply obtaining autocorrelation information from the resulting
+estimated model.  The expressions differ slightly from those presented in
+[Press2007] (whose source cannot be distributed due to licensing restrictions).
+Still, the results match Numerical Recipes code to floating point error against
+benchmark data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
 

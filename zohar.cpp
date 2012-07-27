@@ -2,6 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+/** @file
+ * Test \ref zohar_linear_solve routine against a reference solution.
+ */
+
 #include "burg.hpp"
 
 #include <algorithm>
@@ -11,7 +15,6 @@
 #include <iterator>
 #include <vector>
 
-// Test zohar_linear_solve routine against an Octave-provided reference
 int main()
 {
     using namespace std;
