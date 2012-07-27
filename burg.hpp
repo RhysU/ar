@@ -69,7 +69,8 @@
  *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
  *         are output.</li>
  *     <li>If \c hierarchy is \c true, the <tt>maxorder*(maxorder+1)/2</tt>
- *         coefficients for models AR(1), AR(2), ..., AR(maxorder) are output.
+ *         parameters \f$a_1, \dots, a_m\f$ for models AR(0), AR(1), AR(2),
+ *         ..., AR(maxorder) are output.  Notice AR(0) has no parameters.
  *         </li>
  * </ul>
  * Note that the latter case is \e always computed;  The \c hierarchy flag
