@@ -1270,9 +1270,9 @@ struct CIC : public criterion
  */
 
 /**
- * Evaluate a \ref criterion for each model in a hierarchy of models.  The
- * index of the best model, i.e. the one with minimum criterion value, is
- * returned.
+ * Evaluate a \ref criterion on a hierarchy of models given
+ * \f$\sigma^2_\epsilon\f$ for each model.  The index of the best model, i.e.
+ * the one with minimum criterion value, is returned.
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
@@ -1324,7 +1324,98 @@ evaluate_models(Integer1       N,
 
     }
 
-    return best_pos;;
+    return best_pos;
+}
+
+/**
+ * Obtain the best model according to \ref criterion applied to
+ * \f$\sigma^2_\epsilon\f$ given a hierarchy of candidates.
+ *
+ * On input, \c params, \c sigma2e, \c gain, and \c autocor should be <a
+ * href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a>s which were
+ * populated by \ref burg_method when \c hierarchy is \c true (or in some other
+ * equivalent manner).  On output, these arguments will contain only values
+ * relevant to the best model.
+ *
+ * @param[in]  N          Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ *                        For example, the return value of \ref burg_method.
+ * @param[in,out] params  Model parameters
+ * @param[in,out] sigma2e \f$\sigma^2_\epsilon\f$
+ * @param[in,out] gain    Model gain
+ * @param[in,out] autocor Model autocorrelations
+ * @param[out]    crit    Value assigned to each model by the criterion.
+ *
+ * @return The index of the best criterion value within \c crit.
+ */
+template <class    Criterion,
+          typename Integer,
+          class    Sequence1,
+          class    Sequence2,
+          class    Sequence3,
+          class    Sequence4,
+          class    OutputIterator>
+typename Sequence1::difference_type
+best_model(Integer        N,
+           Sequence1      params,
+           Sequence2      sigma2e,
+           Sequence3      gain,
+           Sequence4      autocor,
+           OutputIterator crit)
+{
+    using std::advance;
+    using std::copy_backward;
+
+    // Determine the maximum order (inclusive) based on sigma2e
+    assert(sigma2e.size() > 0);
+    const typename Sequence2::size_type order = sigma2e.size() - 1;
+
+    // Ensure other inputs have conformant sizes
+    assert(params .size() == order*(order + 1)/2);
+    assert(gain   .size() == order + 1);
+    assert(autocor.size() == order + 1);
+
+    // Find the best model index according to the given criterion
+    const typename Sequence1::difference_type best = evaluate_models<Criterion>(
+            N, 0u, sigma2e.begin(), sigma2e.end(), crit);
+
+    // Now trim away everything and leaving only the best model in Sequences...
+
+    // ...first in params...
+    {
+        // Best parameters might overlap beginning of params so copy_backwards.
+        // AR(0) is trivial and AR(1) starts at params.begin(), hence off by 1.
+        typename Sequence1::iterator first  = params.begin();
+        typename Sequence1::iterator last   = params.begin();
+        typename Sequence1::iterator result = params.begin();
+        advance(first,  ((best-1)*best)/2       );
+        advance(last,   ((best-1)*best)/2 + best);
+        advance(result,                     best);
+        copy_backward(first, last, result);
+        params.resize(best);
+    }
+
+    // ...next in sigma2e...
+    {
+        typename Sequence2::iterator cursor = sigma2e.begin();
+        advance(cursor, best);
+        *sigma2e.begin() = *cursor;
+        sigma2e.resize(1);
+    }
+
+    // ...next in gain...
+    {
+        typename Sequence2::iterator cursor = gain.begin();
+        advance(cursor, best);
+        *gain.begin() = *cursor;
+        gain.resize(1);
+    }
+
+    // ...and last in autocor...
+    autocor.resize(best + 1);
+
+    // ...but notice that resizing does not free capacity for std::vectors.
+
+    return best;
 }
 
 namespace { // anonymous
@@ -1347,8 +1438,8 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
 }
 
 /**
- * Find the index of the best model from a hierarchy of candidates using a \ref
- * criterion.
+ * Find the index of the best model from a hierarchy of candidates according to
+ * a \ref criterion given \f$\sigma^2_\epsilon\f$ for each model.
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
@@ -1358,6 +1449,8 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
  * @param[in]  last     Exclusive end of input range.
  *
  * @return The distance from \c first to the best model.
+ *
+ * @see evaluate_models(Criterion,Integer1,Integer2,InputIterator,OutputIterator)
  */
 template <class    Criterion,
           typename Integer1,
@@ -1370,6 +1463,43 @@ evaluate_models(Integer1      N,
                 InputIterator last)
 {
     return evaluate_models<Criterion>(N, ordfirst, first, last, null_output());
+}
+
+/**
+ * Obtain the best model according to \ref criterion applied to
+ * \f$\sigma^2_\epsilon\f$ given a hierarchy of candidates.
+ *
+ * On input, \c params, \c sigma2e, \c gain, and \c autocor should be <a
+ * href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a>s which were
+ * populated by \ref burg_method when \c hierarchy is \c true (or in some other
+ * equivalent manner).  On output, these arguments will contain only values
+ * relevant to the best model.
+ *
+ * @param[in]  N          Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ *                        For example, the return value of \ref burg_method.
+ * @param[in,out] params  Model parameters
+ * @param[in,out] sigma2e \f$\sigma^2_\epsilon\f$
+ * @param[in,out] gain    Model gain
+ * @param[in,out] autocor Model autocorrelations
+ *
+ * @return The index of the best model within the inputs.
+ *
+ * @see best_model(Integer,Sequence1,Sequence2,Sequence3,Sequence4,OutputIterator)
+ */
+template <class    Criterion,
+          typename Integer,
+          class    Sequence1,
+          class    Sequence2,
+          class    Sequence3,
+          class    Sequence4>
+typename Sequence1::difference_type
+best_model(Integer        N,
+           Sequence1      params,
+           Sequence2      sigma2e,
+           Sequence3      gain,
+           Sequence4      autocor)
+{
+    return best_model(N, params, sigma2e, gain, autocor, null_output());
 }
 
 /**
