@@ -789,7 +789,7 @@ public:
 
     // Distance support
 
-    difference_type operator-(const empirical_variance_iterator& other)
+    difference_type operator-(const empirical_variance_iterator& other) const
     {
         if (!this->N) {
             return 1 + other.N - other.i;
@@ -803,7 +803,7 @@ public:
 
     // EqualityComparable
 
-    bool operator==(const empirical_variance_iterator& other)
+    bool operator==(const empirical_variance_iterator& other) const
     {
         if (!this->N) {
             return other.i >= static_cast<Integer2>(other.N + 1);
@@ -814,21 +814,21 @@ public:
         }
     }
 
-    bool operator!=(const empirical_variance_iterator& other)
+    bool operator!=(const empirical_variance_iterator& other) const
         { return !(*this == other); }
 
     // LessThanComparable will trigger assertion on nonsense N cases
 
-    bool operator<(const empirical_variance_iterator& other)
+    bool operator<(const empirical_variance_iterator& other) const
         { return (*this - other) < 0; }
 
-    bool operator<=(const empirical_variance_iterator& other)
+    bool operator<=(const empirical_variance_iterator& other) const
         { return (*this - other) <= 0; }
 
-    bool operator>(const empirical_variance_iterator& other)
+    bool operator>(const empirical_variance_iterator& other) const
         { return (*this - other) > 0; }
 
-    bool operator>=(const empirical_variance_iterator& other)
+    bool operator>=(const empirical_variance_iterator& other) const
         { return (*this - other) >= 0; }
 
     // Dereference operations
