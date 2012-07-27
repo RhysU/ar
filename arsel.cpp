@@ -17,14 +17,14 @@
 #include <vector>
 
 template <class Real, class In>
-void process(In& in,
-             Real& mean,
-             std::size_t &order,
-             std::vector<Real>& params,
-             std::vector<Real>& sigma2e,
-             std::vector<Real>& gain,
-             std::vector<Real>& autocor,
-             bool subtract_mean)
+std::size_t process(In& in,
+                    Real& mean,
+                    std::size_t &order,
+                    std::vector<Real>& params,
+                    std::vector<Real>& sigma2e,
+                    std::vector<Real>& gain,
+                    std::vector<Real>& autocor,
+                    bool subtract_mean)
 {
     // Use burg_method to estimate a hierarchy of AR models from input data
     params .reserve(order*(order + 1)/2);
@@ -60,6 +60,8 @@ void process(In& in,
     sigma2e[0] = sigma2e[best]; sigma2e.resize(1);
     gain   [0] = gain   [best]; gain   .resize(1);
     autocor.resize(best + 1);
+
+    return N;
 }
 
 // Provides nice formatting of real-valued quantities to maximum precision
@@ -105,7 +107,7 @@ int main(int argc, char *argv[])
 
     // Process a possible --subtract-mean flag shifting arguments if needed
     bool subtract_mean = false;
-    if (argc > 0 && 0 == strcmp("--subtract-mean", argv[1])) {
+    if (argc > 1 && 0 == strcmp("--subtract-mean", argv[1])) {
         subtract_mean = true;
         argv[1] = argv[0];
         ++argv;
@@ -115,8 +117,10 @@ int main(int argc, char *argv[])
     double mean;
     size_t order = 512;
     vector<double> params, sigma2e, gain, autocor;
-    process(cin, mean, order, params, sigma2e, gain, autocor, subtract_mean);
+    size_t N = process(cin, mean, order,
+                       params, sigma2e, gain, autocor, subtract_mean);
 
+    append_real(cout << "# N                   ", N                 ) << endl;
     append_real(cout << "# Mean                ", mean              ) << endl;
     append_real(cout << "# \\sigma^2_\\epsilon ", sigma2e[0]        ) << endl;
     append_real(cout << "# Gain                ", gain[0]           ) << endl;
