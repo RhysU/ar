@@ -68,7 +68,7 @@
  *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
  *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
  *         are output.</li>
- *     <li>If \c hierarchy is true, the <tt>maxorder*(maxorder+1)/2</tt>
+ *     <li>If \c hierarchy is \c true, the <tt>maxorder*(maxorder+1)/2</tt>
  *         coefficients for models AR(1), AR(2), ..., AR(maxorder) are output.
  *         </li>
  * </ul>
@@ -79,9 +79,9 @@
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
  * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
  * output for each model, including the trivial zeroth order model when \c
- * maxorder is zero or \c hierarchy is true, using \c sigma2e_first and \c
+ * maxorder is zero or \c hierarchy is \c true, using \c sigma2e_first and \c
  * gain_first.  The autocorrelations for lags <tt>[0,k]</tt> are output using
- * \c autocor_first.  When \c hierarchy is true, only lags <tt>[0,m]</tt>
+ * \c autocor_first.  When \c hierarchy is \c true, only lags <tt>[0,m]</tt>
  * should be applied for some AR(<tt>m</tt>) model.  Outputting the lag \c k
  * autocorrelation is technically redundant as it may be computed from
  * \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.  Autocovariances may be computed by
