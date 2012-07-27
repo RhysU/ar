@@ -25,6 +25,7 @@
 #include <cmath>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
@@ -532,6 +533,31 @@ struct mean_retained
     }
 };
 
+namespace { // anonymous
+
+// Oh the simultaneous love/hate because -Werror => -Werror=type-limits...
+
+template <typename T, bool> struct is_nonnegative_helper;
+
+template <typename T> struct is_nonnegative_helper<T, /*signed?*/ true>
+{
+    static bool check(const T& t) { return t >= 0; }
+};
+
+template <typename T> struct is_nonnegative_helper<T, /*signed?*/ false>
+{
+    static bool check(const T&) { return true; }
+};
+
+template <typename T> bool is_nonnegative(const T& t)
+{
+    using std::numeric_limits;
+    return is_nonnegative_helper<T,numeric_limits<T>::is_signed>::check(t);
+}
+
+}
+
+
 /**
  * A parent type for autoregressive process parameter estimation techniques.
  *
@@ -558,8 +584,8 @@ public:
     static Result empirical_variance(Integer1 N, Integer2 i)
     {
         assert(N >= 1);
-        assert(i >= 0);
-        assert(i <= N);
+        assert(is_nonnegative(i));
+        assert(static_cast<Integer1>(i) <= N);
 
         if (i == 0)
             return MeanHandling::template empirical_variance_zero<Result>(N);
@@ -584,8 +610,8 @@ public:
     static Result empirical_variance(Integer1 N, Integer2 i)
     {
         assert(N >= 1);
-        assert(i >= 0);
-        assert(i <= N);
+        assert(is_nonnegative(i));
+        assert(static_cast<Integer1>(i) <= N);
 
         if (i == 0)
             return MeanHandling::template empirical_variance_zero<Result>(N);
@@ -610,8 +636,8 @@ public:
     static Result empirical_variance(Integer1 N, Integer2 i)
     {
         assert(N >= 1);
-        assert(i >= 0);
-        assert(i <= N);
+        assert(is_nonnegative(i));
+        assert(static_cast<Integer1>(i) <= N);
 
         if (i == 0)
             return MeanHandling::template empirical_variance_zero<Result>(N);
@@ -637,8 +663,8 @@ public:
     static Result empirical_variance(Integer1 N, Integer2 i)
     {
         assert(N >= 1);
-        assert(i >= 0);
-        assert(i <= N);
+        assert(is_nonnegative(i));
+        assert(static_cast<Integer1>(i) <= N);
 
         if (i == 0)
             return MeanHandling::template empirical_variance_zero<Result>(N);
@@ -809,14 +835,16 @@ public:
 
     value_type operator*() const
     {
-        assert(i <= N);
+        assert(is_nonnegative(i));
+        assert(i <= static_cast<Integer2>(N));
 
         return EstimationMethod::template empirical_variance<Result>(N, i);
     }
 
     value_type operator[](const difference_type &k) const
     {
-        assert(i + k <= N);
+        assert(is_nonnegative(i + k));
+        assert(i + k <= static_cast<Integer2>(N));
 
         return EstimationMethod::template empirical_variance<Result>(N, i + k);
     }
