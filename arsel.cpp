@@ -38,16 +38,16 @@ int main(int argc, char *argv[])
     sigma2e.reserve(order + 1);
     gain   .reserve(order + 1);
     autocor.reserve(order + 1);
-    const std::size_t N = burg_method(std::istream_iterator<double>(cin),
-                                      std::istream_iterator<double>(),
-                                      mean,
-                                      order,
-                                      std::back_inserter(params),
-                                      std::back_inserter(sigma2e),
-                                      std::back_inserter(gain),
-                                      std::back_inserter(autocor),
-                                      subtract_mean,
-                                      /* output hierarchy? */ true);
+    const size_t N = burg_method(istream_iterator<double>(cin),
+                                 istream_iterator<double>(),
+                                 mean,
+                                 order,
+                                 back_inserter(params),
+                                 back_inserter(sigma2e),
+                                 back_inserter(gain),
+                                 back_inserter(autocor),
+                                 subtract_mean,
+                                 /* output hierarchy? */ true);
 
     // Keep only best model according to CIC accounting for subtract_mean.
     if (subtract_mean) {
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     }
 
     // Output some details about the best model
-    cout.precision(std::numeric_limits<double>::digits10 + 2);
+    cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos
          <<   "# N                   "   << N
          << "\n# AR(p)               "   << params.size()
