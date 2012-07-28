@@ -55,7 +55,7 @@
  * \f{align}{
  *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
  *     &
- *     \epsilon_n &\sim{} N\left(0, \sigma^2_epsilon\right)
+ *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
  *     \\
  *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
  *     &
