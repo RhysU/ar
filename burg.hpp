@@ -752,8 +752,6 @@ private:
     typedef std::iterator<std::random_access_iterator_tag, Result,
                           std::ptrdiff_t, const Result*, const Result&> base;
 
-    empirical_variance_iterator(Integer1 N, Integer2 i) : N(N), i(i) {}
-
     Integer1 N;
     Integer2 i;
 
@@ -770,6 +768,9 @@ public:
     /** Construct an iterator over sequence order 0, 1, ..., N (inclusive). */
     empirical_variance_iterator(Integer1 N) : N(N), i(0)
         { assert(N >= 1); }
+
+    /** Construct an iterator over sequence order i, i+1, ..., N (inclusive). */
+    empirical_variance_iterator(Integer1 N, Integer2 i) : N(N), i(i) {}
 
     // Forward traversal
 
