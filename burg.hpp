@@ -14,7 +14,7 @@
  */
 
 /** @file
- * Burg's method and autoregressive model selection.
+ * %Burg's method and autoregressive model selection.
  *
  * The selection criteria routines might be sped up for floating point
  * arguments given an appropriate digamma (psi) or Pochhammer symbol
@@ -51,7 +51,7 @@
 
 /**
  * Fit an autoregressive model to stationary time series data using
- * Burg's method.  That is, assuming a zero-mean model
+ * %Burg's method.  That is, assuming a zero-mean model
  * \f{align}{
  *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
  *     &
@@ -605,7 +605,7 @@ public:
     }
 };
 
-/** Represents estimation using Burg's recursive method. */
+/** Represents estimation using %Burg's recursive method. */
 template <class MeanHandling>
 class Burg : public estimation_method
 {
