@@ -444,7 +444,7 @@ void zohar_linear_solve(RandomAccessIterator a_first,
  * \f]
  * given \f$\vec{a}\f$, \f$\vec{r}\f$, and \f$\vec{d}\f$.  The dimension of the
  * problem is fixed by <tt>n = distance(a_first, a_last)</tt>.  A symmetric
- * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$vec{r}\f$
+ * Toeplitz solve can be performed by having \f$\vec{a}\f$ and \f$\vec{r}\f$
  * iterate over the same data.  The Hermitian case requires two buffers with
  * \f$vec{r}\f$ being the conjugate of \f$\vec{a}\f$.  The working precision
  * is fixed by the \c value_type of \c d_first.
