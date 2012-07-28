@@ -745,10 +745,12 @@ template <class EstimationMethod,
           typename Integer1 = std::size_t,
           typename Integer2 = Integer1>
 class empirical_variance_iterator
-    : public std::iterator<std::random_access_iterator_tag, Result>
+    : public std::iterator<std::random_access_iterator_tag, Result,
+                           std::ptrdiff_t, const Result*, const Result&>
 {
 private:
-    typedef std::iterator<std::random_access_iterator_tag, Result> base;
+    typedef std::iterator<std::random_access_iterator_tag, Result,
+                          std::ptrdiff_t, const Result*, const Result&> base;
 
     empirical_variance_iterator(Integer1 N, Integer2 i) : N(N), i(i) {}
 
@@ -843,7 +845,7 @@ public:
 
     // Dereference operations
 
-    value_type operator*() const
+    const value_type operator*() const
     {
         assert(is_nonnegative(i));
         assert(i <= static_cast<Integer2>(N));
@@ -851,7 +853,7 @@ public:
         return EstimationMethod::template empirical_variance<Result>(N, i);
     }
 
-    value_type operator[](const difference_type &k) const
+    const value_type operator[](const difference_type &k) const
     {
         assert(is_nonnegative(i + k));
         assert(i + k <= static_cast<Integer2>(N));
