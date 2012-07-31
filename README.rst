@@ -141,6 +141,10 @@ Contents
    Given data on standard input, use Burg's method to compute a hierarchy
    of candidate models and select the best one using CIC.
 
+*arsel-octfile.cpp*
+   Provides arsel.cpp-like capabilities for Octave.  See appendix A
+   ("Dynamically Linked Functions") within [Octave] for implementation details.
+
 *example.cpp*
    A test driver extracting a hierarchy of AR(p) models for a sample given by
    [Collomb2009].
@@ -222,6 +226,8 @@ References
 -- [Ibrahim1989]     Ibrahim, M. K. "Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'." IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
 
 -- [Merchant1982]    Merchant, G. and T. Parks. "Efficient solution of a Toeplitz-plus-Hankel coefficient matrix system of equations." IEEE Transactions on Acoustics, Speech, and Signal Processing 30 (February 1982): 40-44. http://dx.doi.org/10.1109/TASSP.1982.1163845
+
+-- [Octave]          Eaton, John W., David Bateman, and Søren Hauberg. GNU Octave Manual Version 3. Network Theory Limited, 2008. http://www.octave.org/
 
 -- [Press2007]       Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 

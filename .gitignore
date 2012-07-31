@@ -21,6 +21,9 @@ example
 test
 zohar
 
+# Octave octfiles
+*.oct
+
 # Rebuildable LaTeX artifacts
 *.aux
 *.aux.bak

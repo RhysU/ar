@@ -8,8 +8,9 @@ zohar:   zohar.cpp   ar.hpp
 example: example.cpp ar.hpp
 test:    test.cpp    ar.hpp
 arsel:   arsel.cpp   ar.hpp
+
 clean:
-	rm -f example zohar test arsel
+	rm -f example zohar test arsel *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: all
@@ -36,3 +37,21 @@ stress: RAND=/dev/urandom                    # Random source to use
 stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
 	@$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
+
+# Expose functionality through GNU Octave when detected
+MKOCTFILE ?= $(shell which mkoctfile)
+ifdef MKOCTFILE
+
+all: octfiles
+
+octfiles: arsel-octfile.oct
+
+octfiles-clean:
+	rm -f *.oct
+
+clean: octfiles-clean
+
+%-octfile.oct : %-octfile.cpp ar.hpp
+	$(MKOCTFILE) $< -o $@
+
+endif
