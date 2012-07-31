@@ -301,7 +301,7 @@ struct nullary
 
 /** A nullary function always returning zero. */
 template<typename Value>
-struct nullary_impl0 : nullary<Value>
+struct nullary_impl0 : public nullary<Value>
 {
     Value operator()()
     {
@@ -315,7 +315,7 @@ struct nullary_impl0 : nullary<Value>
 
 /** A nullary function always invoking t(). */
 template<typename Value, class T>
-struct nullary_impl1 : nullary<Value>
+struct nullary_impl1 : public nullary<Value>
 {
     nullary_impl1(T t) : t(t) {}
     Value operator()()
