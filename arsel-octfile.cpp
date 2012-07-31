@@ -50,7 +50,7 @@ DEFUN_DLD(
     "\tcomputed and used to estimate the effective signal variance eff_sigma2x.\n"
     "\tThe number of effectively independent samples is returned in Neff.\n"
     "\t\n"
-    "\tOne may simulate N samples from the fitted process by afterwards calling:\n"
+    "\tOne may simulate N samples from the fitted process by calling:\n"
     "\t\n"
     "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
