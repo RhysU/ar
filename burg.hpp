@@ -16,6 +16,19 @@
 /** @file
  * %Burg's method and autoregressive model selection.
  *
+ * Provides routines to estimate and evaluate autoregressive models of the form
+ * \f{align}{
+ *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
+ *     &
+ *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
+ *     \\
+ *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
+ *     &
+ *     k &\geq{} p
+ * \f}
+ * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
+ * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.
+ *
  * The selection criteria routines might be sped up for floating point
  * arguments given an appropriate digamma (psi) or Pochhammer symbol
  * implementation.  To do so with the GNU Scientific Library, e.g., try
@@ -50,22 +63,12 @@
  */
 
 /**
- * Fit an autoregressive model to stationary time series data using
- * %Burg's method.  That is, assuming a zero-mean model
- * \f{align}{
- *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
- *     &
- *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
- *     \\
- *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
- *     &
- *     k &\geq{} p
- * \f}
- * find coefficients \f$a_i\f$ such that the sum of the squared errors in the
- * forward predictions \f$x_n = -a_1 x_{n-1} - \dots - a_p x_{n-p}\f$ and
- * backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p x_{n+p}\f$ are both
- * minimized.  Either a single model of given order or a hierarchy of models up
- * to and including a maximum order may fit.
+ * Fit an autoregressive model to stationary time series data using %Burg's
+ * method.  That is, find coefficients \f$a_i\f$ such that the sum of the
+ * squared errors in the forward predictions \f$x_n = -a_1 x_{n-1} - \dots -
+ * a_p x_{n-p}\f$ and backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p
+ * x_{n+p}\f$ are both minimized.  Either a single model of given order or a
+ * hierarchy of models up to and including a maximum order may fit.
  *
  * The input data \f$\vec{x}\f$ are read from <tt>[data_first,data_last)</tt>
  * in a single pass.  The mean is computed using pairwise summation,
