@@ -276,6 +276,301 @@ std::size_t burg_method(InputIterator     data_first,
     return N;
 }
 
+// Type erasure for NoiseGenerator parameters within predictor.
+// Either std::tr1::function or boost::function would better provide the
+// desired capability but both add additional, undesired dependencies.
+namespace
+{
+
+/** Abstract base class for NoiseGenerator-related type erasure. */
+template <typename Value>
+struct nullary
+{
+    virtual ~nullary() {}
+    virtual Value operator()() = 0;
+    virtual nullary* clone()   = 0;
+};
+
+/** A nullary function always returning zero. */
+template<typename Value>
+struct nullary_impl0 : nullary<Value>
+{
+    Value operator()()
+    {
+        return 0;
+    }
+    nullary_impl0* clone()
+    {
+        return new nullary_impl0();
+    }
+};
+
+/** A nullary function always invoking t(). */
+template<typename Value, class T>
+struct nullary_impl1 : nullary<Value>
+{
+    nullary_impl1(T t) : t(t) {}
+    Value operator()()
+    {
+        return t();
+    }
+    nullary_impl1* clone()
+    {
+        return new nullary_impl1(t);
+    }
+    T t;
+};
+
+}
+
+/**
+ * Simulate an autoregressive model process with an InputIterator interface.
+ */
+template <typename Value, typename Index = std::size_t>
+class predictor
+    : public std::iterator<std::input_iterator_tag, Value,
+      std::ptrdiff_t, const Value*, const Value&>
+{
+private:
+    typedef std::iterator<std::input_iterator_tag, Value,
+            std::ptrdiff_t, const Value*, const Value&> base;
+
+public:
+    typedef typename base::difference_type   difference_type;
+    typedef typename base::iterator_category iterator_category;
+    typedef typename base::pointer           pointer;
+    typedef typename base::reference         reference;
+    typedef typename base::value_type        value_type;
+
+    /** Singular instance marking prediction index \c n. */
+    explicit predictor(Index n = 0) : n(n), d(), g(0), xn()
+    {
+#ifndef NDEBUG
+        using std::numeric_limits;
+        if (numeric_limits<Value>::has_quiet_NaN)
+            xn = numeric_limits<Value>::quiet_NaN();
+#endif
+    }
+
+    /**
+     * Iterate on the process \f$x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} =
+     * 0\f$.  Presumably \ref initial_conditions will be used to specify some
+     * initial state as otherwise the process is identically zero.  The process
+     * order \f$p\f$ is set by
+     * <tt>std::distance(params_first,params_last)</tt>.
+     *
+     * @param params_first  Beginning of the process parameter range.
+     * @param params_last   End of the process parameter range.
+     */
+    template <class RandomAccessIterator>
+    predictor(RandomAccessIterator params_first,
+              RandomAccessIterator params_last)
+        : n(0),
+          d(2*std::distance(params_first, params_last), 0),
+          g(new nullary_impl0<Value>()),
+          xn((*g)())
+    {
+        // Finish preparing d = [ a_p, ..., a_1, 0, ..., 0 ]
+        typename std::vector<Value>::size_type i = d.size() / 2;
+        while (i --> 0) d[i] = *params_first++;
+
+        // Now x_n = 0 because x_{n-p} = ... = x_{n-1} = 0 by construction.
+    }
+
+    /**
+     * Iterate on the process \f$x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} =
+     * \epsilon_n\f$ given zero initial conditions.  The process order \f$p\f$
+     * is set by <tt>std::distance(params_first,params_last)</tt>.
+     *
+     * @param params_first  Beginning of the process parameter range.
+     * @param params_last   End of the process parameter range.
+     * @param generator     A nullary callback for generating \f$\epsilon_n\f$.
+     *                      For example, a random number generator distributed
+     *                      like \f$N\left(0, \sigma^2_\epsilon\right)\f$.
+     */
+    template <class RandomAccessIterator,
+             class NoiseGenerator>
+    predictor(RandomAccessIterator params_first,
+              RandomAccessIterator params_last,
+              NoiseGenerator generator)
+        : n(0),
+          d(2*std::distance(params_first, params_last), 0),
+          g(new nullary_impl1<Value,NoiseGenerator>(generator)),
+          xn((*g)())
+    {
+        // Finish preparing d = [ a_p, ..., a_1, 0, ..., 0 ]
+        typename std::vector<Value>::size_type i = d.size() / 2;
+        while (i --> 0) d[i] = *params_first++;
+
+        // Here x_0 = \epsilon_0 because x_{0-p} = ... = x_{0-1} = 0.
+    }
+
+    /** Copy constructor */
+    predictor(const predictor& other)
+        : n(other.n),
+          d(other.d),
+          g(other.g ? other.g->clone() : 0),
+          xn(other.xn)
+    {}
+
+    /** Assignment operator */
+    predictor& operator=(const predictor& other)
+    {
+        if (this != &other)
+        {
+            nullary<Value> *tmp = 0;
+            try
+            {
+                tmp = other.g ? other.g->clone() : 0;
+            }
+            catch (...)
+            {
+                delete tmp;
+                throw;
+            }
+            base::operator=(other);
+            n = other.n;
+            d = other.d;
+            delete g;
+            g = tmp;
+            xn = other.xn;
+        }
+        return *this;
+    }
+
+    /** Destructor */
+    ~predictor()
+    {
+        delete g;
+    }
+
+    /**
+     * Specify process initial conditions \f$x_{n-1}, \dots, x_{n-p}\f$ where
+     * \f$p\f$ is the process order fixed by the constructor.  The simulation
+     * index \f$n\f$ is reset to zero and, optionally, \f$x_0\f$ is additively
+     * adjusted by \c x0adjust.
+     *
+     * @param initial_first Beginning of the initial condition range
+     *                      \f$x_{n-1}, \dots, x_{n-p}\f$
+     *                      which must contain \f$p\f$ values.
+     * @param x0adjust      An additive adjustment made to \f$\epsilon_0\f$.
+     */
+    template <class InputIterator>
+    predictor& initial_conditions(InputIterator initial_first,
+                                  const Value x0adjust = 0)
+    {
+        // Zero the simulation time.
+        n = 0;
+
+        // Set d = [ a_p, ..., a_1, x_{n-p}, ..., x_{n-1} ]
+        typename std::vector<Value>::size_type i = d.size();
+        typename std::vector<Value>::size_type p = i / 2;
+        while (i --> p) d[i] = *initial_first++;
+
+        // Make x_n := - a_p*x_{n-p} - ... - a_1*x_{n-1} + x_n + x0adjust.
+        // By design, x_n was whatever it happened to be.
+        using std::inner_product;
+        xn += x0adjust;
+        xn  = -inner_product(d.begin(), d.begin() + p, d.begin() + p, -xn);
+
+        return *this;
+    }
+
+    // Concept: InputIterator
+
+    /** Prefix increment. */
+    predictor& operator++()
+    {
+        using std::distance;
+        using std::inner_product;
+
+        if (g)
+        {
+
+            // Make x_n = - a_p*x_{n-p} - ... - a_1*x_{n-1} + \epsilon_n
+            // by (conceptually) storing previously computed x_n into
+            // circular buffer, updating ++n, and computing x_{n+1}.
+            typename std::vector<Value>::size_type p = d.size() / 2;
+            typename std::vector<Value>::iterator ab = d.begin();
+            typename std::vector<Value>::iterator xb = ab + p;
+            typename std::vector<Value>::iterator c  = xb + n % p;
+            typename std::vector<Value>::iterator xe = d.end();
+            *c++ =  xn;
+            xn   =  inner_product(c,  xe, ab,                   -(*g)());
+            xn   = -inner_product(xb,  c, ab + distance(c, xe),   xn   );
+
+        }
+        else
+        {
+
+#ifndef NDEBUG
+            using std::numeric_limits;
+            if (numeric_limits<Value>::has_quiet_NaN)
+                xn = numeric_limits<Value>::quiet_NaN();
+#endif
+
+        }
+
+        ++n;
+
+        return *this;
+    }
+
+    /** Postfix increment. */
+    predictor operator++(int) // Postfix increment
+    {
+        predictor t(*this);
+        ++*this;
+        return t;
+    }
+
+    /** Obtain the process prediction \f$x_n\f$. */
+    reference operator* () const
+    {
+        return xn;
+    }
+
+    // Concept: EqualityComparable
+
+    /** Check if two iterators represent the same simulation time. */
+    bool operator== (const predictor& other) const
+    {
+        return n == other.n;
+    }
+
+    /** Check if two iterators represent different simulation times. */
+    bool operator!= (const predictor& other) const
+    {
+        return !(*this == other);
+    }
+
+private:
+
+    /** Running prediction index. */
+    Index n;
+
+    /**
+     * State vector keeping \f$\tilde{a}\f$ in <tt>[d, d+p)</tt> and
+     * \f$x_{n-p},\dots,x_{n-2},x_{n-1}\f$ in <tt>[d+p,d+p+p)/<tt> in circular
+     * buffer fashion where <tt>p = d.size()/2</tt> is the autoregressive
+     * process order.  The current location in circular buffer is maintained
+     * using <tt>d + p + n % p</tt>.
+     */
+    typename std::vector<Value> d;
+
+    /**
+     * Noise generator used at every step.
+     * An instance is singular whenever <tt>!g</tt>.
+     */
+    nullary<Value> *g;
+
+    /**
+     * Prediction at current index \c n.  Computed on advance to permit
+     * repeated inexpensive dereferencing and <tt>*i++</tt> usage.
+     */
+    Value xn;
+};
+
 /**
  * Solve a Toeplitz set of linear equations.  That is, find \f$s_{n+1}\f$
  * satisfying
