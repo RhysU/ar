@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /** @file
- * Test \ref zohar_linear_solve routine against a reference solution.
+ * Test \ref ar::zohar_linear_solve routine against a reference solution.
  */
 
 #include "ar.hpp"

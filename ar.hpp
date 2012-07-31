@@ -11,17 +11,17 @@
 /**
  * @mainpage
  *
- * Autoregressive modeling tools in header-only C++.  Includes implementations
- * of \ref burg_method "Burg's method", finite sample-aware \ref best_model
- * "model order selection", and \ref decorrelation_time" decorrelation time"
- * computations.  See <a
- * href="https://github.com/RhysU/ar/blob/master/README.rst"> the current
- * README</a> for a more detailed overview and http://github.com/RhysU/ar for
- * project development information.
+ * \ref ar implements \ref ar "modeling tools" for autoregressive processes in
+ * header-only C++.
+ *
+ * See the current <a
+ * href="https://github.com/RhysU/ar/blob/master/README.rst"> README</a> for a
+ * more detailed overview and http://github.com/RhysU/ar for project
+ * information.
  */
 
 /** @file
- * Autoregressive process tools in header-only C++.
+ * Autoregressive process modeling tools in header-only C++.
  */
 
 #include <algorithm>
@@ -35,10 +35,7 @@
 #include <vector>
 
 /**
- * Autoregressive modeling tools in header-only C++.  Includes implementations
- * of \ref burg_method "Burg's method", finite sample-aware \ref best_model
- * "model order selection", and \ref decorrelation_time "decorrelation time"
- * computations.
+ * Autoregressive process modeling tools in header-only C++.
  *
  * All routines estimate and/or evaluate autoregressive models of the form
  * \f{align}{
@@ -46,12 +43,17 @@
  *     &
  *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
  *     \\
+ *     \rho_0 + a_1 \rho_{1} + \dots + a_p \rho_{p} &= \sigma^2_\epsilon
+ *     &
+ *     \rho_0 &= 1
+ *     \\
  *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
  *     &
  *     k &\geq{} p
  * \f}
  * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
- * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.
+ * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.  The model has output
+ * variance \f$\sigma^2_x\f$ and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$.
  */
 namespace ar
 {
@@ -610,7 +612,7 @@ autocorrelation(RandomAccessIterator params_first,
  * autocorrelation details.  That is, compute
  * \f{align}{
  *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right) \rho_i
- * }
+ * \f}
  * following Trenberth, K. E. "Some effects of finite sample size and
  * persistence on meteorological statistics. Part I: Autocorrelations." Monthly
  * Weather Review 112 (1984).
@@ -656,7 +658,7 @@ Value decorrelation_time(const std::size_t N,
  * \f{align}{
  *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right)
  *                                 \rho_{1,i} \rho_{2,i}
- * }
+ * \f}
  * following Trenberth, K. E. "Some effects of finite sample size and
  * persistence on meteorological statistics. Part I: Autocorrelations." Monthly
  * Weather Review 112 (1984).
@@ -723,11 +725,11 @@ Value decorrelation_time(const std::size_t N,
  * <tt>O(2*(n+1)^2)</tt>.  Zohar improved upon earlier work from Page 1504 from
  * Trench, William F. "Weighting Coefficients for the Prediction of Stationary
  * Time Series from the Finite Past." SIAM Journal on Applied Mathematics 15
- * (November 1967): 1502-1510.  http://www.jstor.org/stable/2099503.  See
+ * (November 1967): 1502-1510.  http://www.jstor.org/stable/2099503.See
  * Bunch, James R. "Stability of Methods for Solving Toeplitz Systems of
  * Equations." SIAM Journal on Scientific and Statistical Computing 6 (1985):
  * 349-364. http://dx.doi.org/10.1137/0906025 for a discussion of the
- * algorithms stability characteristics.
+ * algorithm's stability characteristics.
  *
  * @param[in]  a_first Beginning of the range containing \f$\vec{a}\f$.
  * @param[in]  a_last  End of the range containing \f$\vec{a}\f$.

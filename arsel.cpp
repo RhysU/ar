@@ -4,7 +4,8 @@
 
 /** @file
  * Estimate the best AR(p) model given data on standard input.  Illustrates
- * \ref autocorrelation, \ref predictor, and \ref decorrelation_time.
+ * \ref ar::autocorrelation, \ref ar::predictor,
+ * and \ref ar::decorrelation_time.
  */
 
 #include "ar.hpp"

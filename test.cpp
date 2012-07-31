@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /** @file
- * Test \ref burg_method against synthetic data.
+ * Test \ref ar::burg_method against synthetic data.
  */
 
 #include "ar.hpp"
