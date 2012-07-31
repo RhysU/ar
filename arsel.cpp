@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
     }
 
     // Compute decorrelation time from the estimated autocorrelation model
-    const double T0  = decorrelation_time(N, autocorrelation(
-                params.begin(), params.end(), gain[0], autocor.begin()));
+    const double T0  = decorrelation_time(N, autocorrelation(params.begin(),
+                params.end(), gain[0], autocor.begin()), /* abs(rho) */ true);
 
     // Output details about the best model and derived information
     cout.precision(numeric_limits<double>::digits10 + 2);
