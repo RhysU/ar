@@ -612,10 +612,17 @@ autocorrelation(RandomAccessIterator params_first,
  * Weather Review 112 (1984).
  * http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
  *
+ * Rather than \f$\rho\f$, \f$\left|\rho\right|\f$ may be used in the
+ * definition of \f$T_0\f$ to better approximate the "decay of the correlation
+ * envelope" according to section 17.1.5 of Hans von Storch and Francis W.
+ * Zwiers.  Statistical analysis in climate research. Cambridge University
+ * Press, March 2001. ISBN 978-0521012300.  Doing so is more robust for
+ * oscillatory processes and always provides a larger, more conservative
+ * estimate of \f$T_0\f$.
+ *
  * @param N        Maximum lag used to compute the autocorrelation.
  * @param rho      A \ref predictor iterating over the \ref autocorrelation.
- * @param abs_rho  Should the absolute value of \f$\rho\f$ be used
- *                 to make the calculation more conservative?
+ * @param abs_rho  Use \f$\left|\rho\right|\f$ when calculating \f$T_0\f$?
  *
  * @return The decorrelation time \f$T_0\f$ assuming \f$\Delta{}t=1\f$.
  */
@@ -640,8 +647,8 @@ Value decorrelation_time(const std::size_t N,
 }
 
 /**
- * Compute the decorrelation time for a variance or covariance given
- * autocorrelation details.  That is, compute
+ * Compute the decorrelation time for a covariance given autocorrelation
+ * details from two processes.  That is, compute
  * \f{align}{
  *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right)
  *                                 \rho^1_i \rho^2_i
@@ -651,10 +658,17 @@ Value decorrelation_time(const std::size_t N,
  * Weather Review 112 (1984).
  * http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
  *
+ * Rather than \f$\rho\f$, \f$\left|\rho\right|\f$ may be used in the
+ * definition of \f$T_0\f$ to better approximate the "decay of the correlation
+ * envelope" according to section 17.1.5 of Hans von Storch and Francis W.
+ * Zwiers.  Statistical analysis in climate research. Cambridge University
+ * Press, March 2001. ISBN 978-0521012300.  Doing so is more robust for
+ * oscillatory processes and always provides a larger, more conservative
+ * estimate of \f$T_0\f$.
+ *
  * @param N        Maximum lag used to compute the autocorrelation.
  * @param rho      A \ref predictor iterating over the \ref autocorrelation.
- * @param abs_rho  Should the absolute value of \f$\rho\f$ be used
- *                 to make the calculation more conservative?
+ * @param abs_rho  Use \f$\left|\rho\right|\f$ when calculating \f$T_0\f$?
  *
  * @return The decorrelation time \f$T_0\f$ assuming \f$\Delta{}t=1\f$.
  */

@@ -79,9 +79,11 @@ A variety of finite sample model selection criteria are implemented following
 * combined information criterion (CIC)
 
 are all implemented.  An included sample program called ``arsel`` uses CIC to
-select the best model order given data from standard input.  For example,
-``arsel --subtract-mean < rhoe.dat`` reproduces results from ARMASA
-[Broersen2002] on a turbulence signal::
+select the best model order given data from standard input.  It also estimates
+the effective sample size and corresponding variance using ideas from
+[Trenberth1984], [Thiebaux1984], and [vonStorch2001].  For example, ``arsel
+--subtract-mean < rhoe.dat`` reproduces results from ARMASA [Broersen2002] on a
+turbulence signal::
 
 	# N                   1753
 	# AR(p)               6
@@ -89,6 +91,9 @@ select the best model order given data from standard input.  For example,
 	# \sigma^2_\epsilon   +8.3374933107465524e-09
 	# Gain                +4249.4034177677795
 	# \sigma^2_x          +3.5429372570302398e-05
+	# t_decorrelation     +62.186734533597004
+	# N_effective         +28.189291705820704
+	# Variance_effective  +3.673243603196358e-05
 	-2.6990358158025196
 	+2.8771725720036141
 	-1.7247889420225018
@@ -222,6 +227,10 @@ References
 -- [Press2007]       Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 
 -- [Seghouane2004]   Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
+
+-- [vonStorch2001]   Hans von Storch and Francis W. Zwiers. Statistical analysis in climate research. Cambridge University Press, March 2001. ISBN 978-0521012300.
+
+-- [Thiebaux1984]    Thiébaux, H. J. and F. W. Zwiers. "The Interpretation and Estimation of Effective Sample Size." J. Climate Appl. Meteor. 23 (May 1984): 800-811. http://dx.doi.org/10.1175/1520-0450(1984)023%253C0800:TIAEOE%253E2.0.CO;2
 
 -- [Trenberth1984]   Trenberth, K. E. "Some effects of finite sample size and persistence on meteorological statistics. Part I: Autocorrelations." Monthly Weather Review 112 (1984). http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
 
