@@ -61,7 +61,11 @@ int main(int argc, char *argv[])
                 N, params, sigma2e, gain, autocor);
     }
 
-    // Output some details about the best model
+    // Compute decorrelation time from the estimated autocorrelation model
+    const double T0  = decorrelation_time(N, autocorrelation(
+                params.begin(), params.end(), gain[0], autocor.begin()));
+
+    // Output details about the best model and derived information
     cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos
          <<   "# N                   "   << N
@@ -70,6 +74,9 @@ int main(int argc, char *argv[])
          << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
          << "\n# Gain                "   << gain[0]
          << "\n# \\sigma^2_x          "  << gain[0]*sigma2e[0]
+         << "\n# t_decorrelation     "   << T0
+         << "\n# N_effective         "   << N / T0
+         << "\n# Variance_effective  "   << (N*gain[0]*sigma2e[0]) / (N - T0)
          << '\n';
     copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
     cout.flush();
