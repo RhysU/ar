@@ -5,41 +5,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef BURG_HPP
-#define BURG_HPP
+#ifndef AR_HPP
+#define AR_HPP
 
 /**
  * @mainpage
- * See http://github.com/RhysU/burg for project details.
+ *
+ * Autoregressive modeling tools in header-only C++.  Includes implementations
+ * of \ref burg_method "Burg's method", finite sample-aware \ref best_model
+ * "model order selection", and \ref decorrelation_time" decorrelation time"
+ * computations.  See <a
+ * href="https://github.com/RhysU/ar/blob/master/README.rst"> the current
+ * README</a> for a more detailed overview and http://github.com/RhysU/ar for
+ * project development information.
  */
 
 /** @file
- * %Burg's method and autoregressive model selection.
- *
- * Provides routines to estimate and evaluate autoregressive models of the form
- * \f{align}{
- *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
- *     &
- *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
- *     \\
- *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
- *     &
- *     k &\geq{} p
- * \f}
- * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
- * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.
- *
- * The selection criteria routines might be sped up for floating point
- * arguments given an appropriate digamma (psi) or Pochhammer symbol
- * implementation.  To do so with the GNU Scientific Library, e.g., try
- * @code
- *     #include <gsl/gsl_sf_psi.h>
- *     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
- *
- *     #include <gsl/gsl_sf_gamma.h>
- *     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
- * @endcode
- * before including this header and link the GSL with your binary.
+ * Autoregressive process tools in header-only C++.
  */
 
 #include <algorithm>
@@ -51,6 +33,28 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+
+/**
+ * Autoregressive modeling tools in header-only C++.  Includes implementations
+ * of \ref burg_method "Burg's method", finite sample-aware \ref best_model
+ * "model order selection", and \ref decorrelation_time "decorrelation time"
+ * computations.
+ *
+ * All routines estimate and/or evaluate autoregressive models of the form
+ * \f{align}{
+ *     x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} &= \epsilon_n
+ *     &
+ *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
+ *     \\
+ *     \rho_k + a_1 \rho_{k-1} + \dots + a_p \rho_{k-p} &= 0
+ *     &
+ *     k &\geq{} p
+ * \f}
+ * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
+ * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.
+ */
+namespace ar
+{
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -651,7 +655,7 @@ Value decorrelation_time(const std::size_t N,
  * details from two processes.  That is, compute
  * \f{align}{
  *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right)
- *                                 \rho^1_i \rho^2_i
+ *                                 \rho_{1,i} \rho_{2,i}
  * }
  * following Trenberth, K. E. "Some effects of finite sample size and
  * persistence on meteorological statistics. Part I: Autocorrelations." Monthly
@@ -937,6 +941,17 @@ void zohar_linear_solve(RandomAccessIterator a_first,
  * Transactions on Signal Processing 48 (December 2000): 3550-3558.
  * http://dx.doi.org/10.1109/78.887047.
  *
+ * The selection criteria routines might be sped up for floating point
+ * arguments given an appropriate digamma (psi) or Pochhammer symbol
+ * implementation.  To do so with the GNU Scientific Library (GSL), e.g., try
+ * @code
+ *     #include <gsl/gsl_sf_psi.h>
+ *     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
+ *
+ *     #include <gsl/gsl_sf_gamma.h>
+ *     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
+ * @endcode
+ * before including this header and link the GSL with your binary.
  * @{
  */
 
@@ -1938,4 +1953,6 @@ best_model(Integer        N,
  * @}
  */
 
-#endif /* BURG_HPP */
+} // end namespace ar
+
+#endif /* AR_HPP */

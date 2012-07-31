@@ -6,7 +6,7 @@
  * Test \ref zohar_linear_solve routine against a reference solution.
  */
 
-#include "burg.hpp"
+#include "ar.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -17,6 +17,7 @@
 
 int main()
 {
+    using namespace ar;
     using namespace std;
 
     vector<double> a;

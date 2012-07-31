@@ -4,10 +4,10 @@ CXXFLAGS  ?= $(HOWSTRICT) -g -O3 -DNDEBUG
 
 all:     zohar example test arsel
 
-zohar:   zohar.cpp   burg.hpp
-example: example.cpp burg.hpp
-test:    test.cpp    burg.hpp
-arsel:   arsel.cpp   burg.hpp
+zohar:   zohar.cpp   ar.hpp
+example: example.cpp ar.hpp
+test:    test.cpp    ar.hpp
+arsel:   arsel.cpp   ar.hpp
 clean:
 	rm -f example zohar test arsel
 

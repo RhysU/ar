@@ -10,7 +10,7 @@
  * Example program using \ref burg_method and \ref evaluate_models.
  */
 
-#include "burg.hpp"
+#include "ar.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -20,6 +20,7 @@
 
 int main(int argc, char *argv[])
 {
+    using namespace ar;
     using namespace std;
 
     // Maximum model estimation order to perform (limited by N)

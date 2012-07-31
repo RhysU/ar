@@ -3,10 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /** @file
- * Estimate the best AR(p) model given data on standard input.
+ * Estimate the best AR(p) model given data on standard input.  Illustrates
+ * \ref autocorrelation, \ref predictor, and \ref decorrelation_time.
  */
 
-#include "burg.hpp"
+#include "ar.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -22,6 +23,7 @@
 
 int main(int argc, char *argv[])
 {
+    using namespace ar;
     using namespace std;
 
     // Process a possible --subtract-mean flag, shifting arguments if needed

@@ -6,7 +6,7 @@
  * Test \ref burg_method against synthetic data.
  */
 
-#include "burg.hpp"
+#include "ar.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -31,6 +31,7 @@ typedef double real;
 // Test burg_method against synthetic data
 int main(int argc, char *argv[])
 {
+    using namespace ar;
     using namespace std;
 
     // Process a possible --subtract-mean flag shifting arguments if needed

@@ -1,17 +1,17 @@
-Burg's method and autoregressive model selection
+Autoregressive modeling tools in header-only C++
 ================================================
 
-Description
------------
+Overview
+--------
 
-This is a precision-agnostic, header-only, C++ implementation of Burg's
-recursive method for estimating autoregressive model parameters based on the
-presentation in [Collomb2009].   Many usability-related extensions have been
-added to permit simply obtaining autocorrelation information from the resulting
-estimated model.  The expressions differ slightly from those presented in
-[Press2007] (whose source cannot be distributed due to licensing restrictions).
-Still, the results match Numerical Recipes code to floating point error against
-benchmark data by [Bourke1998]::
+This package contains a precision-agnostic, header-only, C++ implementation of
+Burg's recursive method for estimating autoregressive model parameters based on
+the presentation in [Collomb2009].   Many usability-related extensions have
+been added to permit simply obtaining autocorrelation information from the
+resulting estimated model.  The expressions differ slightly from those
+presented in [Press2007] (whose source cannot be distributed due to licensing
+restrictions).  Still, the results match Numerical Recipes code to floating
+point error against benchmark data by [Bourke1998]::
 
 	./test test1.coeff test1.dat
 
@@ -129,10 +129,9 @@ Trench-like algorithms and for faster, albeit much more complicated, variants.
 Contents
 --------
 
-*burg.hpp*
-  Standalone header implementing Burg's recursive method, the Zohar Toeplitz
-  solver, a variety of finite sample model selection criteria, and algorithmic
-  helper routines.
+*ar.hpp*
+  The standalone implementation header.  Complete API documentation is
+  available at http://rhysu.github.com/ar.
 
 *Makefile*
    Try ``make`` followed by ``make check``.  On Linux, try ``make stress`` to
@@ -151,7 +150,7 @@ Contents
    equations.
 
 *test.cpp*
-   A test driver for testing ``burg.hpp`` against benchmarks by [Bourke1998].
+   A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].
 
 *test\*.coeff*, *test\*.dat*
    Sample data and exact parameters from [Bourke1998] used for ``make check``.
