@@ -356,8 +356,8 @@ public:
      * Iterate on the process \f$x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} =
      * 0\f$.  Presumably \ref initial_conditions will be used to specify some
      * initial state as otherwise the process is identically zero.  The process
-     * order \f$p\f$ is set by
-     * <tt>std::distance(params_first,params_last)</tt>.
+     * order \f$p\f$ is set by <tt>std::distance(params_first,
+     * params_last)</tt>.
      *
      * @param params_first  Beginning of the process parameter range.
      * @param params_last   End of the process parameter range.
@@ -380,7 +380,9 @@ public:
     /**
      * Iterate on the process \f$x_n + a_1 x_{n - 1} + \dots + a_p x_{n - p} =
      * \epsilon_n\f$ given zero initial conditions.  The process order \f$p\f$
-     * is set by <tt>std::distance(params_first,params_last)</tt>.
+     * is set by <tt>std::distance(params_first,params_last)</tt>.  The class
+     * <tt>std::tr1::variate_generator</tt> may be helpful in constructing
+     * normally distributed input.
      *
      * @param params_first  Beginning of the process parameter range.
      * @param params_last   End of the process parameter range.
