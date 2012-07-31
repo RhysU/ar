@@ -602,6 +602,86 @@ autocorrelation(RandomAccessIterator params_first,
 }
 
 /**
+ * Compute the decorrelation time for variance of the mean given
+ * autocorrelation details.  That is, compute
+ * \f{align}{
+ *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right) \rho_i
+ * }
+ * following Trenberth, K. E. "Some effects of finite sample size and
+ * persistence on meteorological statistics. Part I: Autocorrelations." Monthly
+ * Weather Review 112 (1984).
+ * http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
+ *
+ * @param N        Maximum lag used to compute the autocorrelation.
+ * @param rho      A \ref predictor iterating over the \ref autocorrelation.
+ * @param abs_rho  Should the absolute value of \f$\rho\f$ be used
+ *                 to make the calculation more conservative?
+ *
+ * @return The decorrelation time \f$T_0\f$ assuming \f$\Delta{}t=1\f$.
+ */
+template <class Value>
+Value decorrelation_time(const std::size_t N,
+                         predictor<Value> rho,
+                         const bool abs_rho = false)
+{
+    Value T0 = *rho++;
+
+    const Value twoinvN = Value(2) / N;
+    if (abs_rho) {
+        using std::abs;
+        for (std::size_t i = 1; i <= N; ++i, ++rho)
+            T0 += (2 - i*twoinvN) * abs(*rho);
+    } else {
+        for (std::size_t i = 1; i <= N; ++i, ++rho)
+            T0 += (2 - i*twoinvN) * (*rho);
+    }
+
+    return T0;
+}
+
+/**
+ * Compute the decorrelation time for a variance or covariance given
+ * autocorrelation details.  That is, compute
+ * \f{align}{
+ *     T_0 &= 1 + 2 \sum_{i=1}^{N} \left(1 - \frac{i}{N}\right)
+ *                                 \rho^1_i \rho^2_i
+ * }
+ * following Trenberth, K. E. "Some effects of finite sample size and
+ * persistence on meteorological statistics. Part I: Autocorrelations." Monthly
+ * Weather Review 112 (1984).
+ * http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
+ *
+ * @param N        Maximum lag used to compute the autocorrelation.
+ * @param rho      A \ref predictor iterating over the \ref autocorrelation.
+ * @param abs_rho  Should the absolute value of \f$\rho\f$ be used
+ *                 to make the calculation more conservative?
+ *
+ * @return The decorrelation time \f$T_0\f$ assuming \f$\Delta{}t=1\f$.
+ */
+template <class Value>
+Value decorrelation_time(const std::size_t N,
+                         predictor<Value> rho1,
+                         predictor<Value> rho2,
+                         const bool abs_rho = false)
+{
+    Value T0 = 1;
+    ++rho1;
+    ++rho2;
+
+    const Value twoinvN = Value(2) / N;
+    if (abs_rho) {
+        using std::abs;
+        for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
+            T0 += (2 - i*twoinvN) * abs(*rho1) * abs(*rho2);
+    } else {
+        for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
+            T0 += (2 - i*twoinvN) * (*rho1) * (*rho2);
+    }
+
+    return T0;
+}
+
+/**
  * Solve a Toeplitz set of linear equations.  That is, find \f$s_{n+1}\f$
  * satisfying
  * \f[

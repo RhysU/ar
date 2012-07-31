@@ -172,17 +172,14 @@ Todo
 1. Add a class to encapsulate a single AR(p) model.  Include prediction both
    with and without noise and prediction error computations against known data.
 
-2. Use the AR polynomial (e.g. [Broersen2006] equation 4.36) to obtain the
-   autocorrelation for arbitrary lags ([Broersen2006] equation 4.52).
-
-3. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
+2. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
    process parameters, implement a ``Wule-Yalker`` solver based on the
    WuleYalker.tex write up using the Toeplitz-plus-Hankel solver approach due
    to [Merchant1982] which employs [Akaike1973].  The double Levinson recursion
    discussed by [Broersen2006] section 5.4 appears to be too numerically
    unstable to use in practice without requiring O(n^2) memory.
 
-4. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].  This
    should reduce the sensitivity to phase shifted input signals when working
    with small data sets.
@@ -225,6 +222,8 @@ References
 -- [Press2007]       Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. Numerical recipes : The Art of Scientific Computing. Third edition. Cambridge University Press, September 2007.
 
 -- [Seghouane2004]   Seghouane, A. K. and M. Bekara. "A Small Sample Model Selection Criterion Based on Kullback's Symmetric Divergence." IEEE Transactions on Signal Processing 52 (December 2004): 3314-3323. http://dx.doi.org/10.1109/TSP.2004.837416
+
+-- [Trenberth1984]   Trenberth, K. E. "Some effects of finite sample size and persistence on meteorological statistics. Part I: Autocorrelations." Monthly Weather Review 112 (1984). http://dx.doi.org/10.1175/1520-0493(1984)112%3C2359:SEOFSS%3E2.0.CO;2
 
 -- [Trench1967]      Trench, William F. Weighting coefficients for the prediction of stationary time series from the finite past. SIAM J. Appl. Math. 15, 6 (Nov. 1967), 1502-1510. http://www.jstor.org/stable/2099503
 
