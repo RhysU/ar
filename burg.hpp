@@ -1696,7 +1696,7 @@ struct CIC : public criterion
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
- *                      When \f$sigma^2_epsilon\f$ is produced entirely by
+ *                      When \f$sigma^2_\epsilon\f$ is produced entirely by
  *                      \ref burg_method, this should be \c 0u.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
@@ -1860,7 +1860,7 @@ struct null_output : std::iterator< std::output_iterator_tag, null_output >
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
- *                      When \f$sigma^2_epsilon\f$ is produced entirely by
+ *                      When \f$sigma^2_\epsilon\f$ is produced entirely by
  *                      \ref burg_method, this should be \c 0u.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
