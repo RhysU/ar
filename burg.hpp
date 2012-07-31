@@ -389,7 +389,7 @@ public:
      *                      like \f$N\left(0, \sigma^2_\epsilon\right)\f$.
      */
     template <class RandomAccessIterator,
-             class NoiseGenerator>
+              class NoiseGenerator>
     predictor(RandomAccessIterator params_first,
               RandomAccessIterator params_last,
               NoiseGenerator generator)
@@ -570,6 +570,34 @@ private:
      */
     Value xn;
 };
+
+/**
+ * Construct an iterator over the autocorrelation function \f$\rho_k\f$ given
+ * process parameters and initial conditions.
+ *
+ * @param params_first  Beginning of range containing \f$a_1,\dots,a_p\f$.
+ * @param params_last   Exclusive ending of the parameter range.
+ * @param gain          The model gain \f$\sigma^2_x / \sigma^2_\epsilon\f$.
+ * @param autocor_first Beginning of range containing \f$\rho_0,...\rho_p\f$.
+ *
+ * @return An InputIterator across the autocorrelation function starting with
+ *         \f$rho_0\f$.
+ */
+template <class RandomAccessIterator,
+          class InputIterator,
+          class Value>
+predictor<typename std::iterator_traits<RandomAccessIterator>::value_type>
+autocorrelation(RandomAccessIterator params_first,
+                RandomAccessIterator params_last,
+                Value                gain,
+                InputIterator        autocor_first)
+{
+    predictor<typename std::iterator_traits<
+            RandomAccessIterator
+        >::value_type> p(params_first, params_last);
+    p.initial_conditions(++autocor_first, 1 / gain);
+    return p;
+}
 
 /**
  * Solve a Toeplitz set of linear equations.  That is, find \f$s_{n+1}\f$
