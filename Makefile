@@ -44,14 +44,14 @@ ifdef MKOCTFILE
 
 all: octfiles
 
-octfiles: arsel-octfile.oct
+octfiles: arsel.oct
 
 octfiles-clean:
 	rm -f *.oct
 
 clean: octfiles-clean
 
-%-octfile.oct : %-octfile.cpp ar.hpp
+%.oct : %-octfile.cpp ar.hpp
 	$(MKOCTFILE) $< -o $@
 
 endif
