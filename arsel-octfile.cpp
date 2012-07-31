@@ -29,17 +29,23 @@
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "[A, mu, sigma2eps, eff_sigma2x, T0] = arsel (d, submean=true, order=512)\n"
-    "\n"
-    "Use ar::burg_method followed by ar::best_model<CIC<Burg<MeanHandling > >\n"
-    "to obtain the most likely autoregressive process for input signal d.\n"
-    "The sample mean of d will be subtracted whenever submean is true.\n"
-    "Model orders zero through min(size(d), order) will be considered.\n"
-    "\n"
-    "The filter()-ready process parameters are returned in A, the sample mean\n"
-    "in mu, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
-    "Given the observed autocorrelation structure, a decorrelation time T0 is\n"
-    "computed and used to estimate the effective signal variance eff_sigma2x.\n"
+    "\t[A, mu, sigma2eps, eff_sigma2x, T0] = arsel (d, submean=true, order=512)\n"
+    "\tAutomatically fit an autoregressive model to an input signal.\n"
+    "\t\n"
+    "\tUse ar::burg_method followed by ar::best_model<CIC<Burg<MeanHandling > >\n"
+    "\tto obtain the most likely autoregressive process for input signal d.\n"
+    "\tThe sample mean of d will be subtracted whenever submean is true.\n"
+    "\tModel orders zero through min(size(d), order) will be considered.\n"
+    "\t\n"
+    "\tThe filter()-ready process parameters are returned in A, the sample mean\n"
+    "\tin mu, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
+    "\tGiven the observed autocorrelation structure, a decorrelation time T0 is\n"
+    "\tcomputed and used to estimate the effective signal variance eff_sigma2x.\n"
+    "\t\n"
+    "\tOne may simulate N samples from the fitted process by afterwards calling:\n"
+    "\t\n"
+    "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
+    "\t\n"
 )
 {
     std::size_t order = 512;
