@@ -18,12 +18,12 @@
 #include <algorithm>
 #include <cstdlib>
 #include <iterator>
-#include <iostream>
 #include <limits>
 #include <list>
 #include <vector>
 
 #include <octave/oct.h>
+#include <octave/oct-map.h>
 
 /** @file
  * A GNU Octave wrapper estimating the best AR(p) model given signal input.
@@ -58,7 +58,7 @@ DEFUN_DLD(
     "\t\n"
     "\tWhen not supplied, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen not supplied, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
-    "\tWhen no output arguments are requested, all details are displayed.\n"
+    "\tWhen no outputs are requested, a struct with all outputs is returned.\n"
 )
 {
     std::size_t maxorder = DEFAULT_MAXORDER;
@@ -82,7 +82,8 @@ DEFUN_DLD(
 
     // How much data will we be processing?
     const size_t N = data.dims().numel();
-    if (!N) {
+    if (!N)
+    {
         error("arsel: input signal d must have nonzero length");
         return octave_value();
     }
@@ -103,17 +104,21 @@ DEFUN_DLD(
                     submean, /* output hierarchy? */ true);
 
     // Keep only best model according to CIC accounting for subtract_mean.
-    if (submean) {
+    if (submean)
+    {
         ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
                 N, params, sigma2e, gain, autocor);
-    } else {
+    }
+    else
+    {
         ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
                 N, params, sigma2e, gain, autocor);
     }
 
     // Compute decorrelation time from the estimated autocorrelation model
     double T0 = std::numeric_limits<double>::quiet_NaN();
-    if (nargout == 0 || nargout > 2) {
+    if (nargout == 0 || nargout > 2)
+    {
         ar::predictor<double> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
         T0 = ar::decorrelation_time(N, p, /* abs(rho) */ true);
@@ -124,49 +129,59 @@ DEFUN_DLD(
     std::copy(params.begin(), params.end(), A.fortran_vec() + 1);
 
     // Prepare output: [A, mu, sigma2eps, eff_sigma2x, Neff, T0]
-    octave_value_list retval;
+    octave_value_list result;
     std::list<std::string> names;
     switch (nargout == 0 ? std::numeric_limits<int>::max() : nargout)
     {
         default:
             if (nargout) warning("arsel: too many output values requested");
         case 6:
-            retval.prepend(T0);
             names.push_front("T0");
+            result.prepend(T0);
         case 5:
-            retval.prepend(N / T0);
             names.push_front("Neff");
+            result.prepend(N / T0);
         case 4:
-            retval.prepend((N*gain[0]*sigma2e[0]) / (N - T0));
             names.push_front("eff_sigma2x");
+            result.prepend((N*gain[0]*sigma2e[0]) / (N - T0));
         case 3:
-            retval.prepend(sigma2e[0]);
             names.push_front("sigma2eps");
+            result.prepend(sigma2e[0]);
         case 2:
-            retval.prepend(mu);
             names.push_front("mu");
+            result.prepend(mu);
         case 1:
-            retval.prepend(A);
             names.push_front("A");
+            result.prepend(A);
             break;
         case 0:
             panic_impossible();
     }
-    retval.stash_name_tags(names);
 
-    // Provide no results whenever errors are detected
-    if (error_state) retval.resize(0);
-
-    // FIXME Use Octave's default stream (?) instead of std::cout
-    // Display results to user when no output was requested
-    if (!nargout) {
+    // Either return requested results in assignment-friendly fashion
+    // or, when nothing was requested, return a struct to likely display.
+    if (nargout)
+    {
+        result.stash_name_tags(names);
+    }
+    else // nargout == 0
+    {
+        Octave_map m;
         int i = 0;
         while (names.size()) {
-            retval(i++).print_with_name(std::cout, names.front());
+            m.assign(names.front(), result(i++));
             names.pop_front();
         }
-        retval.resize(0);
+        result.resize(1);
+        result(0) = m;
     }
 
-    return retval;
+    // Provide no results whenever an error was detected
+    if (error_state)
+    {
+        warning("arsel: error detected; no results returned");
+        result.resize(0);
+    }
+
+    return result;
 }
