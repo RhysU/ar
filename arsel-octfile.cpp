@@ -17,8 +17,10 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <limits>
 #include <iterator>
+#include <iostream>
+#include <limits>
+#include <list>
 #include <vector>
 
 #include <octave/oct.h>
@@ -56,12 +58,13 @@ DEFUN_DLD(
     "\t\n"
     "\tWhen not supplied, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen not supplied, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
+    "\tWhen no output arguments are requested, all details are displayed.\n"
 )
 {
     std::size_t maxorder = DEFAULT_MAXORDER;
     bool        submean  = DEFAULT_SUBMEAN;
     RowVector   data;
-    switch (args.length())  // Cases deliberately fall through
+    switch (args.length())
     {
         case 3:
             maxorder = args(2).ulong_value();
@@ -99,7 +102,6 @@ DEFUN_DLD(
                     std::back_inserter(autocor),
                     submean, /* output hierarchy? */ true);
 
-
     // Keep only best model according to CIC accounting for subtract_mean.
     if (submean) {
         ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
@@ -111,7 +113,7 @@ DEFUN_DLD(
 
     // Compute decorrelation time from the estimated autocorrelation model
     double T0 = std::numeric_limits<double>::quiet_NaN();
-    if (nargout > 2) {
+    if (nargout == 0 || nargout > 2) {
         ar::predictor<double> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
         T0 = ar::decorrelation_time(N, p, /* abs(rho) */ true);
@@ -121,29 +123,50 @@ DEFUN_DLD(
     RowVector A(params.size() + 1, /* leading one */ 1);
     std::copy(params.begin(), params.end(), A.fortran_vec() + 1);
 
-    // Prepare output: [A, mu, sigma2eps, eff_sigma2x, T0]
+    // Prepare output: [A, mu, sigma2eps, eff_sigma2x, Neff, T0]
     octave_value_list retval;
-    switch (nargout)  // Cases deliberately fall through
+    std::list<std::string> names;
+    switch (nargout == 0 ? std::numeric_limits<int>::max() : nargout)
     {
         default:
-            warning("arsel: too many output values requested");
+            if (nargout) warning("arsel: too many output values requested");
         case 6:
             retval.prepend(T0);
+            names.push_front("T0");
         case 5:
             retval.prepend(N / T0);
+            names.push_front("Neff");
         case 4:
             retval.prepend((N*gain[0]*sigma2e[0]) / (N - T0));
+            names.push_front("eff_sigma2x");
         case 3:
             retval.prepend(sigma2e[0]);
+            names.push_front("sigma2eps");
         case 2:
             retval.prepend(mu);
+            names.push_front("mu");
         case 1:
             retval.prepend(A);
+            names.push_front("A");
             break;
         case 0:
-            warning("arsel: no output values requested");
+            panic_impossible();
+    }
+    retval.stash_name_tags(names);
+
+    // Provide no results whenever errors are detected
+    if (error_state) retval.resize(0);
+
+    // FIXME Use Octave's default stream (?) instead of std::cout
+    // Display results to user when no output was requested
+    if (!nargout) {
+        int i = 0;
+        while (names.size()) {
+            retval(i++).print_with_name(std::cout, names.front());
+            names.pop_front();
+        }
+        retval.resize(0);
     }
 
-    // Return results iff no errors were detected
-    return error_state ? octave_value_list() : retval;
+    return retval;
 }
