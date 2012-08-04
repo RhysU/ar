@@ -181,10 +181,11 @@ std::size_t burg_method(InputIterator     data_first,
     // Compute the mean of f using pairwise summation and output it.
     // Pairwise chosen instead of of Kahan for speed trade off and to avoid
     // algorithmic nonsense when working precision is exact (e.g. rationals).
-    vector b(N, 0);
+    vector b;
+    b.reserve(N);
     {
         // First pass copies f into b reducing by up to a factor of 2
-        // Requires b has been adequately sized and filled with zeros
+        b.assign(N, 0);
         for (size i = 0; i < N; ++i)
             b[i/2] += f[i];
 
@@ -200,7 +201,7 @@ std::size_t burg_method(InputIterator     data_first,
     }
     mean = b[0] / N;
 
-    // Subtract the mean of the data if requested
+    // Subtract the sample mean of the data when requested
     if (subtract_mean)
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
 
@@ -221,7 +222,7 @@ std::size_t burg_method(InputIterator     data_first,
     maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
 
     // Initialize Burg recursion following Collomb
-    if (maxorder) copy(f.begin(), f.end(), b.begin()); // Copy iff non-trivial
+    if (maxorder) b = f;  // Copy iff non-trivial work required
     vector Ak(maxorder + 1, Value(0));
     Ak[0] = 1;
     vector autocor;
