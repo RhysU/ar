@@ -207,7 +207,8 @@ std::size_t burg_method(InputIterator     data_first,
     if (subtract_mean)
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
 
-    // Similarly, compute the sum-of-squares of f using pairwise summation
+    // Similarly, compute the sum-of-squares of f using pairwise summation.
+    // Naive summation can cause estimating constant process parameters to NaN.
     {
         // First pass copies f**2 into b reducing by up to a factor of 2
         b.assign(N, 0);
