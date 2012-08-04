@@ -19,6 +19,8 @@ check: all
 	@echo
 	./example
 	@echo
+	./test test0.coeff test0.dat
+	@echo
 	./test test1.coeff test1.dat
 	@echo
 	./test test2.coeff test2.dat
