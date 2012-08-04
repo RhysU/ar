@@ -178,11 +178,13 @@ std::size_t burg_method(InputIterator     data_first,
     vector f(data_first, data_last);
     const size N = f.size();
 
+    // Prepare uninitialized working storage b with capacity matching f
+    vector b;
+    b.reserve(N);
+
     // Compute the mean of f using pairwise summation and output it.
     // Pairwise chosen instead of of Kahan for speed trade off and to avoid
     // algorithmic nonsense when working precision is exact (e.g. rationals).
-    vector b;
-    b.reserve(N);
     {
         // First pass copies f into b reducing by up to a factor of 2
         b.assign(N, 0);
@@ -205,9 +207,27 @@ std::size_t burg_method(InputIterator     data_first,
     if (subtract_mean)
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
 
-    // Initialize gain, mean squared discrepancy sigma2e, and Dk.
+    // Similarly, compute the sum-of-squares of f using pairwise summation
+    {
+        // First pass copies f**2 into b reducing by up to a factor of 2
+        b.assign(N, 0);
+        for (size i = 0; i < N; ++i)
+            b[i/2] += f[i]*f[i];
+
+        // Initialize i to the next power of 2 lower than N
+        size t = N, i = !!N;
+        while (t /= 2)
+            i *= 2;
+
+        // Recurse on the now power-of-two, smaller problem size
+        while (i /= 2)
+            for (size_t j = 0; j < i; ++j)
+                b[j] = b[2*j] + b[2*j+1];
+    }
+    Value sigma2e = b[0];
+
+    // Initialize gain, Dk, and update sigma2e to be mean squared discrepancy
     Value gain = 1;
-    Value sigma2e = inner_product(f.begin(), f.end(), f.begin(), Value(0));
     Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
 
