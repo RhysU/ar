@@ -78,12 +78,12 @@ namespace ar
  * x_{n+p}\f$ are both minimized.  Either a single model of given order or a
  * hierarchy of models up to and including a maximum order may fit.
  *
- * The input data \f$\vec{x}\f$ are read from <tt>[data_first,data_last)</tt>
- * in a single pass.  The mean is computed using pairwise summation,
- * returned in \c mean, and \e removed from further consideration whenever
- * \c subtract_mean is true.  The estimated model parameters \f$a_i\f$
- * are output using \c params_first with the behavior determined by
- * the amount of data read, <tt>maxorder</tt>, and the \c hierarchy flag:
+ * The input data \f$\vec{x}\f$ are read from <tt>[data_first, data_last)</tt>
+ * in a single pass.  The mean is computed, returned in \c mean, and \e
+ * removed from further consideration whenever \c subtract_mean is true.
+ * The estimated model parameters \f$a_i\f$ are output using \c params_first
+ * with the behavior determined by the amount of data read, <tt>maxorder</tt>,
+ * and the \c hierarchy flag:
  * <ul>
  *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
  *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
@@ -122,7 +122,7 @@ namespace ar
  *
  * @param[in]     data_first    Beginning of the input data range.
  * @param[in]     data_last     Exclusive end of the input data range.
- * @param[out]    mean          Mean of data computed using pairwise summation.
+ * @param[out]    mean          Mean of data.
  * @param[in,out] maxorder      On input, the maximum model order desired.
  *                              On output, the maximum model order computed.
  * @param[out]    params_first  Model parameters for a single model or
@@ -178,7 +178,8 @@ std::size_t burg_method(InputIterator     data_first,
     vector f(data_first, data_last), b;
     const size N = f.size();
 
-    // Compute the mean and centered sum of squares using Knuth/Welford.
+    // Compute the mean and sum of centered squares using Knuth/Welford
+    // discussed in Knuth's TAOCP volume 2 section 4.2.2.A on page 232.
     mean = 0;
     Value sigma2e = 0;
     for (size_t i = 0; i < N; ++i)
