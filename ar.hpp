@@ -175,51 +175,21 @@ std::size_t burg_method(InputIterator     data_first,
     typedef typename vector::size_type size;
 
     // Initialize f from [data_first, data_last) and fix number of samples
-    vector f(data_first, data_last);
+    vector f(data_first, data_last), b;
     const size N = f.size();
 
-    // Prepare uninitialized working storage b with capacity matching f
-    vector b;
-    b.reserve(N);
-
-    // Compute the mean of f using pairwise summation and output it.
-    // Pairwise chosen instead of of Kahan for speed trade off and to avoid
-    // algorithmic nonsense when working precision is exact (e.g. rationals).
-    {
-        // First pass copies f into b reducing by up to a factor of 2
-        b.assign(N, 0);
-        for (size i = 0; i < N; ++i)
-            b[i/2] += f[i];
-
-        // Initialize i to the next power of 2 lower than N
-        size t = N, i = !!N;
-        while (t /= 2)
-            i *= 2;
-
-        // Recurse on the now power-of-two, smaller problem size
-        while (i /= 2)
-            for (size_t j = 0; j < i; ++j)
-                b[j] = b[2*j] + b[2*j+1];
-    }
-    mean = b[0] / N;
-
-    // Eliminating the sample mean, use Welford's one-pass variance algorithm
-    // to compute an "adjusted" mean and the centered sum of squares.
-    // Then update the previously computed sample mean with the adjusted value.
+    // Compute the mean and centered sum of squares using Knuth/Welford.
+    mean = 0;
     Value sigma2e = 0;
+    for (size_t i = 0; i < N; ++i)
     {
-        Value adjmean = 0;
-        for (size_t i = 0; i < N; ++i)
-        {
-            Value delta = (f[i] - mean) - adjmean;
-            adjmean += delta / (i+1);
-            sigma2e += delta*((f[i] - mean) - adjmean);
-        }
-        mean += adjmean;
+        Value delta = f[i] - mean;
+        mean    += delta / (i+1);
+        sigma2e += delta*(f[i] - mean);
     }
 
     // When requested, subtract the mean from the incoming data.
-    // Otherwise, update sigma2e to be the uncentered second moment.
+    // Otherwise, update sigma2e to be N times the uncentered second moment.
     if (subtract_mean)
     {
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
