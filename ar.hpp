@@ -203,43 +203,31 @@ std::size_t burg_method(InputIterator     data_first,
     }
     mean = b[0] / N;
 
-    // Similarly, compute the sum-of-squares of f using pairwise summation.
-    // This pass also subtracts the sample mean of the data when requested.
-    //
-    // Two-pass approach chosen based upon Chan, Tony F. and John G. Lewis.
-    // "Computing standard deviations: accuracy." Communications of the ACM 22
-    // (September 1979): 526-531. http://dx.doi.org/10.1145/359146.359152.
-    //
-    // Naive summation can cause estimating constant process parameters to NaN.
+    // Eliminating the sample mean, use Welford's one-pass variance algorithm
+    // to compute an "adjusted" mean and the centered sum of squares.
+    // Then update the previously computed sample mean with the adjusted value.
+    Value sigma2e = 0;
     {
-        // First pass copies f**2 into b reducing by up to a factor of 2
-        // The mean is subtracted during this pass, if requested.
-        b.assign(N, 0);
-        if (subtract_mean) {
-            for (size i = 0; i < N; ++i)
-            {
-                f[i]   -= mean;
-                b[i/2] += f[i]*f[i];
-            }
-        } else {
-            for (size i = 0; i < N; ++i)
-            {
-                Value c = f[i] - mean;
-                b[i/2] += c*c;
-            }
+        Value adjmean = 0;
+        for (size_t i = 0; i < N; ++i)
+        {
+            Value delta = (f[i] - mean) - adjmean;
+            adjmean += delta / (i+1);
+            sigma2e += delta*((f[i] - mean) - adjmean);
         }
-
-        // Initialize i to the next power of 2 lower than N
-        size t = N, i = !!N;
-        while (t /= 2)
-            i *= 2;
-
-        // Recurse on the now power-of-two, smaller problem size
-        while (i /= 2)
-            for (size_t j = 0; j < i; ++j)
-                b[j] = b[2*j] + b[2*j+1];
+        mean += adjmean;
     }
-    Value sigma2e = subtract_mean ? b[0] : b[0] + N*(mean*mean);
+
+    // When requested, subtract the mean from the incoming data.
+    // Otherwise, update sigma2e to be the uncentered second moment.
+    if (subtract_mean)
+    {
+        transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
+    }
+    else
+    {
+        sigma2e += N*(mean*mean);
+    }
 
     // Initialize gain, Dk, and update sigma2e to be mean squared discrepancy
     Value gain = 1;
