@@ -182,7 +182,7 @@ std::size_t burg_method(InputIterator     data_first,
     // discussed in Knuth's TAOCP volume 2 section 4.2.2.A on page 232.
     mean = 0;
     Value n_variance = 0;
-    for (size_t i = 0; i < N; ++i)
+    for (size i = 0; i < N; ++i)
     {
         Value delta  = f[i] - mean;
         mean        += delta / (i+1);
