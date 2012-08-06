@@ -950,10 +950,10 @@ void zohar_linear_solve(RandomAccessIterator a_first,
  * implementation.  To do so with the GNU Scientific Library (GSL), e.g., try
  * @code
  *     #include <gsl/gsl_sf_psi.h>
- *     #define BURG_DIGAMMA(x) gsl_sf_psi(x)
+ *     #define AR_DIGAMMA(x) gsl_sf_psi(x)
  *
  *     #include <gsl/gsl_sf_gamma.h>
- *     #define BURG_POCHHAMMER(a,x) gsl_sf_poch(a,x)
+ *     #define AR_POCHHAMMER(a,x) gsl_sf_poch(a,x)
  * @endcode
  * before including this header and link the GSL with your binary.
  * @{
@@ -1469,7 +1469,7 @@ struct FIC<YuleWalker<MeanHandling>, AlphaNumerator, AlphaDenominator>
 };
 
 // Specializations of the FIC for efficiency when digamma is available.
-#ifdef BURG_DIGAMMA
+#ifdef AR_DIGAMMA
 
 /**
  * Represents the finite information criterion (FIC) as applied to the \ref
@@ -1488,8 +1488,8 @@ struct FIC<Burg<MeanHandling>, AlphaNumerator, AlphaDenominator>
     {
         Result t  = Burg<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        t -= BURG_DIGAMMA(N + 1);
-        t += BURG_DIGAMMA(N + 1 - p);
+        t -= AR_DIGAMMA(N + 1);
+        t += AR_DIGAMMA(N + 1 - p);
         return AlphaNumerator * t / AlphaDenominator;
     }
 };
@@ -1511,8 +1511,8 @@ struct FIC<LSFB<MeanHandling>, AlphaNumerator, AlphaDenominator>
     {
         Result t  = LSFB<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_DIGAMMA((3 + 2*N) / Result(3)    );
-        Result b = BURG_DIGAMMA((3 + 2*N) / Result(3) - p);
+        Result a = AR_DIGAMMA((3 + 2*N) / Result(3)    );
+        Result b = AR_DIGAMMA((3 + 2*N) / Result(3) - p);
         return AlphaNumerator * (t - 2*(a - b)/3) / AlphaDenominator;
     }
 };
@@ -1534,13 +1534,13 @@ struct FIC<LSF<MeanHandling>, AlphaNumerator, AlphaDenominator>
     {
         Result t  = LSF<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_DIGAMMA((2 + N) / Result(2)    );
-        Result b = BURG_DIGAMMA((2 + N) / Result(2) - p);
+        Result a = AR_DIGAMMA((2 + N) / Result(2)    );
+        Result b = AR_DIGAMMA((2 + N) / Result(2) - p);
         return AlphaNumerator * (t - (a - b)/2) / AlphaDenominator;
     }
 };
 
-#endif /* BURG_DIGAMMA */
+#endif /* AR_DIGAMMA */
 
 /**
  * Represents the finite sample information criterion (FSIC) as applied to a
@@ -1604,7 +1604,7 @@ public:
 };
 
 // Specializations of the FIC for efficiency when Pochhammer is available.
-#ifdef BURG_POCHHAMMER
+#ifdef AR_POCHHAMMER
 
 /**
  * Represents the finite information criterion (FSIC) as applied to the \ref
@@ -1619,8 +1619,8 @@ struct FSIC<YuleWalker<MeanHandling> > : public criterion
     {
         Result v0  = YuleWalker<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_POCHHAMMER(N*(N+3) - p, p);
-        Result b = BURG_POCHHAMMER(Result(1 + N) - N*N);
+        Result a = AR_POCHHAMMER(N*(N+3) - p, p);
+        Result b = AR_POCHHAMMER(Result(1 + N) - N*N);
 
         return (1 + v0) / (1 - v0) * (a / b) - 1;
     }
@@ -1639,8 +1639,8 @@ struct FSIC<Burg<MeanHandling> > : public criterion
     {
         Result v0  = Burg<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_POCHHAMMER(-Result(1) - N, p);
-        Result b = BURG_POCHHAMMER( Result(1) - N, p);
+        Result a = AR_POCHHAMMER(-Result(1) - N, p);
+        Result b = AR_POCHHAMMER( Result(1) - N, p);
 
         return (1 + v0) / (1 - v0) * (a / b) - 1;
     }
@@ -1659,8 +1659,8 @@ struct FSIC<LSFB<MeanHandling> > : public criterion
     {
         Result v0  = LSFB<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_POCHHAMMER((-Result(2)-2*N)/3, p);
-        Result b = BURG_POCHHAMMER(( Result(2)-2*N)/3, p);
+        Result a = AR_POCHHAMMER((-Result(2)-2*N)/3, p);
+        Result b = AR_POCHHAMMER(( Result(2)-2*N)/3, p);
 
         return (1 + v0) / (1 - v0) * (a / b) - 1;
     }
@@ -1679,14 +1679,14 @@ struct FSIC<LSF<MeanHandling> > : public criterion
     {
         Result v0  = LSF<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
-        Result a = BURG_POCHHAMMER((-Result(1)-N)/2, p);
-        Result b = BURG_POCHHAMMER(( Result(1)-N)/2, p);
+        Result a = AR_POCHHAMMER((-Result(1)-N)/2, p);
+        Result b = AR_POCHHAMMER(( Result(1)-N)/2, p);
 
         return (1 + v0) / (1 - v0) * (a / b) - 1;
     }
 };
 
-#endif /* BURG_POCHHAMMER */
+#endif /* AR_POCHHAMMER */
 
 
 /**
