@@ -207,15 +207,15 @@ std::size_t burg_method(InputIterator     data_first,
     Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
 
+    // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
+    maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
+
     // Output sigma2e and gain for a zeroth order model, if requested.
     if (hierarchy || maxorder == 0)
     {
         *sigma2e_first++ = sigma2e;
         *gain_first++    = gain;
     }
-
-    // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
-    maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
 
     // Initialize Burg recursion following Collomb
     if (maxorder) b = f;  // Copy iff non-trivial work required
