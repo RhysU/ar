@@ -493,17 +493,24 @@ public:
 
         if (g)
         {
-            // Make x_n = - a_p*x_{n-p} - ... - a_1*x_{n-1} + \epsilon_n
-            // by (conceptually) storing previously computed x_n into
-            // circular buffer, updating ++n, and computing x_{n+1}.
             typename std::vector<Value>::size_type p = d.size() / 2;
-            typename std::vector<Value>::iterator ab = d.begin();
-            typename std::vector<Value>::iterator xb = ab + p;
-            typename std::vector<Value>::iterator c  = xb + n % p;
-            typename std::vector<Value>::iterator xe = d.end();
-            *c++ =  xn;
-            xn   =  inner_product(c,  xe, ab,                   -(*g)());
-            xn   = -inner_product(xb,  c, ab + distance(c, xe),   xn   );
+            if (p)
+            {
+                // Make x_n = - a_p*x_{n-p} - ... - a_1*x_{n-1} + \epsilon_n
+                // by (conceptually) storing previously computed x_n into
+                // circular buffer, updating ++n, and computing x_{n+1}.
+                typename std::vector<Value>::iterator ab = d.begin();
+                typename std::vector<Value>::iterator xb = ab + p;
+                typename std::vector<Value>::iterator c  = xb + n % p;
+                typename std::vector<Value>::iterator xe = d.end();
+                *c++ =  xn;
+                xn   =  inner_product(c,  xe, ab,                   -(*g)());
+                xn   = -inner_product(xb,  c, ab + distance(c, xe),   xn   );
+            }
+            else
+            {
+                xn = (*g)();
+            }
         }
         else
         {
