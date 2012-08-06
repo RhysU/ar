@@ -493,7 +493,6 @@ public:
 
         if (g)
         {
-
             // Make x_n = - a_p*x_{n-p} - ... - a_1*x_{n-1} + \epsilon_n
             // by (conceptually) storing previously computed x_n into
             // circular buffer, updating ++n, and computing x_{n+1}.
@@ -505,17 +504,14 @@ public:
             *c++ =  xn;
             xn   =  inner_product(c,  xe, ab,                   -(*g)());
             xn   = -inner_product(xb,  c, ab + distance(c, xe),   xn   );
-
         }
         else
         {
-
 #ifndef NDEBUG
             using std::numeric_limits;
             if (numeric_limits<Value>::has_quiet_NaN)
                 xn = numeric_limits<Value>::quiet_NaN();
 #endif
-
         }
 
         ++n;
