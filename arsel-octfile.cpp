@@ -38,7 +38,7 @@
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "\t[A, mean, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, maxorder)\n"
+    "\t[A, mu, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, maxorder)\n"
     "\tAutomatically fit an autoregressive model to an input signal.\n"
     "\t\n"
     "\tUse ar::burg_method followed by ar::best_model<CIC<Burg<MeanHandling > >\n"
@@ -47,14 +47,14 @@ DEFUN_DLD(
     "\tModel orders zero through min(size(d), maxorder) will be considered.\n"
     "\t\n"
     "\tThe filter()-ready process parameters are returned in A, the sample mean\n"
-    "\tin mean, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
+    "\tin mu, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
     "\tGiven the observed autocorrelation structure, a decorrelation time T0 is\n"
     "\tcomputed and used to estimate the effective signal variance eff_var.\n"
     "\tThe number of effectively independent samples is returned in eff_N.\n"
     "\t\n"
     "\tOne may simulate N samples from the fitted process by calling:\n"
     "\t\n"
-    "\t\tx = mean + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
+    "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
     "\tWhen not supplied, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen not supplied, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
@@ -89,14 +89,14 @@ DEFUN_DLD(
     }
 
     // Use burg_method to estimate a hierarchy of AR models from input data
-    double mean;
+    double mu;
     std::vector<double> params, sigma2e, gain, autocor;
     params .reserve(maxorder*(maxorder + 1)/2);
     sigma2e.reserve(maxorder + 1);
     gain   .reserve(maxorder + 1);
     autocor.reserve(maxorder + 1);
     ar::burg_method(data.fortran_vec(), data.fortran_vec() + N,
-                    mean, maxorder,
+                    mu, maxorder,
                     std::back_inserter(params),
                     std::back_inserter(sigma2e),
                     std::back_inserter(gain),
@@ -114,7 +114,7 @@ DEFUN_DLD(
     }
     else
     {
-        var = sigma2e[0] - mean*mean;  // Uncentered so remove mean^2
+        var = sigma2e[0] - mu*mu;      // Uncentered so remove mean^2
         ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
                 N, params, sigma2e, gain, autocor);
     }
@@ -132,7 +132,7 @@ DEFUN_DLD(
     RowVector A(params.size() + 1, /* leading one */ 1);
     std::copy(params.begin(), params.end(), A.fortran_vec() + 1);
 
-    // Prepare output: [A, mean, sigma2eps, eff_var, eff_N, T0]
+    // Prepare output: [A, mu, sigma2eps, eff_var, eff_N, T0]
     // Unbiased effective variance expression from [Trenberth1984]
     octave_value_list result;
     std::list<std::string> names;
@@ -153,8 +153,8 @@ DEFUN_DLD(
             names.push_front("sigma2eps");
             result.prepend(sigma2e[0]);
         case 2:
-            names.push_front("mean");
-            result.prepend(mean);
+            names.push_front("mu");
+            result.prepend(mu);
         case 1:
             names.push_front("A");
             result.prepend(A);
