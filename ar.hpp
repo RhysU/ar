@@ -178,29 +178,31 @@ std::size_t burg_method(InputIterator     data_first,
     vector f(data_first, data_last), b;
     const size N = f.size();
 
-    // Compute the mean and sum of centered squares using Knuth/Welford
+    // Compute the mean and N times the variance using Welford's algorithm
     // discussed in Knuth's TAOCP volume 2 section 4.2.2.A on page 232.
     mean = 0;
-    Value sigma2e = 0;
+    Value n_variance = 0;
     for (size_t i = 0; i < N; ++i)
     {
-        Value delta = f[i] - mean;
-        mean    += delta / (i+1);
-        sigma2e += delta*(f[i] - mean);
+        Value delta  = f[i] - mean;
+        mean        += delta / (i+1);
+        n_variance  += delta*(f[i] - mean);
     }
 
-    // When requested, subtract the mean from the incoming data.
-    // Otherwise, update sigma2e to be N times the uncentered second moment.
+    // Make sigma2e be N times the second moment.
+    // When requested, subtract the mean from the data.
+    Value sigma2e;
     if (subtract_mean)
     {
+        sigma2e = n_variance;                  // Centered
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
     }
     else
     {
-        sigma2e += N*(mean*mean);
+        sigma2e = n_variance + N*(mean*mean);  // Uncentered
     }
 
-    // Initialize gain, Dk, and update sigma2e to be mean squared discrepancy
+    // Initialize gain, Dk, and update sigma2e to be the second moment.
     Value gain = 1;
     Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
