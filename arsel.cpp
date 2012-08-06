@@ -58,14 +58,10 @@ int main(int argc, char *argv[])
                                  /* output hierarchy? */ true);
 
     // Keep only best model according to CIC accounting for subtract_mean.
-    // Along the way, save the variance as computed for model order zero.
-    double var;
     if (subtract_mean) {
-        var = sigma2e[0];              // Already centered
         best_model<CIC<Burg<mean_subtracted> > >(
                 N, params, sigma2e, gain, autocor);
     } else {
-        var = sigma2e[0] - mean*mean;  // Uncentered so remove mean^2
         best_model<CIC<Burg<mean_retained> > >(
                 N, params, sigma2e, gain, autocor);
     }
@@ -83,10 +79,9 @@ int main(int argc, char *argv[])
          << "\n# Mean                "   << mean
          << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
          << "\n# Gain                "   << gain[0]
-         << "\n# Variance            "   << var
          << "\n# t_decorrelation     "   << T0
          << "\n# N_effective         "   << N / T0
-         << "\n# Variance_effective  "   << (N*var) / (N - T0)
+         << "\n# Variance_effective  "   << (N*gain[0]*sigma2e[0]) / (N - T0)
          << '\n';
     copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
     cout.flush();

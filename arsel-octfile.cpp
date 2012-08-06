@@ -104,17 +104,13 @@ DEFUN_DLD(
                     submean, /* output hierarchy? */ true);
 
     // Keep only best model according to CIC accounting for subtract_mean.
-    // Along the way, save the variance as computed for model order zero.
-    double var;
     if (submean)
     {
-        var = sigma2e[0];              // Already centered
         ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
                 N, params, sigma2e, gain, autocor);
     }
     else
     {
-        var = sigma2e[0] - mu*mu;      // Uncentered so remove mean^2
         ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
                 N, params, sigma2e, gain, autocor);
     }
@@ -148,7 +144,7 @@ DEFUN_DLD(
             result.prepend(N / T0);
         case 4:
             names.push_front("eff_var");
-            result.prepend((N*var) / (N - T0));
+            result.prepend((N*gain[0]*sigma2e[0]) / (N - T0));
         case 3:
             names.push_front("sigma2eps");
             result.prepend(sigma2e[0]);
