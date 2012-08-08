@@ -65,6 +65,108 @@ namespace ar
 /////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Basic, stable statistical algorithms.
+ *
+ * @{
+ */
+
+/**
+ * Compute the mean and the number of samples, N, times the population variance
+ * using Welford's algorithm.  The latter quantity is effectively the centered
+ * sum of squares. The algorithm is found in Knuth's TAOCP volume 2 section
+ * 4.2.2.A on page 232.  The implementation follows
+ * http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance.
+ *
+ * @param[in]  first Beginning of the input data range.
+ * @param[in]  last  Exclusive end of the input data range.
+ * @param[out] mean  Mean of the data in <tt>[first, last)</tt>.
+ * @param[out] nvar  N times the variance of the data.
+ *
+ * @returns the number data values processed within <tt>[first, last)</tt>.
+ */
+template <typename InputIterator,
+          typename OutputType1,
+          typename OutputType2>
+std::size_t welford_nvariance(InputIterator first,
+                              InputIterator last,
+                              OutputType1&   mean,
+                              OutputType2&   nvar)
+{
+    using std::iterator_traits;
+    typedef typename iterator_traits<InputIterator>::value_type value;
+
+    std::size_t N  = 1;  // Running next sample number
+    value       m  = 0;  // Running mean of data thus far
+    value       nv = 0;  // Running variance times the number of samples
+
+    while (first != last)
+    {
+        value x  = *first++;
+        value d  = x - m;
+        m       += d / N++;
+        nv      += d*(x - m);
+    }
+
+    mean = m;
+    nvar = nv;
+    return N-1;
+}
+
+/**
+ * Compute the mean and population variance using Welford's algorithm.
+ *
+ * @param[in]  first Beginning of the input data range.
+ * @param[in]  last  Exclusive end of the input data range.
+ * @param[out] mean  Mean of the data in <tt>[first, last)</tt>.
+ * @param[out] var   The population variance of the data.
+ *
+ * @returns N, the number data values processed within <tt>[first, last)</tt>.
+ */
+template <typename InputIterator,
+          typename OutputType1,
+          typename OutputType2>
+std::size_t welford_variance_population(InputIterator first,
+                                        InputIterator last,
+                                        OutputType1&  mean,
+                                        OutputType2&  var)
+{
+    const std::size_t N = welford_nvariance(first, last, mean, var);
+    var /= N;
+    return N;
+}
+
+/**
+ * Compute the mean and sample variance using Welford's algorithm.
+ *
+ * @param[in]  first Beginning of the input data range.
+ * @param[in]  last  Exclusive end of the input data range.
+ * @param[out] mean  Mean of the data in <tt>[first, last)</tt>.
+ * @param[out] var   The sample variance of the data.
+ *
+ * @returns N, the number data values processed within <tt>[first, last)</tt>.
+ */
+template <typename InputIterator,
+          typename OutputType1,
+          typename OutputType2>
+std::size_t welford_variance_sample(InputIterator first,
+                                    InputIterator last,
+                                    OutputType1&  mean,
+                                    OutputType2&  var)
+{
+    const std::size_t N = welford_nvariance(first, last, mean, var);
+    var /= (N - 1);
+    return N;
+}
+
+/**
+ * @}
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
  * Algorithms for autoregressive parameter estimation and manipulation.
  *
  * @{
@@ -144,7 +246,8 @@ namespace ar
  * @param[in]     hierarchy     Should the entire hierarchy of estimated
  *                              models be output?
  *
- * @returns the number data values processed within [data_first, data_last).
+ * @returns the number data values processed within
+ *          <tt>[data_first, data_last)</tt>.
  */
 template <class InputIterator,
           class Value,
@@ -178,16 +281,10 @@ std::size_t burg_method(InputIterator     data_first,
     vector f(data_first, data_last), b;
     const size N = f.size();
 
-    // Compute the mean and N times the variance using Welford's algorithm
-    // discussed in Knuth's TAOCP volume 2 section 4.2.2.A on page 232.
+    // Compute the incoming data's mean and centered sum of squares
     mean = 0;
     Value n_variance = 0;
-    for (size i = 0; i < N; ++i)
-    {
-        Value delta  = f[i] - mean;
-        mean        += delta / (i+1);
-        n_variance  += delta*(f[i] - mean);
-    }
+    welford_nvariance(f.begin(), f.end(), mean, n_variance);
 
     // Make sigma2e be N times the second moment.
     // When requested, subtract the mean from the data.
@@ -1956,6 +2053,10 @@ best_model(Integer        N,
 /**
  * @}
  */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 
 } // end namespace ar
 
