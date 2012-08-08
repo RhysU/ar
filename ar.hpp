@@ -283,23 +283,21 @@ std::size_t burg_method(InputIterator     data_first,
 
     // Compute the incoming data's mean and centered sum of squares
     mean = 0;
-    Value n_variance = 0;
-    welford_nvariance(f.begin(), f.end(), mean, n_variance);
+    Value sigma2e = 0;
+    welford_nvariance(f.begin(), f.end(), mean, sigma2e);
 
-    // Make sigma2e be N times the second moment.
-    // When requested, subtract the mean from the data.
-    Value sigma2e;
+    // When requested, subtract the just-computed mean from the data.
+    // Adjust, as necessary, so sigma2e is N times the second moment.
     if (subtract_mean)
     {
-        sigma2e = n_variance;                  // Centered
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
     }
     else
     {
-        sigma2e = n_variance + N*(mean*mean);  // Uncentered
+        sigma2e += N*(mean*mean);
     }
 
-    // Initialize gain, Dk, and update sigma2e to be the second moment.
+    // Initialize gain, Dk, and update sigma2e so it is the second moment.
     Value gain = 1;
     Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
     sigma2e /= N;
