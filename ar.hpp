@@ -65,7 +65,7 @@ namespace ar
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * Basic, stable statistical algorithms.
+ * Stable, one-pass algorithms for computing variances and covariances.
  *
  * @{
  */
@@ -130,7 +130,7 @@ std::size_t welford_variance_population(InputIterator first,
                                         OutputType1&  mean,
                                         OutputType2&  var)
 {
-    const std::size_t N = welford_nvariance(first, last, mean, var);
+    std::size_t N = welford_nvariance(first, last, mean, var);
     var /= N;
     return N;
 }
@@ -153,8 +153,124 @@ std::size_t welford_variance_sample(InputIterator first,
                                     OutputType1&  mean,
                                     OutputType2&  var)
 {
-    const std::size_t N = welford_nvariance(first, last, mean, var);
+    std::size_t N = welford_nvariance(first, last, mean, var);
     var /= (N - 1);
+    return N;
+}
+
+/**
+ * Compute means and the number of samples, N, times the population covariance
+ * using Welford's algorithm.  The implementation follows the covariance
+ * section of http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance.
+ *
+ * @param[in]  first1 Beginning of the first input range.
+ * @param[in]  last1  Exclusive end of first input range.
+ * @param[in]  first2 Beginning of the second input range.
+ * @param[out] mean1  Mean of the first data set.
+ * @param[out] mean2  Mean of the second data set.
+ * @param[out] ncovar N times the covariance of the two sets.
+ *
+ * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ */
+template <typename InputIterator1,
+          typename InputIterator2,
+          typename OutputType1,
+          typename OutputType2,
+          typename OutputType3>
+std::size_t welford_ncovariance(InputIterator1 first1,
+                                InputIterator1 last1,
+                                InputIterator2 first2,
+                                OutputType1&   mean1,
+                                OutputType2&   mean2,
+                                OutputType3&   ncovar)
+{
+    using std::iterator_traits;
+    typedef typename iterator_traits<InputIterator1>::value_type value1;
+    typedef typename iterator_traits<InputIterator2>::value_type value2;
+
+    std::size_t N  = 1;  // Running next sample number
+    value1      m1 = 0;  // Running mean of first data set thus far
+    value2      m2 = 0;  // Running mean of second data set thus far
+    OutputType3 nc = 0;  // Running covariance times the number of samples
+
+    while (first1 != last1)
+    {
+        value1 x1  = *first1++;
+        value1 d1  = x1 - m1;
+        m1        += d1 / N;
+
+        value2 x2  = *first2++;
+        value2 d2  = x2 - m2;
+        m2        += d2 / N;
+
+        nc += d1*(x2 - m2);
+
+        ++N;
+    }
+
+    mean1  = m1;
+    mean2  = m2;
+    ncovar = nc;
+    return N-1;
+}
+
+/**
+ * Compute means and the population covariance using Welford's algorithm.
+ *
+ * @param[in]  first1 Beginning of the first input range.
+ * @param[in]  last1  Exclusive end of first input range.
+ * @param[in]  first2 Beginning of the second input range.
+ * @param[out] mean1  Mean of the first data set.
+ * @param[out] mean2  Mean of the second data set.
+ * @param[out] covar  The covariance of the two sets.
+ *
+ * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ */
+template <typename InputIterator1,
+          typename InputIterator2,
+          typename OutputType1,
+          typename OutputType2,
+          typename OutputType3>
+std::size_t welford_covariance_population(InputIterator1 first1,
+                                          InputIterator1 last1,
+                                          InputIterator2 first2,
+                                          OutputType1&   mean1,
+                                          OutputType2&   mean2,
+                                          OutputType3&   covar)
+{
+    std::size_t N = welford_ncovariance(first1, last1, first2,
+                                        mean1, mean2, covar);
+    covar /= N;
+    return N;
+}
+
+/**
+ * Compute means and the sample covariance using Welford's algorithm.
+ *
+ * @param[in]  first1 Beginning of the first input range.
+ * @param[in]  last1  Exclusive end of first input range.
+ * @param[in]  first2 Beginning of the second input range.
+ * @param[out] mean1  Mean of the first data set.
+ * @param[out] mean2  Mean of the second data set.
+ * @param[out] covar  The covariance of the two sets.
+ *
+ * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ */
+template <typename InputIterator1,
+          typename InputIterator2,
+          typename OutputType1,
+          typename OutputType2,
+          typename OutputType3>
+std::size_t welford_covariance_sample(InputIterator1 first1,
+                                      InputIterator1 last1,
+                                      InputIterator2 first2,
+                                      OutputType1&   mean1,
+                                      OutputType2&   mean2,
+                                      OutputType3&   covar)
+{
+    std::size_t N = welford_ncovariance(first1, last1, first2,
+                                        mean1, mean2, covar);
+    covar /= (N - 1);
     return N;
 }
 
