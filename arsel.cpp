@@ -78,10 +78,9 @@ int main(int argc, char *argv[])
          << "\n# AR(p)               "   << params.size()
          << "\n# Mean                "   << mean
          << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
-         << "\n# Gain                "   << gain[0]
-         << "\n# t_decorrelation     "   << T0
-         << "\n# N_effective         "   << N / T0
          << "\n# Variance_effective  "   << (N*gain[0]*sigma2e[0]) / (N - T0)
+         << "\n# N_effective         "   << N / T0
+         << "\n# t_decorrelation     "   << T0
          << '\n';
     copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
     cout.flush();
