@@ -886,7 +886,10 @@ Value decorrelation_time(const std::size_t N,
  * estimate of \f$T_0\f$.
  *
  * @param N        Maximum lag used to compute the autocorrelation.
- * @param rho      A \ref predictor iterating over the \ref autocorrelation.
+ * @param rho1     A \ref predictor iterating over the \ref autocorrelation
+ *                 for the first process.
+ * @param rho2     A \ref predictor iterating over the \ref autocorrelation
+ *                 for the first process.
  * @param abs_rho  Use \f$\left|\rho\right|\f$ when calculating \f$T_0\f$?
  *
  * @return The decorrelation time \f$T_0\f$ assuming \f$\Delta{}t=1\f$.
