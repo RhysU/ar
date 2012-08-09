@@ -326,17 +326,18 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
  * \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.  Autocovariances may be computed by
  * multiplying the autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
  *
- * The implementation has been refactored
- * heavily from Cedrick Collomb's 2009 article <a
+ * The implementation has been refactored from Cedrick Collomb's 2009 article
+ * <a
  * href="http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf">"Burg’s
- * Method, Algorithm and Recursion"</a>.  In particular, iterators
- * are employed, the working precision is selectable using \c mean,
- * the mean squared discrepancy calculation has been added, some loop
- * index transformations have been performed, and all lower order models
- * may be output during the recursion using \c hierarchy.  Gain and
- * autocorrelation calculations have been added based on sections 5.2
- * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
- * analysis. Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.
+ * Method, Algorithm and Recursion"</a>.  In particular, iterators are
+ * employed, the working precision is selectable using \c mean, the mean
+ * squared discrepancy calculation has been added, some loop index
+ * transformations have been performed, working storage may be passed into the
+ * method to reduce allocations across many invocations, and all lower order
+ * models may be output during the recursion using \c hierarchy.  Gain and
+ * autocorrelation calculations have been added based on sections 5.2 and 5.3
+ * of Broersen, P.  M.  T. Automatic autocorrelation and spectral analysis.
+ * Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.
  *
  * @param[in]     data_first    Beginning of the input data range.
  * @param[in]     data_last     Exclusive end of the input data range.
@@ -361,6 +362,11 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
  * @param[in]     subtract_mean Should \c mean be subtracted from the data?
  * @param[in]     hierarchy     Should the entire hierarchy of estimated
  *                              models be output?
+ * @param[in]     f             Working storage.  Reuse across invocations
+ *                              may speed execution by avoiding allocations.
+ * @param[in]     b             Working storage similar to \c f.
+ * @param[in]     Ak            Working storage similar to \c f.
+ * @param[in]     ac            Working storage similar to \c f.
  *
  * @returns the number data values processed within
  *          <tt>[data_first, data_last)</tt>.
@@ -370,17 +376,22 @@ template <class InputIterator,
           class OutputIterator1,
           class OutputIterator2,
           class OutputIterator3,
-          class OutputIterator4>
-std::size_t burg_method(InputIterator     data_first,
-                        InputIterator     data_last,
-                        Value&            mean,
-                        std::size_t&      maxorder,
-                        OutputIterator1   params_first,
-                        OutputIterator2   sigma2e_first,
-                        OutputIterator3   gain_first,
-                        OutputIterator4   autocor_first,
-                        const bool        subtract_mean = false,
-                        const bool        hierarchy = false)
+          class OutputIterator4,
+          class Vector>
+std::size_t burg_method(InputIterator   data_first,
+                        InputIterator   data_last,
+                        Value&          mean,
+                        std::size_t&    maxorder,
+                        OutputIterator1 params_first,
+                        OutputIterator2 sigma2e_first,
+                        OutputIterator3 gain_first,
+                        OutputIterator4 autocor_first,
+                        const bool      subtract_mean,
+                        const bool      hierarchy,
+                        Vector&         f,
+                        Vector&         b,
+                        Vector&         Ak,
+                        Vector&         ac)
 {
     using std::bind2nd;
     using std::copy;
@@ -389,13 +400,11 @@ std::size_t burg_method(InputIterator     data_first,
     using std::inner_product;
     using std::min;
     using std::minus;
-
-    typedef typename std::vector<Value> vector;
-    typedef typename vector::size_type size;
+    using std::size_t;
 
     // Initialize f from [data_first, data_last) and fix number of samples
-    vector f(data_first, data_last), b;
-    const size N = f.size();
+    f.assign(data_first, data_last);
+    const size_t N = f.size();
 
     // Compute the incoming data's mean and centered sum of squares
     mean = 0;
@@ -419,7 +428,7 @@ std::size_t burg_method(InputIterator     data_first,
     sigma2e /= N;
 
     // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
-    maxorder = (N == 0) ? 0 : min(static_cast<size>(maxorder), N-1);
+    maxorder = (N == 0) ? 0 : min(static_cast<size_t>(maxorder), N-1);
 
     // Output sigma2e and gain for a zeroth order model, if requested.
     if (hierarchy || maxorder == 0)
@@ -430,13 +439,13 @@ std::size_t burg_method(InputIterator     data_first,
 
     // Initialize Burg recursion following Collomb
     if (maxorder) b = f;  // Copy iff non-trivial work required
-    vector Ak(maxorder + 1, Value(0));
+    Ak.assign(maxorder + 1, Value(0));
     Ak[0] = 1;
-    vector autocor;
-    autocor.reserve(maxorder);
+    ac.clear();
+    ac.reserve(maxorder);
 
     // Perform Burg recursion following Collomb
-    for (size kp1 = 1; kp1 <= maxorder; ++kp1)
+    for (size_t kp1 = 1; kp1 <= maxorder; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
@@ -444,7 +453,7 @@ std::size_t burg_method(InputIterator     data_first,
         const Value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
                                             b.begin(), Value(0));
         sigma2e *= (1 - mu*mu);
-        for (size n = 0; n <= kp1/2; ++n)
+        for (size_t n = 0; n <= kp1/2; ++n)
         {
             Value t1 = Ak[n] - mu*Ak[kp1 - n];
             Value t2 = Ak[kp1 - n] - mu*Ak[n];
@@ -457,8 +466,8 @@ std::size_t burg_method(InputIterator     data_first,
 
         // Compute and output the next autocorrelation coefficient
         // See Broersen 2006 equations (5.28) and (5.31) for details
-        autocor.push_back(-inner_product(autocor.rbegin(), autocor.rend(),
-                                         Ak.begin() + 1, Ak[kp1]));
+        ac.push_back(-inner_product(ac.rbegin(), ac.rend(),
+                                    Ak.begin() + 1, Ak[kp1]));
 
         // Output parameters and the input and output variances when requested
         if (hierarchy || kp1 == maxorder)
@@ -472,7 +481,7 @@ std::size_t burg_method(InputIterator     data_first,
         // Update f, b, and then Dk for the next iteration if another remains
         if (kp1 < maxorder)
         {
-            for (size n = 0; n < N - kp1; ++n)
+            for (size_t n = 0; n < N - kp1; ++n)
             {
                 Value t1 = f[n + kp1] - mu*b[n];
                 Value t2 = b[n] - mu*f[n + kp1];
@@ -483,13 +492,38 @@ std::size_t burg_method(InputIterator     data_first,
         }
     }
 
-
     // Output the lag [0,maxorder] autocorrelation coefficients in single pass
     *autocor_first++ = 1;
-    copy(autocor.begin(), autocor.end(), autocor_first);
+    copy(ac.begin(), ac.end(), autocor_first);
 
     // Return the number of values processed in [data_first, data_last)
     return N;
+}
+
+/** \copydoc burg_method(InputIterator,Value,OutputIterator1,OutputIterator2,OutputIterator3,OutputIterator4,Vector) */
+template <class InputIterator,
+          class Value,
+          class OutputIterator1,
+          class OutputIterator2,
+          class OutputIterator3,
+          class OutputIterator4>
+std::size_t burg_method(InputIterator     data_first,
+                        InputIterator     data_last,
+                        Value&            mean,
+                        std::size_t&      maxorder,
+                        OutputIterator1   params_first,
+                        OutputIterator2   sigma2e_first,
+                        OutputIterator3   gain_first,
+                        OutputIterator4   autocor_first,
+                        const bool        subtract_mean = false,
+                        const bool        hierarchy     = false)
+{
+    std::vector<Value> f, b, Ak, ac; // Working storage
+
+    return burg_method(data_first, data_last, mean, maxorder,
+                       params_first, sigma2e_first, gain_first,
+                       autocor_first, subtract_mean, hierarchy,
+                       f, b, Ak, ac);
 }
 
 // Type erasure for NoiseGenerator parameters within predictor.
