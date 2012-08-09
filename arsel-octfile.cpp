@@ -32,18 +32,22 @@
 
 // Compile-time defaults in the code also appearing in the help message
 #define DEFAULT_SUBMEAN  true
+#define DEFAULT_ABSRHO   true
 #define DEFAULT_MAXORDER 512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
+
 DEFUN_DLD(
     arsel, args, nargout,
-    "\t[A, mu, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, maxorder)\n"
+    "\t[A, mu, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, absrho, maxorder)\n"
     "\tAutomatically fit an autoregressive model to an input signal.\n"
     "\t\n"
-    "\tUse ar::burg_method followed by ar::best_model<CIC<Burg<MeanHandling > >\n"
-    "\tto obtain the most likely autoregressive process for input signal d.\n"
+    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeanHandling > > to\n"
+    "\tobtain the most likely autoregressive process for input signal d.\n"
     "\tThe sample mean of d will be subtracted whenever submean is true.\n"
+    "\tThe absolute value of the autocorrelation function will be used\n"
+    "\tin computing the decorrelation time T0 whenever absrho is true.\n"
     "\tModel orders zero through min(size(d), maxorder) will be considered.\n"
     "\t\n"
     "\tThe filter()-ready process parameters are returned in A, the sample mean\n"
@@ -57,17 +61,21 @@ DEFUN_DLD(
     "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
     "\tWhen not supplied, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
+    "\tWhen not supplied, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
     "\tWhen not supplied, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
     "\tWhen no outputs are requested, a struct with all outputs is returned.\n"
 )
 {
     std::size_t maxorder = DEFAULT_MAXORDER;
+    bool        absrho   = DEFAULT_ABSRHO;
     bool        submean  = DEFAULT_SUBMEAN;
     RowVector   data;
     switch (args.length())
     {
+        case 4:
+            maxorder = args(3).ulong_value();
         case 3:
-            maxorder = args(2).ulong_value();
+            absrho = args(2).bool_value();
         case 2:
             submean = args(1).bool_value();
         case 1:
@@ -121,7 +129,7 @@ DEFUN_DLD(
     {
         ar::predictor<double> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
-        T0 = ar::decorrelation_time(N, p, /* abs(rho) */ true);
+        T0 = ar::decorrelation_time(N, p, absrho);
     }
 
     // Prepare autoregressive process parameters for Octave's filter function
