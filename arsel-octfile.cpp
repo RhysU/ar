@@ -37,7 +37,6 @@
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
-
 DEFUN_DLD(
     arsel, args, nargout,
     "\t[A, mu, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, absrho, maxorder)\n"
@@ -48,7 +47,7 @@ DEFUN_DLD(
     "\tThe sample mean of d will be subtracted whenever submean is true.\n"
     "\tThe absolute value of the autocorrelation function will be used\n"
     "\tin computing the decorrelation time T0 whenever absrho is true.\n"
-    "\tModel orders zero through min(size(d), maxorder) will be considered.\n"
+    "\tModel orders zero through min(columns(d), maxorder) will be considered.\n"
     "\t\n"
     "\tThe filter()-ready process parameters are returned in A, the sample mean\n"
     "\tin mu, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
