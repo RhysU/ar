@@ -24,6 +24,8 @@
 
 #include <octave/oct.h>
 #include <octave/oct-map.h>
+#include <octave/ov-struct.h>
+#include <octave/Cell.h>
 
 /** @file
  * A GNU Octave wrapper estimating the best AR(p) model given signal input.
@@ -39,47 +41,53 @@
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "\t[A, mu, sigma2eps, eff_var, eff_N, T0] = arsel (d, submean, absrho, maxorder)\n"
-    "\tAutomatically fit an autoregressive model to an input signal.\n"
+    "\tM = arsel (d, submean, absrho, maxorder)\n"
+    "\tAutomatically fit autoregressive models to input signals.\n"
     "\t\n"
-    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeanHandling > > to\n"
-    "\tobtain the most likely autoregressive process for input signal d.\n"
-    "\tThe sample mean of d will be subtracted whenever submean is true.\n"
-    "\tThe absolute value of the autocorrelation function will be used\n"
-    "\tin computing the decorrelation time T0 whenever absrho is true.\n"
-    "\tModel orders zero through min(columns(d), maxorder) will be considered.\n"
+    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> > to\n"
+    "\tfit an autoregressive process for signals contained in the rows of d.\n"
+    "\tSample means will be subtracted whenever submean is true.  Model\n"
+    "\torders zero through min(columns(d), maxorder) will be considered.\n"
+    "\tA structure is returned where each field either contains a result\n"
+    "\tindexable by the signal number (i.e. the row indices of input matrix\n"
+    "\td) or it contains a single scalar applicable to all signals.\n"
     "\t\n"
-    "\tThe filter()-ready process parameters are returned in A, the sample mean\n"
-    "\tin mu, and the innovation variance \\sigma^2_\\epsilon in sigma2eps.\n"
-    "\tGiven the observed autocorrelation structure, a decorrelation time T0 is\n"
-    "\tcomputed and used to estimate the effective signal variance eff_var.\n"
-    "\tThe number of effectively independent samples is returned in eff_N.\n"
+    "\tThe number of samples in d (i.e. the number of rows) is returned\n"
+    "\tin field 'N'.  The filter()-ready process parameters are returned\n"
+    "\tin field 'A', the sample mean in 'mu', and the innovation variance\n"
+    "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process gains are returned\n"
+    "\tin 'gain' and the autocorrelation boundary conditions in 'autocor'\n"
+    "\tfor lags zero through the model order, inclusive.\n"
     "\t\n"
-    "\tOne may simulate N samples from the fitted process by calling:\n"
+    "\tGiven the observed autocorrelation structure, a decorrelation time\n"
+    "\t'T0' is computed and used to estimate the effective signal variance\n"
+    "\t'eff_var'.  The number of effectively independent samples is returned\n"
+    "\tin 'eff_N'.  These effective values are combined to estimate the\n"
+    "\tsampling error (i.e. the standard deviation of the sample mean)\n"
+    "\tas field 'mu_sigma'.  The absolute value of the autocorrelation\n"
+    "\tfunction will be used in computing the decorrelation times whenever\n"
+    "\tabsrho is true.\n"
+    "\t\n"
+    "\tOne may simulate N samples from a fitted process analogously to\n"
     "\t\n"
     "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
-    "\tWhen not supplied, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
-    "\tWhen not supplied, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
-    "\tWhen not supplied, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
-    "\tWhen no outputs are requested, a struct with all outputs is returned.\n"
+    "\tWhen omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
+    "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
+    "\tWhen omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 )
 {
     std::size_t maxorder = DEFAULT_MAXORDER;
     bool        absrho   = DEFAULT_ABSRHO;
     bool        submean  = DEFAULT_SUBMEAN;
-    RowVector   data;
+    Matrix      data;
     switch (args.length())
     {
-        case 4:
-            maxorder = args(3).ulong_value();
-        case 3:
-            absrho = args(2).bool_value();
-        case 2:
-            submean = args(1).bool_value();
-        case 1:
-            data = args(0).row_vector_value();
-            break;
+        case 4: maxorder = args(3).ulong_value();
+        case 3: absrho   = args(2).bool_value();
+        case 2: submean  = args(1).bool_value();
+        case 1: data     = args(0).matrix_value();
+                if (!error_state) break;
         default:
             error("Invalid call to arsel.  Correct usage is: ");
         case 0:
@@ -87,109 +95,123 @@ DEFUN_DLD(
             return octave_value();
     }
 
-    // How much data will we be processing?
-    const size_t N = data.dims().numel();
-    if (!N)
-    {
-        error("arsel: input signal d must have nonzero length");
-        return octave_value();
-    }
+    const octave_idx_type M = data.rows();  // Number of signals
+    const octave_idx_type N = data.cols();  // Samples per signal
 
-    // Use burg_method to estimate a hierarchy of AR models from input data
-    double mu;
+    // Prepare per-signal storage locations to return to caller
+    Cell         _A        (dim_vector(M,1));
+    Cell         _autocor  (dim_vector(M,1));
+    ColumnVector _eff_N    (M);
+    ColumnVector _eff_var  (M);
+    ColumnVector _gain     (M);
+    ColumnVector _mu       (M);
+    ColumnVector _mu_sigma (M);
+    ColumnVector _sigma2eps(M);
+    ColumnVector _T0       (M);
+
+    // Prepare vectors to capture burg_method() output
     std::vector<double> params, sigma2e, gain, autocor;
     params .reserve(maxorder*(maxorder + 1)/2);
     sigma2e.reserve(maxorder + 1);
     gain   .reserve(maxorder + 1);
     autocor.reserve(maxorder + 1);
-    ar::burg_method(data.fortran_vec(), data.fortran_vec() + N,
-                    mu, maxorder,
-                    std::back_inserter(params),
-                    std::back_inserter(sigma2e),
-                    std::back_inserter(gain),
-                    std::back_inserter(autocor),
-                    submean, /* output hierarchy? */ true);
 
-    // Keep only best model according to CIC accounting for subtract_mean.
-    if (submean)
-    {
-        ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
-                N, params, sigma2e, gain, autocor);
-    }
-    else
-    {
-        ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
-                N, params, sigma2e, gain, autocor);
-    }
+    // Prepare repeatedly-used working storage for burg_method()
+    std::vector<double> f, b, Ak, ac;
 
-    // Compute decorrelation time from the estimated autocorrelation model
-    double T0 = std::numeric_limits<double>::quiet_NaN();
-    if (nargout == 0 || nargout > 2)
+    // Process each signal in turn...
+    for (octave_idx_type i = 0; i < M; ++i)
     {
+        // Use burg_method to estimate a hierarchy of AR models from input data
+        params .clear();
+        sigma2e.clear();
+        gain   .clear();
+        autocor.clear();
+        ar::strided_adaptor<double*> signal_begin(&data(i,0), N);
+        ar::strided_adaptor<double*> signal_end  (&data(i,N), N);
+        ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
+                        std::back_inserter(params),
+                        std::back_inserter(sigma2e),
+                        std::back_inserter(gain),
+                        std::back_inserter(autocor),
+                        submean, /* output hierarchy? */ true, f, b, Ak, ac);
+
+        // Keep only best model according to CIC accounting for subtract_mean.
+        // TODO Permit specifying the criterion as a function argument.
+        if (submean)
+        {
+            ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
+                    N, params, sigma2e, gain, autocor);
+        }
+        else
+        {
+            ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
+                    N, params, sigma2e, gain, autocor);
+        }
+
+        // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<double> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
-        T0 = ar::decorrelation_time(N, p, absrho);
-    }
+        _T0(i) = ar::decorrelation_time(N, p, absrho);
 
-    // Prepare autoregressive process parameters for Octave's filter function
-    RowVector A(params.size() + 1, /* leading one */ 1);
-    std::copy(params.begin(), params.end(), A.fortran_vec() + 1);
-
-    // Prepare output: [A, mu, sigma2eps, eff_var, eff_N, T0]
-    // Unbiased effective variance expression from [Trenberth1984]
-    octave_value_list result;
-    std::list<std::string> names;
-    switch (nargout == 0 ? std::numeric_limits<int>::max() : nargout)
-    {
-        default:
-            if (nargout) warning("arsel: too many output values requested");
-        case 6:
-            names.push_front("T0");
-            result.prepend(T0);
-        case 5:
-            names.push_front("eff_N");
-            result.prepend(N / T0);
-        case 4:
-            names.push_front("eff_var");
-            result.prepend((N*gain[0]*sigma2e[0]) / (N - T0));
-        case 3:
-            names.push_front("sigma2eps");
-            result.prepend(sigma2e[0]);
-        case 2:
-            names.push_front("mu");
-            result.prepend(mu);
-        case 1:
-            names.push_front("A");
-            result.prepend(A);
-            break;
-        case 0:
-            panic_impossible();
-    }
-
-    // Either return requested results in assignment-friendly fashion
-    // or, when nothing was requested, return a struct to likely display.
-    if (nargout)
-    {
-        result.stash_name_tags(names);
-    }
-    else // nargout == 0
-    {
-        Octave_map m;
-        int i = 0;
-        while (names.size()) {
-            m.assign(names.front(), result(i++));
-            names.pop_front();
+        // Filter()-ready process parameters in field 'A' with leading one
+        {
+            RowVector t(params.size() + 1);
+            t(0) = 1;
+            std::copy(params.begin(), params.end(), t.fortran_vec() + 1);
+            _A(i) = t;
         }
-        result.resize(1);
-        result(0) = m;
+
+        // Field 'sigma2eps'
+        _sigma2eps(i) = sigma2e[0];
+
+        // Field 'gain'
+        _gain(i) = gain[0];
+
+        // Field 'autocor'
+        {
+            RowVector t(autocor.size());
+            std::copy(autocor.begin(), autocor.end(), t.fortran_vec());
+            _autocor.assign(i, t);
+        }
+
+        // Field 'eff_var'
+        // Unbiased effective variance expression from [Trenberth1984]
+        _eff_var(i) = (N*gain[0]*sigma2e[0]) / (N - _T0(i));
+
+        // Field 'eff_N'
+        _eff_N(i) = N / _T0(i);
+
+        // Field 'mu_sigma'
+        // Variance of the sample mean using effective quantities
+        _mu_sigma(i) = std::sqrt(_eff_var(i) / _eff_N(i));
+
+        // Permit user to interrupt the computations at this time
+        OCTAVE_QUIT;
     }
 
     // Provide no results whenever an error was detected
     if (error_state)
     {
         warning("arsel: error detected; no results returned");
-        result.resize(0);
+        return octave_value_list();
     }
 
-    return result;
+    // Build map containing return fields
+    Octave_map retval;
+    retval.assign("A",         octave_value(_A));
+    retval.assign("absrho",    octave_value(absrho));
+    retval.assign("autocor",   octave_value(_autocor));
+    retval.assign("eff_N",     _eff_N);
+    retval.assign("eff_var",   _eff_var);
+    retval.assign("gain",      _gain);
+    retval.assign("maxorder",  octave_value(maxorder));
+    retval.assign("mu",        _mu);
+    retval.assign("mu_sigma",  _mu_sigma);
+    retval.assign("N",         octave_value(N));
+    retval.assign("sigma2eps", _sigma2eps);
+    retval.assign("submean",   octave_value(submean));
+    retval.assign("T0",        _T0);
+
+    return octave_value_list(retval);
 }
