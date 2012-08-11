@@ -2200,6 +2200,114 @@ best_model(Integer        N,
 }
 
 /**
+ * An adapter to add striding over another (usually random access) iterator.
+ *
+ * Modified from "C++ Cookbook" by Stephens, Diggins, Turkanis, and Cogswell.
+ * Copyright 2006 O'Reilly Media, Inc., ISBN 0-596-00761-2.
+ */
+template<class Iterator>
+class strided_adaptor
+{
+public:
+    typedef typename std::iterator_traits<Iterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<Iterator>::value_type        value_type;
+    typedef typename std::iterator_traits<Iterator>::difference_type   difference_type;
+    typedef typename std::iterator_traits<Iterator>::pointer           pointer;
+    typedef typename std::iterator_traits<Iterator>::reference         reference;
+
+    strided_adaptor() : i(NULL), step(0) {};
+
+    strided_adaptor(const strided_adaptor& o) : i(o.i), step(o.step) {}
+
+    strided_adaptor(Iterator x, difference_type n) : i(x), step(n) {}
+
+    strided_adaptor& operator++()
+    {
+        using std::advance;
+        advance(i, step);
+        return *this;
+    }
+
+    strided_adaptor operator++(int)
+    {
+        strided_adaptor tmp(*this);
+        using std::advance;
+        advance(i, step);
+        return tmp;
+    }
+
+    strided_adaptor& operator+=(difference_type x)
+    {
+        using std::advance;
+        advance(i, x*step);
+        return *this;
+    }
+
+    strided_adaptor& operator--( )
+    {
+        using std::advance;
+        advance(i, -step);
+        return *this;
+    }
+
+    strided_adaptor operator--(int)
+    {
+        strided_adaptor tmp(*this);
+        using std::advance;
+        advance(i, -step);
+        return tmp;
+    }
+
+    strided_adaptor& operator-=(difference_type x)
+    {
+        using std::advance;
+        advance(i, -x*step);
+        return *this;
+    }
+
+    reference operator[](difference_type n)
+    {
+        return i[n * step];
+    }
+
+    reference operator*()
+    {
+        return *i;
+    }
+
+    bool operator==(const strided_adaptor& o) const
+    {
+        return i == o.i;
+    }
+
+    bool operator!=(const strided_adaptor& o) const
+    {
+        return i != o.i;
+    }
+
+    bool operator<(const strided_adaptor& o) const
+    {
+        return i < o.i;
+    }
+
+    difference_type operator-(const strided_adaptor& o) const
+    {
+        return (i - o.i) / step;
+    }
+
+    strided_adaptor operator+(difference_type x) const
+    {
+        strided_adaptor tmp(*this);
+        tmp += x;
+        return tmp;
+    }
+
+private:
+    Iterator i;
+    difference_type step;
+};
+
+/**
  * @}
  */
 
