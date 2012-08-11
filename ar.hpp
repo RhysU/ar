@@ -2011,18 +2011,16 @@ evaluate_models(Integer1       N,
     value best_val = evaluate<Criterion>(*first++, N, ordfirst);
     difference best_pos = 0, dist = 0;
 
-    // Scan through remainder of candidates updating best as we go
-    while (first != last)
+    // Scan through rest of candidates (up to order N-1) updating best as we go
+    while (first != last && static_cast<Integer1>(++dist) < N)
     {
-
-        value candidate = evaluate<Criterion>(*first++, N, ++dist + ordfirst);
+        value candidate = evaluate<Criterion>(*first++, N, dist + ordfirst);
         *crit++ = candidate;
 
         if (candidate < best_val) {
             best_val = candidate;
             best_pos = dist;
         }
-
     }
 
     return best_pos;
