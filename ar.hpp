@@ -500,7 +500,7 @@ std::size_t burg_method(InputIterator   data_first,
     return N;
 }
 
-/** \copydoc burg_method(InputIterator,Value,OutputIterator1,OutputIterator2,OutputIterator3,OutputIterator4,Vector) */
+/** \copydoc burg_method(InputIterator,InputIterator,Value&,std::size_t&,OutputIterator1,OutputIterator2,OutputIterator3,OutputIterator4,const bool,const bool,Vector&,Vector&,Vector&,Vector&) */
 template <class InputIterator,
           class Value,
           class OutputIterator1,
