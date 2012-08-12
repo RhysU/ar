@@ -127,8 +127,8 @@ DEFUN_DLD(
         sigma2e.clear();
         gain   .clear();
         autocor.clear();
-        ar::strided_adaptor<double*> signal_begin(&data(i,0), N);
-        ar::strided_adaptor<double*> signal_end  (&data(i,N), N);
+        ar::strided_adaptor<double*> signal_begin(&data(i,0), M);
+        ar::strided_adaptor<double*> signal_end  (&data(i,N), M);
         ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
                         std::back_inserter(params),
                         std::back_inserter(sigma2e),
@@ -172,7 +172,7 @@ DEFUN_DLD(
         {
             RowVector t(autocor.size());
             std::copy(autocor.begin(), autocor.end(), t.fortran_vec());
-            _autocor.assign(i, t);
+            _autocor(i) = t;
         }
 
         // Field 'eff_var'
