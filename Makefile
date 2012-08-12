@@ -54,6 +54,6 @@ octfiles-clean:
 clean: octfiles-clean
 
 %.oct : %-octfile.cpp ar.hpp
-	$(MKOCTFILE) $< -o $@
+	$(MKOCTFILE) -g $< -o $@
 
 endif
