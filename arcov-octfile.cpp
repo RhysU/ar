@@ -104,14 +104,14 @@ DEFUN_DLD(
     const octave_idx_type N = d1.cols();  // Samples per signal
 
     // Unpack required fields from arsel1 into typesafe instances
-    Cell&        AR1      = arsel1.contents("AR");
-    Cell&        autocor1 = arsel1.contents("autocor");
+    Cell         AR1      = arsel1.contents("AR")(0).cell_value();
+    Cell         autocor1 = arsel1.contents("autocor")(0).cell_value();
     ColumnVector gain1    = arsel1.contents("gain")(0).column_vector_value();
     bool         submean1 = arsel1.contents("submean")(0).bool_value();
 
     // Unpack required fields from arsel1 into typesafe instances
-    Cell&        AR2      = arsel2.contents("AR");
-    Cell&        autocor2 = arsel2.contents("autocor");
+    Cell         AR2      = arsel2.contents("AR")(0).cell_value();
+    Cell         autocor2 = arsel2.contents("autocor")(0).cell_value();
     ColumnVector gain2    = arsel2.contents("gain")(0).column_vector_value();
     bool         submean2 = arsel2.contents("submean")(0).bool_value();
 
@@ -136,7 +136,7 @@ DEFUN_DLD(
         ar::strided_adaptor<double*> s1_end  (&d1(j,N), M);
 
         // Prepare an iterator over the autocorrelation function for d1(j)
-        RowVector AR1j = AR1(j).row_vector_value();
+        const RowVector AR1j = AR1(j).row_vector_value();
         ar::predictor<double> p1 = ar::autocorrelation(
                 AR1j.fortran_vec(), AR1j.fortran_vec() + AR1j.length(),
                 gain1(j), autocor1(j).row_vector_value().fortran_vec());
@@ -144,7 +144,7 @@ DEFUN_DLD(
         for (octave_idx_type i = j; i < M; ++i)
         {
             // Prepare an iterator over the autocorrelation function for d2(i)
-            RowVector AR2i = AR2(i).row_vector_value();
+            const RowVector AR2i = AR2 (i).row_vector_value();
             ar::predictor<double> p2 = ar::autocorrelation(
                     AR2i.fortran_vec(), AR2i.fortran_vec() + AR2i.length(),
                     gain2(i), autocor2(i).row_vector_value().fortran_vec());
