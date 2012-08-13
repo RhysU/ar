@@ -54,7 +54,7 @@ DEFUN_DLD(
     "\t\n"
     "\tThe number of samples in d (i.e. the number of rows) is returned\n"
     "\tin field 'N'.  The filter()-ready process parameters are returned\n"
-    "\tin field 'A', the sample mean in 'mu', and the innovation variance\n"
+    "\tin field 'AR', the sample mean in 'mu', and the innovation variance\n"
     "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process gains are returned\n"
     "\tin 'gain' and the autocorrelation boundary conditions in 'autocor'\n"
     "\tfor lags zero through the model order, inclusive.\n"
@@ -70,7 +70,7 @@ DEFUN_DLD(
     "\t\n"
     "\tOne may simulate N samples from a fitted process analogously to\n"
     "\t\n"
-    "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
+    "\t\tx = mu + filter([1], AR, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
     "\tWhen omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
@@ -99,7 +99,7 @@ DEFUN_DLD(
     const octave_idx_type N = data.cols();  // Samples per signal
 
     // Prepare per-signal storage locations to return to caller
-    Cell         _A        (dim_vector(M,1));
+    Cell         _AR       (dim_vector(M,1));
     Cell         _autocor  (dim_vector(M,1));
     ColumnVector _eff_N    (M);
     ColumnVector _eff_var  (M);
@@ -154,12 +154,12 @@ DEFUN_DLD(
                 params.begin(), params.end(), gain[0], autocor.begin());
         _T0(i) = ar::decorrelation_time(N, p, absrho);
 
-        // Filter()-ready process parameters in field 'A' with leading one
+        // Filter()-ready process parameters in field 'AR' with leading one
         {
             RowVector t(params.size() + 1);
             t(0) = 1;
             std::copy(params.begin(), params.end(), t.fortran_vec() + 1);
-            _A(i) = t;
+            _AR(i) = t;
         }
 
         // Field 'sigma2eps'
@@ -199,7 +199,7 @@ DEFUN_DLD(
 
     // Build map containing return fields
     Octave_map retval;
-    retval.assign("A",         octave_value(_A));
+    retval.assign("AR",        octave_value(_AR));
     retval.assign("absrho",    octave_value(absrho));
     retval.assign("autocor",   octave_value(_autocor));
     retval.assign("eff_N",     _eff_N);
