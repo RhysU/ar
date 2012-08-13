@@ -28,21 +28,18 @@
 #include <octave/Cell.h>
 
 /** @file
- * A GNU Octave function estimating the best AR(p) model given signal input.
- * Compare \ref arsel.cpp.
+ * A GNU Octave function finding correlation matrices from arsel(...) output.
  */
 
 // Compile-time defaults in the code also appearing in the help message
-#define DEFAULT_SUBMEAN  true
 #define DEFAULT_ABSRHO   true
-#define DEFAULT_MAXORDER 512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 DEFUN_DLD(
-    arsel, args, nargout,
-    "\tM = arsel (d, submean, absrho, maxorder)\n"
-    "\tAutomatically fit autoregressive models to input signals.\n"
+    arcov, args, nargout,
+    "\tM = arcov (x, y, absrho)\n"
+    "\tFind correlation matrices STARTHERE.\n"
     "\t\n"
     "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> > to\n"
     "\tfit an autoregressive process for signals contained in the rows of d.\n"
@@ -72,9 +69,7 @@ DEFUN_DLD(
     "\t\n"
     "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
     "\t\n"
-    "\tWhen omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
-    "\tWhen omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 )
 {
     std::size_t maxorder = DEFAULT_MAXORDER;
@@ -89,7 +84,7 @@ DEFUN_DLD(
         case 1: data     = args(0).matrix_value();
                 if (!error_state) break;
         default:
-            error("Invalid call to arsel.  Correct usage is: ");
+            error("Invalid call to arcov.  Correct usage is: ");
         case 0:
             print_usage();
             return octave_value();
@@ -193,7 +188,7 @@ DEFUN_DLD(
     // Provide no results whenever an error was detected
     if (error_state)
     {
-        warning("arsel: error detected; no results returned");
+        warning("arcov: error detected; no results returned");
         return octave_value_list();
     }
 
