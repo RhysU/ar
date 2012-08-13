@@ -32,157 +32,138 @@
  */
 
 // Compile-time defaults in the code also appearing in the help message
-#define DEFAULT_ABSRHO   true
+#define DEFAULT_ABSRHO true
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 DEFUN_DLD(
     arcov, args, nargout,
-    "\tM = arcov (x, y, absrho)\n"
-    "\tFind correlation matrices STARTHERE.\n"
+    "\tC = arcov (d1, arsel1, d2, arsel2, absrho)\n"
+    "\tC = arcov (d1, arsel1,             absrho)\n"
+    "\tFind a correlation matrix for signal collections processed by arsel.\n"
     "\t\n"
-    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> > to\n"
-    "\tfit an autoregressive process for signals contained in the rows of d.\n"
-    "\tSample means will be subtracted whenever submean is true.  Model\n"
-    "\torders zero through min(columns(d), maxorder) will be considered.\n"
-    "\tA structure is returned where each field either contains a result\n"
-    "\tindexable by the signal number (i.e. the row indices of input matrix\n"
-    "\td) or it contains a single scalar applicable to all signals.\n"
+    "\tUse raw samples and information computed by arsel(...) along with\n"
+    "\tar::decorrelation_time to build an effective covariance matrix\n"
+    "\tfor two vectors of signals.  Input d1 should raw samples and\n"
+    "\tarsel1 should have been produced by 'arsel1 = arsel(d1, ...)'.\n"
+    "\tSimilarly for d2 and arsel2.  Inputs d1 and d2 must have the same\n"
+    "\tdimensions.  A structure is returned which each field contains a\n"
+    "\tmatrix indexed by the corresponding row in d1 and d2 or a single,\n"
+    "\tglobally descriptive scalar.\n"
     "\t\n"
-    "\tThe number of samples in d (i.e. the number of rows) is returned\n"
-    "\tin field 'N'.  The filter()-ready process parameters are returned\n"
-    "\tin field 'A', the sample mean in 'mu', and the innovation variance\n"
-    "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process gains are returned\n"
-    "\tin 'gain' and the autocorrelation boundary conditions in 'autocor'\n"
-    "\tfor lags zero through the model order, inclusive.\n"
+    "\tThe number of samples in d1 and d2 (i.e. the number of rows) is\n"
+    "\treturned in field 'N'.  Given the observed autocorrelation structure,\n"
+    "\ta decorrelation time 'T0' is computed by ar::decorrelation_time\n"
+    "\tand used to estimate the effective signal covariance 'eff_cov'.\n"
+    "\tThe number of effectively independent samples is returned in 'eff_N'.\n"
+    "\tThe absolute value of the autocorrelation function will be used in\n"
+    "\tcomputing the decorrelation times whenever absrho is true.\n"
     "\t\n"
-    "\tGiven the observed autocorrelation structure, a decorrelation time\n"
-    "\t'T0' is computed and used to estimate the effective signal variance\n"
-    "\t'eff_var'.  The number of effectively independent samples is returned\n"
-    "\tin 'eff_N'.  These effective values are combined to estimate the\n"
-    "\tsampling error (i.e. the standard deviation of the sample mean)\n"
-    "\tas field 'mu_sigma'.  The absolute value of the autocorrelation\n"
-    "\tfunction will be used in computing the decorrelation times whenever\n"
-    "\tabsrho is true.\n"
-    "\t\n"
-    "\tOne may simulate N samples from a fitted process analogously to\n"
-    "\t\n"
-    "\t\tx = mu + filter([1], A, sqrt(sigma2eps)*randn(N,1));\n"
-    "\t\n"
+    "\tWhen only d1 and arsel1 are provided, the autocovarance is found.\n"
     "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
 )
 {
-    std::size_t maxorder = DEFAULT_MAXORDER;
-    bool        absrho   = DEFAULT_ABSRHO;
-    bool        submean  = DEFAULT_SUBMEAN;
-    Matrix      data;
+    // Process incoming positional arguments
+    bool argsok = false;
+    bool absrho = DEFAULT_ABSRHO;
+    Matrix d1, d2;
+    Octave_map arsel1, arsel2;
     switch (args.length())
     {
-        case 4: maxorder = args(3).ulong_value();
-        case 3: absrho   = args(2).bool_value();
-        case 2: submean  = args(1).bool_value();
-        case 1: data     = args(0).matrix_value();
-                if (!error_state) break;
-        default:
-            error("Invalid call to arcov.  Correct usage is: ");
-        case 0:
-            print_usage();
-            return octave_value();
+        case 5:  absrho = args(4).bool_value();    // Falls through
+        case 4:  arsel2 = args(3).map_value();
+                 d2     = args(2).matrix_value();
+                 arsel1 = args(1).map_value();
+                 d1     = args(0).matrix_value();
+                 argsok = !error_state;
+                 break;
+        case 3:  absrho = args(2).bool_value();    // Falls through
+        case 2:  arsel2 = args(1).map_value();
+                 d2     = args(0).matrix_value();
+                 arsel1 = args(1).map_value();
+                 d1     = args(0).matrix_value();
+                 argsok = !error_state;
+                 break;
+        default: argsok = !error_state;
     }
 
-    const octave_idx_type M = data.rows();  // Number of signals
-    const octave_idx_type N = data.cols();  // Samples per signal
-
-    // Prepare per-signal storage locations to return to caller
-    Cell         _A        (dim_vector(M,1));
-    Cell         _autocor  (dim_vector(M,1));
-    ColumnVector _eff_N    (M);
-    ColumnVector _eff_var  (M);
-    ColumnVector _gain     (M);
-    ColumnVector _mu       (M);
-    ColumnVector _mu_sigma (M);
-    ColumnVector _sigma2eps(M);
-    ColumnVector _T0       (M);
-
-    // Prepare vectors to capture burg_method() output
-    std::vector<double> params, sigma2e, gain, autocor;
-    params .reserve(maxorder*(maxorder + 1)/2);
-    sigma2e.reserve(maxorder + 1);
-    gain   .reserve(maxorder + 1);
-    autocor.reserve(maxorder + 1);
-
-    // Prepare repeatedly-used working storage for burg_method()
-    std::vector<double> f, b, Ak, ac;
-
-    // Process each signal in turn...
-    for (octave_idx_type i = 0; i < M; ++i)
+    if (!argsok)
     {
-        // Use burg_method to estimate a hierarchy of AR models from input data
-        params .clear();
-        sigma2e.clear();
-        gain   .clear();
-        autocor.clear();
-        ar::strided_adaptor<double*> signal_begin(&data(i,0), M);
-        ar::strided_adaptor<double*> signal_end  (&data(i,N), M);
-        ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
-                        std::back_inserter(params),
-                        std::back_inserter(sigma2e),
-                        std::back_inserter(gain),
-                        std::back_inserter(autocor),
-                        submean, /* output hierarchy? */ true, f, b, Ak, ac);
+        error("Invalid call to arcov.  Correct usage is: ");
+        print_usage();
+        return octave_value();
+    }
 
-        // Keep only best model according to CIC accounting for subtract_mean.
-        // TODO Permit specifying the criterion as a function argument.
-        if (submean)
+    // Determine problem size based on d1 and d2
+    if (!(d1.dims() == d2.dims()))
+    {
+        error("arcov: d1 and d2 must have same dimensions");
+        return octave_value();
+    }
+    const octave_idx_type M = d1.rows();  // Number of signals
+    const octave_idx_type N = d1.cols();  // Samples per signal
+
+    // Unpack required fields from arsel1 into typesafe instances
+    Cell&        AR1      = arsel1.contents("AR");
+    Cell&        autocor1 = arsel1.contents("autocor");
+    ColumnVector gain1    = arsel1.contents("gain")(0).column_vector_value();
+    bool         submean1 = arsel1.contents("submean")(0).bool_value();
+
+    // Unpack required fields from arsel1 into typesafe instances
+    Cell&        AR2      = arsel2.contents("AR");
+    Cell&        autocor2 = arsel2.contents("autocor");
+    ColumnVector gain2    = arsel2.contents("gain")(0).column_vector_value();
+    bool         submean2 = arsel2.contents("submean")(0).bool_value();
+
+    // Check that the unpack logic worked as expected
+    if (error_state)
+    {
+        error("arcov: arsel1 or arsel2 lacked fields provided by arsel(...)");
+        return octave_value();
+    }
+
+    // Prepare storage to be returned to the caller
+    Matrix _T0     (dim_vector(M, M));
+    Matrix _eff_N  (dim_vector(M, M));
+    Matrix _eff_cov(dim_vector(M, M));
+
+    // Compute upper triangular portion of _T0, _eff_N, and _eff_cov
+    // and store the result into both the upper and lower triangular storage
+    for (octave_idx_type j = 0; j < M; ++j)
+    {
+        // Prepare iterators into the raw data for signal d1(j)
+        ar::strided_adaptor<double*> s1_begin(&d1(j,0), M);
+        ar::strided_adaptor<double*> s1_end  (&d1(j,N), M);
+
+        // Prepare an iterator over the autocorrelation function for d1(j)
+        RowVector AR1j = AR1(j).row_vector_value();
+        ar::predictor<double> p1 = ar::autocorrelation(
+                AR1j.fortran_vec(), AR1j.fortran_vec() + AR1j.length(),
+                gain1(j), autocor1(j).row_vector_value().fortran_vec());
+
+        for (octave_idx_type i = j; i < M; ++i)
         {
-            ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
-                    N, params, sigma2e, gain, autocor);
+            // Prepare an iterator over the autocorrelation function for d2(i)
+            RowVector AR2i = AR2(i).row_vector_value();
+            ar::predictor<double> p2 = ar::autocorrelation(
+                    AR2i.fortran_vec(), AR2i.fortran_vec() + AR2i.length(),
+                    gain2(i), autocor2(i).row_vector_value().fortran_vec());
+
+            // Compute the decorrelation time of d1(j) against d2(i)
+            const double T0 = ar::decorrelation_time(N, p1, p2, absrho);
+
+            // Compute the effective covariance given the decorrelation time
+            ar::strided_adaptor<double*> s2_begin(&d2(i,0), M);
+            double mu1, mu2, ncovar;
+            welford_ncovariance(s1_begin, s1_end, s2_begin, mu1, mu2, ncovar);
+            if (!submean1 && !submean2) ncovar += N*mu1*mu2;
+            const double eff_cov = ncovar / (N - T0);
+
+            // Save the findings into the (symmetric) result storage
+            _T0     (i, j) = _T0     (j, i) = T0;
+            _eff_N  (i, j) = _eff_N  (j, i) = N / T0;
+            _eff_cov(i, j) = _eff_cov(j, i) = eff_cov;
         }
-        else
-        {
-            ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
-                    N, params, sigma2e, gain, autocor);
-        }
-
-        // Compute decorrelation time from the estimated autocorrelation model
-        ar::predictor<double> p = ar::autocorrelation(
-                params.begin(), params.end(), gain[0], autocor.begin());
-        _T0(i) = ar::decorrelation_time(N, p, absrho);
-
-        // Filter()-ready process parameters in field 'A' with leading one
-        {
-            RowVector t(params.size() + 1);
-            t(0) = 1;
-            std::copy(params.begin(), params.end(), t.fortran_vec() + 1);
-            _A(i) = t;
-        }
-
-        // Field 'sigma2eps'
-        _sigma2eps(i) = sigma2e[0];
-
-        // Field 'gain'
-        _gain(i) = gain[0];
-
-        // Field 'autocor'
-        {
-            RowVector t(autocor.size());
-            std::copy(autocor.begin(), autocor.end(), t.fortran_vec());
-            _autocor(i) = t;
-        }
-
-        // Field 'eff_var'
-        // Unbiased effective variance expression from [Trenberth1984]
-        _eff_var(i) = (N*gain[0]*sigma2e[0]) / (N - _T0(i));
-
-        // Field 'eff_N'
-        _eff_N(i) = N / _T0(i);
-
-        // Field 'mu_sigma'
-        // Variance of the sample mean using effective quantities
-        _mu_sigma(i) = std::sqrt(_eff_var(i) / _eff_N(i));
-
-        // Permit user to interrupt the computations at this time
-        OCTAVE_QUIT;
     }
 
     // Provide no results whenever an error was detected
@@ -194,18 +175,9 @@ DEFUN_DLD(
 
     // Build map containing return fields
     Octave_map retval;
-    retval.assign("A",         octave_value(_A));
     retval.assign("absrho",    octave_value(absrho));
-    retval.assign("autocor",   octave_value(_autocor));
+    retval.assign("eff_cov",   _eff_cov);
     retval.assign("eff_N",     _eff_N);
-    retval.assign("eff_var",   _eff_var);
-    retval.assign("gain",      _gain);
-    retval.assign("maxorder",  octave_value(maxorder));
-    retval.assign("mu",        _mu);
-    retval.assign("mu_sigma",  _mu_sigma);
-    retval.assign("N",         octave_value(N));
-    retval.assign("sigma2eps", _sigma2eps);
-    retval.assign("submean",   octave_value(submean));
     retval.assign("T0",        _T0);
 
     return octave_value_list(retval);

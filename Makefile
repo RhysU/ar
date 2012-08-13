@@ -40,13 +40,13 @@ stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
 	@$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
 
-# Expose functionality through GNU Octave when detected
+# Expose functionality through GNU Octave when mkoctfile available
 MKOCTFILE ?= $(shell which mkoctfile)
 ifdef MKOCTFILE
 
 all: octfiles
 
-octfiles: arsel.oct
+octfiles: arsel.oct arcov.oct
 
 octfiles-clean:
 	rm -f *.oct
