@@ -942,10 +942,10 @@ Value decorrelation_time(const std::size_t N,
     if (abs_rho) {
         using std::abs;
         for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
-            T0 += (2 - i*twoinvN) * abs(*rho1) * abs(*rho2);
+            T0 += (2 - i*twoinvN) * abs((*rho1) * (*rho2));
     } else {
         for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
-            T0 += (2 - i*twoinvN) * (*rho1) * (*rho2);
+            T0 += (2 - i*twoinvN) * ((*rho1) * (*rho2));
     }
 
     return T0;
