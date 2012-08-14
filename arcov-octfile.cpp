@@ -146,7 +146,7 @@ DEFUN_DLD(
         // Prepare an iterator over the autocorrelation function for d1(j)
         const RowVector AR1j = AR1(j).row_vector_value();
         ar::predictor<double> p1 = ar::autocorrelation(
-                AR1j.fortran_vec(), AR1j.fortran_vec() + AR1j.length(),
+                AR1j.fortran_vec() + 1, AR1j.fortran_vec() + AR1j.length(),
                 gain1(j), autocor1(j).row_vector_value().fortran_vec());
 
         for (octave_idx_type i = j; i < M; ++i)
@@ -154,7 +154,7 @@ DEFUN_DLD(
             // Prepare an iterator over the autocorrelation function for d2(i)
             const RowVector AR2i = AR2 (i).row_vector_value();
             ar::predictor<double> p2 = ar::autocorrelation(
-                    AR2i.fortran_vec(), AR2i.fortran_vec() + AR2i.length(),
+                    AR2i.fortran_vec() + 1, AR2i.fortran_vec() + AR2i.length(),
                     gain2(i), autocor2(i).row_vector_value().fortran_vec());
 
             // Compute the decorrelation time of d1(j) against d2(i)
