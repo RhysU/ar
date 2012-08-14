@@ -609,7 +609,8 @@ public:
      * order \f$p\f$ is set by <tt>std::distance(params_first,
      * params_last)</tt>.
      *
-     * @param params_first  Beginning of the process parameter range.
+     * @param params_first  Beginning of the process parameter range
+     *                      starting with \f$a_1\f$.
      * @param params_last   End of the process parameter range.
      */
     template <class RandomAccessIterator>
@@ -634,7 +635,8 @@ public:
      * <tt>std::tr1::variate_generator</tt> may be helpful in constructing
      * normally distributed input.
      *
-     * @param params_first  Beginning of the process parameter range.
+     * @param params_first  Beginning of the process parameter range
+     *                      starting with \f$a_1\f$.
      * @param params_last   End of the process parameter range.
      * @param generator     A nullary callback for generating \f$\epsilon_n\f$.
      *                      For example, a random number generator distributed
