@@ -38,18 +38,18 @@
 
 DEFUN_DLD(
     arcov, args, nargout,
-    "\tC = arcov (d1, arsel1, d2, arsel2, absrho)\n"
-    "\tC = arcov (d1, arsel1,             absrho)\n"
+    "\tC = arcov (arsel1, arsel2, absrho)\n"
+    "\tC = arcov (arsel1,         absrho)\n"
     "\tFind a correlation matrix for signal collections processed by arsel.\n"
     "\t\n"
     "\tUse raw samples and information computed by arsel(...) along with\n"
-    "\tar::decorrelation_time to build an effective covariance matrix\n"
-    "\tfor two vectors of signals.  Input d1 should raw samples and\n"
-    "\tarsel1 should have been produced by 'arsel1 = arsel(d1, ...)'.\n"
-    "\tSimilarly for d2 and arsel2.  Inputs d1 and d2 must have the same\n"
-    "\tdimensions.  A structure is returned which each field contains a\n"
-    "\tmatrix indexed by the corresponding row in d1 and d2 or a single,\n"
-    "\tglobally descriptive scalar.\n"
+    "\tar::decorrelation_time to build an effective covariance matrix for\n"
+    "\ttwo vectors of signals.  Input arsel1 should have been produced\n"
+    "\tby 'arsel1 = arsel(d1, ...)' and similarly for input arsel2.\n"
+    "\tThe signal sources d1 and d2 must have had the same dimensions.\n"
+    "\tA structure is returned which each field contains a matrix indexed by\n"
+    "\tthe corresponding row in d1 and d2 or a single, globally descriptive\n"
+    "\tscalar.\n"
     "\t\n"
     "\tThe number of samples in d1 and d2 (i.e. the number of rows) is\n"
     "\treturned in field 'N'.  Given the observed autocorrelation structure,\n"
@@ -66,22 +66,28 @@ DEFUN_DLD(
     // Process incoming positional arguments
     bool argsok = false;
     bool absrho = DEFAULT_ABSRHO;
-    Matrix d1, d2;
     Octave_map arsel1, arsel2;
     switch (args.length())
     {
-        case 5:  absrho = args(4).bool_value();    // Falls through
-        case 4:  arsel2 = args(3).map_value();
-                 d2     = args(2).matrix_value();
-                 arsel1 = args(1).map_value();
-                 d1     = args(0).matrix_value();
+        case 3:  absrho = args(2).bool_value();
+                 arsel2 = args(1).map_value();
+                 arsel1 = args(0).map_value();
                  argsok = !error_state;
                  break;
-        case 3:  absrho = args(2).bool_value();    // Falls through
-        case 2:  arsel2 = args(1).map_value();
-                 d2     = args(0).matrix_value();
-                 arsel1 = args(1).map_value();
-                 d1     = args(0).matrix_value();
+        case 2:  if (!args(1).is_bool_scalar())  // Disambiguate cases
+                 {
+                     arsel2 = args(1).map_value();
+                 }
+                 else
+                 {
+                     absrho = args(1).bool_value();
+                     arsel2 = args(0).map_value();
+                 }
+                 arsel1 = args(0).map_value();
+                 argsok = !error_state;
+                 break;
+        case 1:  arsel2 = args(0).map_value();
+                 arsel1 = args(0).map_value();
                  argsok = !error_state;
                  break;
         default: argsok = !error_state;
@@ -94,26 +100,19 @@ DEFUN_DLD(
         return octave_value();
     }
 
-    // Determine problem size based on d1 and d2
-    if (!(d1.dims() == d2.dims()))
-    {
-        error("arcov: d1 and d2 must have same dimensions");
-        return octave_value();
-    }
-    const octave_idx_type M = d1.rows();  // Number of signals
-    const octave_idx_type N = d1.cols();  // Samples per signal
+    // Unpack required fields from arsel1 into typesafe instances
+    const Cell         AR1      = arsel1.contents("AR"     )(0).cell_value();
+    const Matrix       d1       = arsel1.contents("data"   )(0).matrix_value();
+    const Cell         autocor1 = arsel1.contents("autocor")(0).cell_value();
+    const ColumnVector gain1    = arsel1.contents("gain"   )(0).column_vector_value();
+    const bool         submean1 = arsel1.contents("submean")(0).bool_value();
 
     // Unpack required fields from arsel1 into typesafe instances
-    Cell         AR1      = arsel1.contents("AR")(0).cell_value();
-    Cell         autocor1 = arsel1.contents("autocor")(0).cell_value();
-    ColumnVector gain1    = arsel1.contents("gain")(0).column_vector_value();
-    bool         submean1 = arsel1.contents("submean")(0).bool_value();
-
-    // Unpack required fields from arsel1 into typesafe instances
-    Cell         AR2      = arsel2.contents("AR")(0).cell_value();
-    Cell         autocor2 = arsel2.contents("autocor")(0).cell_value();
-    ColumnVector gain2    = arsel2.contents("gain")(0).column_vector_value();
-    bool         submean2 = arsel2.contents("submean")(0).bool_value();
+    const Cell         AR2      = arsel2.contents("AR"     )(0).cell_value();
+    const Matrix       d2       = arsel2.contents("data"   )(0).matrix_value();
+    const Cell         autocor2 = arsel2.contents("autocor")(0).cell_value();
+    const ColumnVector gain2    = arsel2.contents("gain"   )(0).column_vector_value();
+    const bool         submean2 = arsel2.contents("submean")(0).bool_value();
 
     // Check that the unpack logic worked as expected
     if (error_state)
@@ -121,6 +120,15 @@ DEFUN_DLD(
         error("arcov: arsel1 or arsel2 lacked fields provided by arsel(...)");
         return octave_value();
     }
+
+    // Ensure data sets d1 and d2 are conformant
+    if (!(d1.dims() == d2.dims()))
+    {
+        error("arcov: arsel1.data and arsel2.data must have same dimensions");
+        return octave_value();
+    }
+    const octave_idx_type M = d1.rows();  // Number of signals
+    const octave_idx_type N = d1.cols();  // Samples per signal
 
     // Prepare storage to be returned to the caller
     Matrix _T0     (dim_vector(M, M));
@@ -132,8 +140,8 @@ DEFUN_DLD(
     for (octave_idx_type j = 0; j < M; ++j)
     {
         // Prepare iterators into the raw data for signal d1(j)
-        ar::strided_adaptor<double*> s1_begin(&d1(j,0), M);
-        ar::strided_adaptor<double*> s1_end  (&d1(j,N), M);
+        ar::strided_adaptor<const double*> s1_begin(d1.data() + j + 0*M, M);
+        ar::strided_adaptor<const double*> s1_end  (d1.data() + j + N*M, M);
 
         // Prepare an iterator over the autocorrelation function for d1(j)
         const RowVector AR1j = AR1(j).row_vector_value();
@@ -153,7 +161,7 @@ DEFUN_DLD(
             const double T0 = ar::decorrelation_time(N, p1, p2, absrho);
 
             // Compute the effective covariance given the decorrelation time
-            ar::strided_adaptor<double*> s2_begin(&d2(i,0), M);
+            ar::strided_adaptor<const double*> s2_begin(d2.data() + i + 0*M, M);
             double mu1, mu2, ncovar;
             welford_ncovariance(s1_begin, s1_end, s2_begin, mu1, mu2, ncovar);
             if (!submean1 && !submean2) ncovar += N*mu1*mu2;
