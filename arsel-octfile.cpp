@@ -41,23 +41,25 @@
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "\tM = arsel (d, submean, absrho, maxorder)\n"
+    "\tM = arsel (data, submean, absrho, maxorder)\n"
     "\tAutomatically fit autoregressive models to input signals.\n"
     "\t\n"
-    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> > to\n"
-    "\tfit an autoregressive process for signals contained in the rows of d.\n"
-    "\tSample means will be subtracted whenever submean is true.  Model\n"
-    "\torders zero through min(columns(d), maxorder) will be considered.\n"
-    "\tA structure is returned where each field either contains a result\n"
-    "\tindexable by the signal number (i.e. the row indices of input matrix\n"
-    "\td) or it contains a single scalar applicable to all signals.\n"
+    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> >\n"
+    "\tto fit an autoregressive process for signals contained in the rows\n"
+    "\tof matrix data.  Sample means will be subtracted whenever submean\n"
+    "\tis true.  Model orders zero through min(columns(data), maxorder)\n"
+    "\twill be considered.  A structure is returned where each field\n"
+    "\teither contains a result indexable by the signal number (i.e. the\n"
+    "\trow indices of input matrix data) or it contains a single scalar\n"
+    "\tapplicable to all signals.\n"
     "\t\n"
-    "\tThe number of samples in d (i.e. the number of rows) is returned\n"
+    "\tThe number of samples in data (i.e. the number of rows) is returned\n"
     "\tin field 'N'.  The filter()-ready process parameters are returned\n"
     "\tin field 'AR', the sample mean in 'mu', and the innovation variance\n"
     "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process gains are returned\n"
     "\tin 'gain' and the autocorrelation boundary conditions in 'autocor'\n"
-    "\tfor lags zero through the model order, inclusive.\n"
+    "\tfor lags zero through the model order, inclusive.  The raw signals\n"
+    "\tare made available for later use in 'data'.\n"
     "\t\n"
     "\tGiven the observed autocorrelation structure, a decorrelation time\n"
     "\t'T0' is computed by ar::decorrelation_time and used to estimate\n"
@@ -202,6 +204,7 @@ DEFUN_DLD(
     retval.assign("AR",        octave_value(_AR));
     retval.assign("absrho",    octave_value(absrho));
     retval.assign("autocor",   octave_value(_autocor));
+    retval.assign("data",      data);
     retval.assign("eff_N",     _eff_N);
     retval.assign("eff_var",   _eff_var);
     retval.assign("gain",      _gain);
