@@ -1,6 +1,7 @@
 HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors
-CXXFLAGS  ?= $(HOWSTRICT) -g -O3 -DNDEBUG
-#  CXXFLAGS ?= $(HOWSTRICT) -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
+HOWFAST   ?= -g -O3 -DNDEBUG -funsafe-math-optimizations # Not finite-math-only!
+# HOWFAST ?= -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
+CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
 
 all:     zohar example test arsel
 
@@ -54,6 +55,6 @@ octfiles-clean:
 clean: octfiles-clean
 
 %.oct : %-octfile.cpp ar.hpp
-	$(MKOCTFILE) -g $< -o $@
+	env "CXXFLAGS=$(HOWFAST)" $(MKOCTFILE) -v $< -o $@
 
 endif
