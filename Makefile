@@ -45,16 +45,15 @@ stress: test
 MKOCTFILE ?= $(shell which mkoctfile)
 ifdef MKOCTFILE
 
-all: octfiles
-
-octfiles: arsel.oct arcov.oct
-
-octfiles-clean:
-	rm -f *.oct
-
-clean: octfiles-clean
+all:      octfiles
+OCTFILES := $(patsubst %-octfile.cpp,%.oct,$(wildcard *-octfile.cpp))
+octfiles: $(OCTFILES)
 
 %.oct : %-octfile.cpp ar.hpp
 	env "CXXFLAGS=$(HOWFAST)" $(MKOCTFILE) -v $< -o $@
+
+clean: octfiles-clean
+octfiles-clean:
+	rm -f $(OCTFILES)
 
 endif
