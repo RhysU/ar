@@ -119,6 +119,67 @@ DEFUN_DLD(
             return octave_value();
     }
 
+    // Canonicalize the criterion string by making it uppercase and trimming it
+    for (string::iterator p = criterion.begin(); criterion.end() != p; ++p)
+    {
+        *p = std::toupper(*p);
+    }
+    criterion.erase(0, criterion.find_first_not_of(" \n\r\t"));
+    criterion.erase(1 + criterion.find_last_not_of(" \n\r\t"));
+
+    // Ensure the provided criterion was value and obtain a function pointer
+    // Ternary operators do not permit adequate type information below
+    // TODO Place criterion selection logic within ar.hpp to foster reuse
+    vector::difference_type (*best)(
+            octave_idx_type, vector&, vector&, vector&, vector&) = NULL;
+    if      (0 == criterion.compare("CIC" ))  // DEFAULT_CRITERION first
+    {
+        if (submean)
+            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >;
+        else
+            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_retained  > > >;
+    }
+    else if (0 == criterion.compare("AIC" ))
+    {
+        best = ar::best_model<ar::AIC>;
+    }
+    else if (0 == criterion.compare("AICC"))
+    {
+        best = ar::best_model<ar::AICC>;
+    }
+    else if (0 == criterion.compare("BIC" ))
+    {
+        best = ar::best_model<ar::BIC>;
+    }
+    else if (0 == criterion.compare("FIC" ))
+    {
+        if (submean)
+            best = ar::best_model<ar::FIC<ar::Burg<ar::mean_subtracted> > >;
+        else
+            best = ar::best_model<ar::FIC<ar::Burg<ar::mean_retained  > > >;
+    }
+    else if (0 == criterion.compare("FSIC"))
+    {
+        if (submean)
+            best = ar::best_model<ar::FSIC<ar::Burg<ar::mean_subtracted> > >;
+        else
+            best = ar::best_model<ar::FSIC<ar::Burg<ar::mean_retained  > > >;
+    }
+    else if (0 == criterion.compare("GIC" ))
+    {
+        best = ar::best_model<ar::GIC<> >;
+    }
+    else if (0 == criterion.compare("MCC" ))
+    {
+        best = ar::best_model<ar::MCC>;
+    }
+    else
+    {
+        error("Unknown model selection criterion provided to arsel.");
+        return octave_value();
+    }
+
+
     const octave_idx_type M = data.rows();  // Number of signals
     const octave_idx_type N = data.cols();  // Samples per signal
 
@@ -139,34 +200,6 @@ DEFUN_DLD(
     sigma2e.reserve(maxorder + 1);
     gain   .reserve(maxorder + 1);
     autocor.reserve(maxorder + 1);
-
-    // TODO Place criterion selection logic within ar.hpp to foster reuse
-    // Canonicalize the criterion string by making it uppercase and trimming it
-    for (string::iterator p = criterion.begin(); criterion.end() != p; ++p) {
-        *p = std::toupper(*p);
-    }
-    criterion.erase(0, criterion.find_first_not_of(" \n\r\t"));
-    criterion.erase(1 + criterion.find_last_not_of(" \n\r\t"));
-
-    // Ensure the provided criterion was value and obtain a function pointer
-    vector::difference_type (*best)(
-            octave_idx_type, vector&, vector&, vector&, vector&) = NULL;
-    if        (0 == criterion.compare("CIC" )) {  // DEFAULT_CRITERION first
-        if (submean)
-            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >;
-        else
-            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_retained  > > >;
-//  } else if (0 == criterion.compare("AIC" )) {  // TODO
-//  } else if (0 == criterion.compare("AICC")) {  // TODO
-//  } else if (0 == criterion.compare("BIC" )) {  // TODO
-//  } else if (0 == criterion.compare("FIC" )) {  // TODO
-//  } else if (0 == criterion.compare("FSIC")) {  // TODO
-//  } else if (0 == criterion.compare("GIC" )) {  // TODO
-//  } else if (0 == criterion.compare("MCC" )) {  // TODO
-    } else {
-        error("Unknown model selection criterion provided to arsel.");
-        return octave_value();
-    }
 
     // Prepare repeatedly-used working storage for burg_method()
     vector f, b, Ak, ac;
