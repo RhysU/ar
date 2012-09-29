@@ -20,6 +20,7 @@
 #include <iterator>
 #include <limits>
 #include <list>
+#include <string>
 #include <vector>
 
 #include <octave/oct.h>
@@ -33,25 +34,36 @@
  */
 
 // Compile-time defaults in the code also appearing in the help message
-#define DEFAULT_SUBMEAN  true
-#define DEFAULT_ABSRHO   true
-#define DEFAULT_MAXORDER 512
+#define DEFAULT_SUBMEAN   true
+#define DEFAULT_ABSRHO    true
+#define DEFAULT_MAXORDER  512
+#define DEFAULT_CRITERION "CIC"
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "\tM = arsel (data, submean, absrho, maxorder)\n"
+    "\tM = arsel (data, submean, absrho, maxorder, criterion)\n"
     "\tAutomatically fit autoregressive models to input signals.\n"
     "\t\n"
-    "\tUse ar::burg_method and ar::best_model<CIC<Burg<MeahHandling> >\n"
-    "\tto fit an autoregressive process for signals contained in the rows\n"
-    "\tof matrix data.  Sample means will be subtracted whenever submean\n"
-    "\tis true.  Model orders zero through min(columns(data), maxorder)\n"
-    "\twill be considered.  A structure is returned where each field\n"
-    "\teither contains a result indexable by the signal number (i.e. the\n"
-    "\trow indices of input matrix data) or it contains a single scalar\n"
-    "\tapplicable to all signals.\n"
+    "\tUse ar::burg_method and ar::best_model to fit an autoregressive\n"
+    "\tprocess for signals contained in the rows of matrix data.  Sample\n"
+    "\tmeans will be subtracted whenever submean is true.  Model orders\n"
+    "\tzero through min(columns(data), maxorder) will be considered.\n"
+    "\tA structure is returned where each field either contains a result\n"
+    "\tindexable by the signal number (i.e. the row indices of input matrix\n"
+    "\tdata) or it contains a single scalar applicable to all signals.\n"
+    "\t\n"
+    "\tThe model order will be selected using the specified criterion.\n"
+    "\tCriteria are specified using the following abbreviations:\n"
+    "\t    AIC  - Akaike information criterion\n"
+    "\t    AICC - asymptotically-corrected Akaike information criterion\n"
+    "\t    BIC  - consistent criterion BIC\n"
+    "\t    CIC  - combined information criterion\n"
+    "\t    FIC  - finite information criterion\n"
+    "\t    FSIC - finite sample information criterion\n"
+    "\t    GIC  - generalized information criterion\n"
+    "\t    MCC  - minimally consistent criterion\n"
     "\t\n"
     "\tThe number of samples in data (i.e. the number of rows) is returned\n"
     "\tin field 'N'.  The filter()-ready process parameters are returned\n"
@@ -79,18 +91,26 @@ DEFUN_DLD(
     "\tWhen omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
     "\tWhen omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
+    "\tWhen omitted, criterion defaults to " STRINGIFY(DEFAULT_CRITERION) ".\n"
 )
 {
-    std::size_t maxorder = DEFAULT_MAXORDER;
-    bool        absrho   = DEFAULT_ABSRHO;
-    bool        submean  = DEFAULT_SUBMEAN;
-    Matrix      data;
+    using std::size_t;
+    using std::string;
+    typedef Matrix::element_type element_type;
+    typedef std::vector<element_type> vector;
+
+    size_t maxorder  = DEFAULT_MAXORDER;
+    bool   absrho    = DEFAULT_ABSRHO;
+    bool   submean   = DEFAULT_SUBMEAN;
+    string criterion = DEFAULT_CRITERION;
+    Matrix data;
     switch (args.length())
     {
-        case 4: maxorder = args(3).ulong_value();
-        case 3: absrho   = args(2).bool_value();
-        case 2: submean  = args(1).bool_value();
-        case 1: data     = args(0).matrix_value();
+        case 5: criterion = args(4).string_value();
+        case 4: maxorder  = args(3).ulong_value();
+        case 3: absrho    = args(2).bool_value();
+        case 2: submean   = args(1).bool_value();
+        case 1: data      = args(0).matrix_value();
                 if (!error_state) break;
         default:
             error("Invalid call to arsel.  Correct usage is: ");
@@ -114,14 +134,42 @@ DEFUN_DLD(
     ColumnVector _T0       (M);
 
     // Prepare vectors to capture burg_method() output
-    std::vector<double> params, sigma2e, gain, autocor;
+    vector params, sigma2e, gain, autocor;
     params .reserve(maxorder*(maxorder + 1)/2);
     sigma2e.reserve(maxorder + 1);
     gain   .reserve(maxorder + 1);
     autocor.reserve(maxorder + 1);
 
+    // TODO Place criterion selection logic within ar.hpp to foster reuse
+    // Canonicalize the criterion string by making it uppercase and trimming it
+    for (string::iterator p = criterion.begin(); criterion.end() != p; ++p) {
+        *p = std::toupper(*p);
+    }
+    criterion.erase(0, criterion.find_first_not_of(" \n\r\t"));
+    criterion.erase(1 + criterion.find_last_not_of(" \n\r\t"));
+
+    // Ensure the provided criterion was value and obtain a function pointer
+    vector::difference_type (*best)(
+            octave_idx_type, vector&, vector&, vector&, vector&) = NULL;
+    if        (0 == criterion.compare("CIC" )) {  // DEFAULT_CRITERION first
+        if (submean)
+            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >;
+        else
+            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_retained  > > >;
+//  } else if (0 == criterion.compare("AIC" )) {  // TODO
+//  } else if (0 == criterion.compare("AICC")) {  // TODO
+//  } else if (0 == criterion.compare("BIC" )) {  // TODO
+//  } else if (0 == criterion.compare("FIC" )) {  // TODO
+//  } else if (0 == criterion.compare("FSIC")) {  // TODO
+//  } else if (0 == criterion.compare("GIC" )) {  // TODO
+//  } else if (0 == criterion.compare("MCC" )) {  // TODO
+    } else {
+        error("Unknown model selection criterion provided to arsel.");
+        return octave_value();
+    }
+
     // Prepare repeatedly-used working storage for burg_method()
-    std::vector<double> f, b, Ak, ac;
+    vector f, b, Ak, ac;
 
     // Process each signal in turn...
     for (octave_idx_type i = 0; i < M; ++i)
@@ -131,8 +179,8 @@ DEFUN_DLD(
         sigma2e.clear();
         gain   .clear();
         autocor.clear();
-        ar::strided_adaptor<const double*> signal_begin(&data(i,0), M);
-        ar::strided_adaptor<const double*> signal_end  (&data(i,N), M);
+        ar::strided_adaptor<const element_type*> signal_begin(&data(i,0), M);
+        ar::strided_adaptor<const element_type*> signal_end  (&data(i,N), M);
         ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
                         std::back_inserter(params),
                         std::back_inserter(sigma2e),
@@ -140,21 +188,11 @@ DEFUN_DLD(
                         std::back_inserter(autocor),
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
-        // Keep only best model according to CIC accounting for subtract_mean.
-        // TODO Permit specifying the criterion as a function argument.
-        if (submean)
-        {
-            ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >(
-                    N, params, sigma2e, gain, autocor);
-        }
-        else
-        {
-            ar::best_model<ar::CIC<ar::Burg<ar::mean_retained> > >(
-                    N, params, sigma2e, gain, autocor);
-        }
+        // Keep only best model per chosen criterion (also uses subtract_mean)
+        best(N, params, sigma2e, gain, autocor);
 
         // Compute decorrelation time from the estimated autocorrelation model
-        ar::predictor<double> p = ar::autocorrelation(
+        ar::predictor<element_type> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
         _T0(i) = ar::decorrelation_time(N, p, absrho);
 
@@ -206,6 +244,7 @@ DEFUN_DLD(
     retval.assign("AR",        octave_value(_AR));
     retval.assign("absrho",    octave_value(absrho));
     retval.assign("autocor",   octave_value(_autocor));
+    retval.assign("criterion", octave_value(criterion));
     retval.assign("data",      data);
     retval.assign("eff_N",     _eff_N);
     retval.assign("eff_var",   _eff_var);
