@@ -11,10 +11,12 @@
  */
 
 #include "ar.hpp"
+#include "optionparser.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <functional>
@@ -24,19 +26,53 @@
 #include <limits>
 #include <vector>
 
+// Command line argument declarations for optionparser.h usage
+enum OptionIndex { UNKNOWN, HELP, SUBMEAN, SIGNRHO };
+const option::Descriptor usage[] = {
+    {UNKNOWN, 0, "", "",      option::Arg::None,
+     "Usage: arsel [OPTION]...\n"
+     "Fit an optimal autoregressive model to data from standard input.\n"
+     "\n"
+     "Options:\n" },
+    {SUBMEAN, 0,  "",  "subtract-mean", option::Arg::None,
+     "\t--subtract-mean  \tSubtract the sample mean from the data" },
+    {SIGNRHO, 0,  "",  "signed-rho",    option::Arg::None,
+     "\t--signed-rho     \tUse autocorrelation, including sign, when computing T0" },
+    {HELP,    0,  "h", "help",        option::Arg::None,
+     "\t-h,--help        \tDisplay this help and exit" },
+    {0,0,0,0,0,0}
+};
+
 int main(int argc, char *argv[])
 {
     using namespace ar;
     using namespace std;
 
-    // Process a possible --subtract-mean flag, shifting arguments if needed
-    bool subtract_mean = false;
-    if (argc > 1 && 0 == strcmp("--subtract-mean", argv[1])) {
-        subtract_mean = true;
-        argv[1] = argv[0];
-        ++argv;
-        --argc;
+    // TODO Add processing of files specified on the command line
+
+    // Process any incoming command line arguments using optionparser.h
+    argc-=(argc>0); argv+=(argc>0); // Skip program name argv[0] if present
+    option::Stats stats(usage, argc, argv);
+    struct Guard { // scoped_array or unique_ptr would simply RAII here
+        option::Option *options, *buffer;
+        Guard(option::Option *options, option::Option *buffer)
+            : options(options), buffer(buffer) {}
+        ~Guard() { delete[] options; delete[] buffer; }
+    } guard(new option::Option[stats.options_max],
+            new option::Option[stats.buffer_max ]);
+    option::Parser parse(usage, argc, argv, guard.options, guard.buffer);
+    if (parse.error() || guard.options[UNKNOWN]) {
+        for (option::Option* o = guard.options[UNKNOWN]; o; o = o->next()) {
+            cout << "Unknown option: " << o->name << "\n";
+        }
+        return EXIT_FAILURE;
     }
+    if (guard.options[HELP]) {
+        option::printUsage(std::cout, usage);
+        return EXIT_SUCCESS;
+    }
+    const bool subtract_mean = guard.options[SUBMEAN] ? true : false;
+    const bool absolute_rho  = guard.options[SIGNRHO] ? false : true;
 
     // Use burg_method to estimate a hierarchy of AR models from input data
     double mean;
@@ -68,7 +104,7 @@ int main(int argc, char *argv[])
 
     // Compute decorrelation time from the estimated autocorrelation model
     const double T0  = decorrelation_time(N, autocorrelation(params.begin(),
-                params.end(), gain[0], autocor.begin()), /* abs(rho) */ true);
+                params.end(), gain[0], autocor.begin()), absolute_rho);
 
     // Output details about the best model and derived information
     // Unbiased effective variance expression from [Trenberth1984]
@@ -85,5 +121,5 @@ int main(int argc, char *argv[])
     copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
     cout.flush();
 
-    return 0;
+    return EXIT_SUCCESS;
 }
