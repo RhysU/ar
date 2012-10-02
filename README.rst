@@ -129,21 +129,28 @@ Trench-like algorithms and for faster, albeit much more complicated, variants.
 Contents
 --------
 
-*ar.hpp*
-  The standalone implementation header.  Complete API documentation is
-  available at http://rhysu.github.com/ar.
-
 *Makefile*
    Try ``make`` followed by ``make check``.  On Linux, try ``make stress`` to
    examine the implementation's performance when piping in plain text data.
 
-*arsel.cpp*
-   Given data on standard input, use Burg's method to compute a hierarchy
-   of candidate models and select the best one using CIC.
+*ar.hpp*
+  The standalone header implementing all algorithms.  Complete API
+  documentation is available at http://rhysu.github.com/ar.
 
-*arsel-octfile.cpp*
-   Provides arsel.cpp-like capabilities for Octave.  See appendix A
+*arsel.cpp*
+   Given data on standard input, use Burg's method to compute a hierarchy of
+   candidate models and select the best one using CIC.  Try ``arsel --help`` to
+   see available options.  This is perhaps the most useful standalone utility.
+
+*arsel-octfile.cpp*, *arcov-octfile.cpp*
+   Provides arsel.cpp-like capabilities for GNU Octave.  This is perhaps the
+   most feature-rich way to start using these AR tools.  See appendix A
    ("Dynamically Linked Functions") within [Octave] for implementation details.
+   Also demonstrates how working storage may be reused across multiple
+   invocations to reduce the number of allocations for processing data sets.
+
+*test.cpp*
+   A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].
 
 *example.cpp*
    A test driver extracting a hierarchy of AR(p) models for a sample given by
@@ -152,9 +159,6 @@ Contents
 *zohar.cpp*
    A test driver solving a nonsymmetric, real-valued Toeplitz set of linear
    equations.
-
-*test.cpp*
-   A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].
 
 *test\*.coeff*, *test\*.dat*
    Sample data and exact parameters from [Bourke1998] used for ``make check``.
@@ -169,7 +173,11 @@ Contents
    parameters.
 
 *FiniteSampleCriteria.tex*
-   A catalog of the autoregressive model selection criteria implemented.
+   A catalog of all implemented autoregressive model selection criteria.
+
+*optionparser.h*
+   The Lean Mean C++ Option Parser from http://optionparser.sourceforge.net
+   which is used to parse command line arguments within sample applications.
 
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
