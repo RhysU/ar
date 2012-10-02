@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     option::Parser parse(usage, argc, argv, guard.options, guard.buffer);
     if (parse.error() || guard.options[UNKNOWN]) {
         for (option::Option* o = guard.options[UNKNOWN]; o; o = o->next()) {
-            cout << "Unknown option: " << o->name << "\n";
+            cerr << "Unknown option: " << o->name << "\n";
         }
         return EXIT_FAILURE;
     }
