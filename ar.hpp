@@ -2257,11 +2257,17 @@ struct best_model_function
      *                      If only whitespace, a reasonable default is used.
      * @param subtract_mean Has the sample mean been subtracted from the data?
      *
+     * @tparam CharT     Permits use by any \c std::basic_string instantiation
+     * @tparam Traits    Permits use by any \c std::basic_string instantiation
+     * @tparam Allocator Permits use by any \c std::basic_string instantiation
+     *
      * @return A function pointer which, when invoked, calls \ref best_model.
      *         When no known criterion matches \c abbreviation, \c NULL
      *         is returned.
      */
-    static type lookup(std::string abbreviation, const bool subtract_mean);
+    template <class CharT, class Traits, class Allocator>
+    static type lookup(std::basic_string<CharT,Traits,Allocator> abbreviation,
+                       const bool subtract_mean);
 };
 
 template <template <class> class EstimationMethod,
@@ -2270,18 +2276,22 @@ template <template <class> class EstimationMethod,
           class    Sequence2,
           class    Sequence3,
           class    Sequence4>
+template <class CharT, class Traits, class Allocator>
 typename best_model_function<
     EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
 >::type
 best_model_function<
     EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
->::lookup(std::string abbrev, const bool subtract_mean)
+>::lookup(std::basic_string<CharT,Traits,Allocator> abbrev,
+          const bool subtract_mean)
 {
     type retval;
 
     // Canonicalize the abbreviation by making it uppercase and trimming it
     // For nothing but this reason the method accepts 'abbrev' by value
-    for (std::string::iterator p = abbrev.begin(); abbrev.end() != p; ++p)
+    typedef typename std::basic_string<CharT,Traits,Allocator> basic_string;
+    for (typename basic_string::iterator p = abbrev.begin();
+         abbrev.end() != p; ++p)
     {
         *p = std::toupper(*p);
     }
