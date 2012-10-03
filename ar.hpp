@@ -2202,7 +2202,6 @@ best_model(Integer        N,
                                  autocor, null_output());
 }
 
-
 /**
  * A template typedef and helper method returning a \ref best_model
  * implementation matching a model selection criterion provided at runtime.
