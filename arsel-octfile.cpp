@@ -179,7 +179,6 @@ DEFUN_DLD(
         return octave_value();
     }
 
-
     const octave_idx_type M = data.rows();  // Number of signals
     const octave_idx_type N = data.cols();  // Samples per signal
 
