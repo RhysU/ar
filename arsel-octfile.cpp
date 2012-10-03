@@ -36,14 +36,14 @@
 // Compile-time defaults in the code also appearing in the help message
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
-#define DEFAULT_MAXORDER  512
 #define DEFAULT_CRITERION "CIC"
+#define DEFAULT_MAXORDER  512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 DEFUN_DLD(
     arsel, args, nargout,
-    "\tM = arsel (data, submean, absrho, maxorder, criterion)\n"
+    "\tM = arsel (data, submean, absrho, criterion, maxorder)\n"
     "\tAutomatically fit autoregressive models to input signals.\n"
     "\t\n"
     "\tUse ar::burg_method and ar::best_model to fit an autoregressive\n"
@@ -90,8 +90,8 @@ DEFUN_DLD(
     "\t\n"
     "\tWhen omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
     "\tWhen omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
-    "\tWhen omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
     "\tWhen omitted, criterion defaults to " STRINGIFY(DEFAULT_CRITERION) ".\n"
+    "\tWhen omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 )
 {
     using std::size_t;
@@ -100,20 +100,21 @@ DEFUN_DLD(
     typedef std::vector<element_type> vector;
 
     size_t maxorder  = DEFAULT_MAXORDER;
+    string criterion = DEFAULT_CRITERION;
     bool   absrho    = DEFAULT_ABSRHO;
     bool   submean   = DEFAULT_SUBMEAN;
-    string criterion = DEFAULT_CRITERION;
     Matrix data;
     switch (args.length())
     {
-        case 5: criterion = args(4).string_value();
-        case 4: maxorder  = args(3).ulong_value();
+        case 5: maxorder  = args(4).ulong_value();
+        case 4: criterion = args(3).string_value();
         case 3: absrho    = args(2).bool_value();
         case 2: submean   = args(1).bool_value();
         case 1: data      = args(0).matrix_value();
                 if (!error_state) break;
         default:
-            error("Invalid call to arsel.  Correct usage is: ");
+            error("Invalid call to arsel.  See 'help arsel' for usage.");
+            return octave_value();
         case 0:
             print_usage();
             return octave_value();
