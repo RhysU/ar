@@ -2173,7 +2173,7 @@ evaluate_models(Integer1      N,
  * equivalent manner).  On output, these arguments will contain only values
  * relevant to the best model.
  *
- * @param[in]  N          Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ * @param[in]     N       Sample count used to compute \f$\sigma^2_\epsilon\f$.
  *                        For example, the return value of \ref burg_method.
  * @param[in,out] params  Model parameters
  * @param[in,out] sigma2e \f$\sigma^2_\epsilon\f$
