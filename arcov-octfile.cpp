@@ -171,6 +171,9 @@ DEFUN_DLD(
             _T0     (i, j) = _T0     (j, i) = T0;
             _eff_N  (i, j) = _eff_N  (j, i) = N / T0;
             _eff_cov(i, j) = _eff_cov(j, i) = eff_cov;
+
+            // Permit user to interrupt the computations at this time
+            OCTAVE_QUIT;
         }
     }
 
