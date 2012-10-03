@@ -2268,6 +2268,25 @@ struct best_model_function
     template <class CharT, class Traits, class Allocator>
     static type lookup(std::basic_string<CharT,Traits,Allocator> abbreviation,
                        const bool subtract_mean);
+
+    /**
+     * Lookup a \ref best_model function pointer matching \c EstimationMethod,
+     * the specified criterion c abbreviation, and whether or not the sample
+     * mean has been subtracted from the data.
+     *
+     * @param abbreviation  Known abbreviations per \ref best_model_function.
+     *                      If only whitespace, a reasonable default is used.
+     * @param subtract_mean Has the sample mean been subtracted from the data?
+     *
+     * @return A function pointer which, when invoked, calls \ref best_model.
+     *         When no known criterion matches \c abbreviation, \c NULL
+     *         is returned.
+     */
+    static type lookup(const char *abbreviation, const bool subtract_mean)
+    {
+        std::string s(abbreviation);
+        return lookup(s, subtract_mean);
+    }
 };
 
 template <template <class> class EstimationMethod,
