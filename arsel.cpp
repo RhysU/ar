@@ -33,13 +33,14 @@ const option::Descriptor usage[] = {
      "Usage: arsel [OPTION]...\n"
      "Fit an optimal autoregressive model to data from standard input.\n"
      "\n"
-     "Options:\n" },
+     "Options:" },
+    {0,0,"","",option::Arg::None,0}, // table break
     {SUBMEAN, 0,  "",  "subtract-mean", option::Arg::None,
-     "\t--subtract-mean  \tSubtract the sample mean from the data" },
+     "\t--subtract-mean  \tSubtract the sample mean from the incoming data" },
     {SIGNRHO, 0,  "",  "signed-rho",    option::Arg::None,
-     "\t--signed-rho     \tUse autocorrelation, including sign, when computing T0" },
+     "\t--signed-rho     \tUse signed autocorrelation value when computing T0" },
     {HELP,    0,  "h", "help",        option::Arg::None,
-     "\t-h,--help        \tDisplay this help and exit" },
+     "  -h \t--help        \tDisplay this help message and immediately exit" },
     {0,0,0,0,0,0}
 };
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
 {
     using namespace ar;
     using namespace std;
+    using option::Option;
 
     // TODO Add processing of files specified on the command line
 
@@ -54,15 +56,14 @@ int main(int argc, char *argv[])
     argc-=(argc>0); argv+=(argc>0); // Skip program name argv[0] if present
     option::Stats stats(usage, argc, argv);
     struct Guard { // scoped_array or unique_ptr would simply RAII here
-        option::Option *options, *buffer;
-        Guard(option::Option *options, option::Option *buffer)
+        Option *options, *buffer;
+        Guard(Option *options, Option *buffer)
             : options(options), buffer(buffer) {}
         ~Guard() { delete[] options; delete[] buffer; }
-    } guard(new option::Option[stats.options_max],
-            new option::Option[stats.buffer_max ]);
+    } guard(new Option[stats.options_max], new Option[stats.buffer_max ]);
     option::Parser parse(usage, argc, argv, guard.options, guard.buffer);
     if (parse.error() || guard.options[UNKNOWN]) {
-        for (option::Option* o = guard.options[UNKNOWN]; o; o = o->next()) {
+        for (Option* o = guard.options[UNKNOWN]; o; o = o->next()) {
             cerr << "Unknown option: " << o->name << "\n";
         }
         return EXIT_FAILURE;
