@@ -34,6 +34,7 @@
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 /**
@@ -2199,6 +2200,142 @@ best_model(Integer        N,
 {
     return best_model<Criterion>(N, params, sigma2e, gain,
                                  autocor, null_output());
+}
+
+
+/**
+ * A template typedef and helper method returning a \ref best_model
+ * implementation matching a model selection criterion provided at runtime.
+ * Intended for use within interactive APIs, this method handles much of the
+ * ugliness of resolving overloaded criterion logic and accounting for which
+ * methods care as to whether or not the sample mean has been subtracted.
+ * Class template parameters should be set to match the desired overload
+ * returned by the \ref lookup method.
+ *
+ * Methods are looked up using their abbreviations as follows:
+ * <dl>
+ * <dt>AIC </dt><dd>Akaike information criterion</dd>
+ * <dt>AICC</dt><dd>asymptotically-corrected Akaike information criterion</dd>
+ * <dt>BIC </dt><dd>consistent criterion BIC</dd>
+ * <dt>CIC </dt><dd>combined information criterion</dd>
+ * <dt>FIC </dt><dd>finite information criterion</dd>
+ * <dt>FSIC</dt><dd>finite sample information criterion</dd>
+ * <dt>GIC </dt><dd>generalized information criterion</dd>
+ * <dt>MCC </dt><dd>minimally consistent criterion</dd>
+ * </dl>
+ * Leading or trailing whitespace as well as capitalization differences are
+ * ignored.
+ *
+ * @tparam EstimationMethod One of Burg, YuleWalker, LSFB, or LSF.
+ * @tparam Integer          Per the \c Integer parameter of \ref best_model
+ * @tparam Sequence1        Per the \c Sequence1 parameter of \ref best_model
+ * @tparam Sequence2        Per the \c Sequence2 parameter of \ref best_model
+ * @tparam Sequence3        Per the \c Sequence3 parameter of \ref best_model
+ * @tparam Sequence4        Per the \c Sequence4 parameter of \ref best_model
+ */
+template <template <class> class EstimationMethod,
+          typename Integer,
+          class    Sequence1,
+          class    Sequence2 = Sequence1,
+          class    Sequence3 = Sequence2,
+          class    Sequence4 = Sequence3>
+struct best_model_function
+{
+    /** The type returned by the \ref lookup function. */
+    typedef typename Sequence1::difference_type (*type)(Integer    N,
+                                                        Sequence1& params,
+                                                        Sequence2& sigma2e,
+                                                        Sequence3& gain,
+                                                        Sequence4& autocor);
+
+    /**
+     * Lookup a \ref best_model function pointer matching \c EstimationMethod,
+     * the specified criterion c abbreviation, and whether or not the sample
+     * mean has been subtracted from the data.
+     *
+     * @param abbreviation  Known abbreviations per \ref best_model_function.
+     *                      If only whitespace, a reasonable default is used.
+     * @param subtract_mean Has the sample mean been subtracted from the data?
+     *
+     * @return A function pointer which, when invoked, calls \ref best_model.
+     *         When no known criterion matches \c abbreviation, \c NULL
+     *         is returned.
+     */
+    static type lookup(std::string abbreviation, const bool subtract_mean);
+};
+
+template <template <class> class EstimationMethod,
+          typename Integer,
+          class    Sequence1,
+          class    Sequence2,
+          class    Sequence3,
+          class    Sequence4>
+typename best_model_function<
+    EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
+>::type
+best_model_function<
+    EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
+>::lookup(std::string abbrev, const bool subtract_mean)
+{
+    type retval;
+
+    // Canonicalize the abbreviation by making it uppercase and trimming it
+    // For nothing but this reason the method accepts 'abbrev' by value
+    for (std::string::iterator p = abbrev.begin(); abbrev.end() != p; ++p)
+    {
+        *p = std::toupper(*p);
+    }
+    abbrev.erase(0, abbrev.find_first_not_of(" \n\r\t"));
+    abbrev.erase(1 + abbrev.find_last_not_of(" \n\r\t"));
+
+    // Obtain best_model(...) per abbrev, subtract_mean, EstimationMethod
+    // and assign to retval to provide unambiguous overload resolution.
+    if      (abbrev.empty() || 0 == abbrev.compare("CIC" ))  // Default
+    {
+        if (subtract_mean)
+            retval = best_model<CIC<EstimationMethod<mean_subtracted> > >;
+        else
+            retval = best_model<CIC<EstimationMethod<mean_retained  > > >;
+    }
+    else if (0 == abbrev.compare("AIC" ))
+    {
+        retval = best_model<AIC>;
+    }
+    else if (0 == abbrev.compare("AICC"))
+    {
+        retval = best_model<AICC>;
+    }
+    else if (0 == abbrev.compare("BIC" ))
+    {
+        retval = best_model<BIC>;
+    }
+    else if (0 == abbrev.compare("FIC" ))
+    {
+        if (subtract_mean)
+            retval = best_model<FIC<EstimationMethod<mean_subtracted> > >;
+        else
+            retval = best_model<FIC<EstimationMethod<mean_retained  > > >;
+    }
+    else if (0 == abbrev.compare("FSIC"))
+    {
+        if (subtract_mean)
+            retval = best_model<FSIC<EstimationMethod<mean_subtracted> > >;
+        else
+            retval = best_model<FSIC<EstimationMethod<mean_retained  > > >;
+    }
+    else if (0 == abbrev.compare("GIC" ))
+    {
+        retval = best_model<GIC<> >;
+    }
+    else if (0 == abbrev.compare("MCC" ))
+    {
+        retval = best_model<MCC>;
+    } else
+    {
+        retval = NULL;
+    }
+
+    return retval;
 }
 
 /**

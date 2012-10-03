@@ -119,61 +119,12 @@ DEFUN_DLD(
             return octave_value();
     }
 
-    // Canonicalize the criterion string by making it uppercase and trimming it
-    for (string::iterator p = criterion.begin(); criterion.end() != p; ++p)
-    {
-        *p = std::toupper(*p);
-    }
-    criterion.erase(0, criterion.find_first_not_of(" \n\r\t"));
-    criterion.erase(1 + criterion.find_last_not_of(" \n\r\t"));
-
-    // Ensure the provided criterion was value and obtain a function pointer
-    // Ternary operators do not permit adequate type information below
-    // TODO Place criterion selection logic within ar.hpp to foster reuse
-    vector::difference_type (*best)(
-            octave_idx_type, vector&, vector&, vector&, vector&) = NULL;
-    if      (0 == criterion.compare("CIC" ))  // DEFAULT_CRITERION first
-    {
-        if (submean)
-            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_subtracted> > >;
-        else
-            best = ar::best_model<ar::CIC<ar::Burg<ar::mean_retained  > > >;
-    }
-    else if (0 == criterion.compare("AIC" ))
-    {
-        best = ar::best_model<ar::AIC>;
-    }
-    else if (0 == criterion.compare("AICC"))
-    {
-        best = ar::best_model<ar::AICC>;
-    }
-    else if (0 == criterion.compare("BIC" ))
-    {
-        best = ar::best_model<ar::BIC>;
-    }
-    else if (0 == criterion.compare("FIC" ))
-    {
-        if (submean)
-            best = ar::best_model<ar::FIC<ar::Burg<ar::mean_subtracted> > >;
-        else
-            best = ar::best_model<ar::FIC<ar::Burg<ar::mean_retained  > > >;
-    }
-    else if (0 == criterion.compare("FSIC"))
-    {
-        if (submean)
-            best = ar::best_model<ar::FSIC<ar::Burg<ar::mean_subtracted> > >;
-        else
-            best = ar::best_model<ar::FSIC<ar::Burg<ar::mean_retained  > > >;
-    }
-    else if (0 == criterion.compare("GIC" ))
-    {
-        best = ar::best_model<ar::GIC<> >;
-    }
-    else if (0 == criterion.compare("MCC" ))
-    {
-        best = ar::best_model<ar::MCC>;
-    }
-    else
+    // Lookup the desired model selection criterion
+    typedef ar::best_model_function<
+            ar::Burg,octave_idx_type,vector> best_model_function;
+    const best_model_function::type best_model
+            = best_model_function::lookup(criterion, submean);
+    if (!best_model)
     {
         error("Unknown model selection criterion provided to arsel.");
         return octave_value();
@@ -220,8 +171,8 @@ DEFUN_DLD(
                         std::back_inserter(autocor),
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
-        // Keep only best model per chosen criterion (also uses subtract_mean)
-        best(N, params, sigma2e, gain, autocor);
+        // Keep only best model per chosen criterion via function pointer
+        best_model(N, params, sigma2e, gain, autocor);
 
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<element_type> p = ar::autocorrelation(
