@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     // TODO Add processing of files specified on the command line
 
     // Parse and process any command line arguments using optionparser.h
-    string criterion     = "";
+    string criterion     = "CIC";
     bool   subtract_mean = false;
     size_t order         = 512;
     bool   absolute_rho  = true;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     }
 
     // Use burg_method to estimate a hierarchy of AR models from input data
-    double mean;
+    double mu;
     vector<double> params, sigma2e, gain, autocor;
     params .reserve(order*(order + 1)/2);
     sigma2e.reserve(order + 1);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     autocor.reserve(order + 1);
     const size_t N = ar::burg_method(istream_iterator<double>(cin),
                                      istream_iterator<double>(),
-                                     mean,
+                                     mu,
                                      order,
                                      back_inserter(params),
                                      back_inserter(sigma2e),
@@ -142,17 +142,31 @@ int main(int argc, char *argv[])
                 params.begin(), params.end(), gain[0], autocor.begin()),
                 absolute_rho);
 
+    // Compute effective variance and effective number of independent samples
+    const double eff_var  = (N*gain[0]*sigma2e[0]) / (N - T0); // Trenberth1984
+    const double eff_N    = N / T0;
+    const double mu_sigma = sqrt(eff_var / eff_N);
+
     // Output details about the best model and derived information
-    // Unbiased effective variance expression from [Trenberth1984]
+    // Naming conventions here match the output of arsel-octfile by design
     cout.precision(numeric_limits<double>::digits10 + 2);
-    cout << showpos
-         <<   "# N                   "   << N
-         << "\n# AR(p)               "   << params.size()
-         << "\n# Mean                "   << mean
-         << "\n# \\sigma^2_\\epsilon   " << sigma2e[0]
-         << "\n# Variance_effective  "   << (N*gain[0]*sigma2e[0]) / (N - T0)
-         << "\n# N_effective         "   << N / T0
-         << "\n# t_decorrelation     "   << T0
+    cout << boolalpha
+         <<   "# absrho    " << absolute_rho
+         << "\n# criterion " << criterion
+         << "\n# eff_N     " << eff_N
+         << "\n# eff_var   " << eff_var
+         << "\n# gain      " << gain[0]
+         << "\n# maxorder  " << order
+         << "\n# mu        " << mu
+         << "\n# mu_sigma  " << mu_sigma
+         << "\n# N         " << N
+         << "\n# AR(p)     " << params.size()
+         << "\n# sigma2eps " << sigma2e[0]
+         << "\n# submean   " << subtract_mean
+         << "\n# T0        " << T0
+         << noboolalpha
+         << showpos                               // Line up signs
+         << '\n'             << double(1)         // Leading one coefficient
          << '\n';
     copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
     cout.flush();

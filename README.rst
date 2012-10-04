@@ -85,21 +85,26 @@ the effective sample size and corresponding variance using ideas from
 --subtract-mean < rhoe.dat`` reproduces results from ARMASA [Broersen2002] on a
 turbulence signal::
 
-	# N                   1753
-	# AR(p)               6
-	# Mean                +0.2095528795620023
-	# \sigma^2_\epsilon   +8.3374933107465524e-09
-	# Gain                +4249.4034177677795
-	# \sigma^2_x          +3.5429372570302398e-05
-	# t_decorrelation     +62.186734533597004
-	# N_effective         +28.189291705820704
-	# Variance_effective  +3.673243603196358e-05
-	-2.6990358158025196
-	+2.8771725720036141
-	-1.7247889420225018
-	+0.75024991289684761
-	-0.26867206160585461
-	+0.067007468591674405
+	# absrho    true
+	# criterion CIC
+	# eff_N     28.189291703466367
+	# eff_var   3.6732436032076988e-05
+	# gain      4249.4034161220061
+	# maxorder  512
+	# mu        0.20955287956200269
+	# mu_sigma  0.0011415180514446697
+	# N         1753
+	# AR(p)     6
+	# sigma2eps 8.337493313975753e-09
+	# submean   true
+	# T0        62.186734538790766
+	+1
+	-2.6990358155957219
+	+2.8771725714475669
+	-1.7247889414504787
+	+0.75024991258362694
+	-0.26867206148922779
+	+0.067007468565782782
 
 Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
