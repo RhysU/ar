@@ -64,22 +64,20 @@ int main(int argc, char *argv[])
     bool subtract_mean = false;
     bool absolute_rho  = true;
     {
-        using namespace option;
+        option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
-        Stats stats(usage, argc-(argc>0), argv+(argc>0));
+        struct Guard // scoped_array or unique_ptr would add dependencies
+        {
+            option::Option *options;
+            Guard(unsigned n) : options(new option::Option[n]) {}
+            ~Guard() { delete[] options; }
+        } g(stats.options_max + stats.buffer_max);
 
-        // scoped_array or unique_ptr would simply RAII but add dependencies
-        struct Guard {
-            Option *options, *buffer;
-            Guard(Option *options, Option *buffer)
-                : options(options), buffer(buffer) {}
-            ~Guard() { delete[] options; delete[] buffer; }
-        } g(new Option[stats.options_max], new Option[stats.buffer_max]);
-
-        Parser parse(usage, argc-(argc>0), argv+(argc>0), g.options, g.buffer);
+        option::Parser parse(usage, argc-(argc>0), argv+(argc>0),
+                             g.options, g.options + stats.options_max);
 
         if (parse.error() || g.options[UNKNOWN]) {
-            for (Option* o = g.options[UNKNOWN]; o; o = o->next()) {
+            for (option::Option* o = g.options[UNKNOWN]; o; o = o->next()) {
                 cerr << "Unknown option: " << o->name << "\n";
             }
             return EXIT_FAILURE;
