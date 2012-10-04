@@ -29,12 +29,12 @@
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
 {
-    static option::ArgStatus NonEmpty(const option::Option& opt, bool msg);
-    static option::ArgStatus Numeric (const option::Option& opt, bool msg);
+    static option::ArgStatus NonEmpty   (const option::Option& opt, bool msg);
+    static option::ArgStatus NonNegative(const option::Option& opt, bool msg);
 };
 
 // Command line argument declarations for optionparser.h usage
-enum OptionIndex { UNKNOWN, CRITERION, HELP, SUBMEAN, SIGNRHO };
+enum OptionIndex { UNKNOWN, CRITERION, HELP, SUBMEAN, ORDER, SIGNRHO };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
@@ -48,6 +48,8 @@ const option::Descriptor usage[] = {
      "  -h \t--help        \tDisplay this help message and immediately exit" },
     {SUBMEAN,   0,  "m",  "subtract-mean", Arg::None,
      "  -m \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
+    {ORDER,     0,  "o",  "order",         Arg::NonNegative,
+     "  -o \t--order=MAXIMUM  \tConsider models no higher than the given order" },
     {SIGNRHO,   0,  "r",  "signed-rho",    Arg::None,
      "  -r \t--signed-rho     \tUse signed autocorrelation values when computing T0" },
     {0,0,0,0,0,0}
@@ -60,9 +62,10 @@ int main(int argc, char *argv[])
     // TODO Add processing of files specified on the command line
 
     // Parse and process any command line arguments using optionparser.h
-    string criterion   = "";
-    bool subtract_mean = false;
-    bool absolute_rho  = true;
+    string criterion     = "";
+    bool   subtract_mean = false;
+    size_t order         = 512;
+    bool   absolute_rho  = true;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -94,6 +97,9 @@ int main(int argc, char *argv[])
         if (g.options[SUBMEAN])
             subtract_mean = true;
 
+        if (g.options[ORDER])
+            order = (size_t) strtol(g.options[ORDER].last()->arg, NULL, 10);
+
         if (g.options[SIGNRHO])
             absolute_rho = false;
     }
@@ -111,7 +117,6 @@ int main(int argc, char *argv[])
 
     // Use burg_method to estimate a hierarchy of AR models from input data
     double mean;
-    size_t order = 512;
     vector<double> params, sigma2e, gain, autocor;
     params .reserve(order*(order + 1)/2);
     sigma2e.reserve(order + 1);
@@ -169,17 +174,20 @@ option::ArgStatus Arg::NonEmpty(const option::Option& opt, bool msg)
     return option::ARG_ILLEGAL;
 }
 
-// Argument checking logic suggested by optionparser.h example routines
-option::ArgStatus Arg::Numeric(const option::Option& opt, bool msg)
+// Argument checking logic based upon optionparser.h example routines
+option::ArgStatus Arg::NonNegative(const option::Option& opt, bool msg)
 {
-    char *endptr;
-    if (opt.arg != 0 && strtol(opt.arg, &endptr, 10) && *endptr == 0) {
-        return option::ARG_OK;
+    char *p = 0;
+    if (opt.arg) {
+        double v = strtol(opt.arg, &p, 10);
+        if (p != opt.arg && !*p && v >= 0) {
+            return option::ARG_OK;
+        }
     }
 
     if (msg) {
         (std::cerr << "Option ").write(opt.name, opt.namelen)
-                    << " requires a numeric argument\n";
+                    << " requires a nonnegative numeric argument\n";
     }
     return option::ARG_ILLEGAL;
 }
