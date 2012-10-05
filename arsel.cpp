@@ -69,38 +69,33 @@ int main(int argc, char *argv[])
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
-        struct Guard // scoped_array or unique_ptr would add dependencies
-        {
-            option::Option *options;
-            Guard(unsigned n) : options(new option::Option[n]) {}
-            ~Guard() { delete[] options; }
-        } g(stats.options_max + stats.buffer_max);
+        vector<option::Option> options(stats.options_max + stats.buffer_max);
 
         option::Parser parse(usage, argc-(argc>0), argv+(argc>0),
-                             g.options, g.options + stats.options_max);
+                             &options[0], &options[stats.options_max]);
 
-        if (parse.error() || g.options[UNKNOWN]) {
-            for (option::Option* o = g.options[UNKNOWN]; o; o = o->next()) {
+        if (parse.error() || options[UNKNOWN]) {
+            for (option::Option* o = options[UNKNOWN]; o; o = o->next()) {
                 cerr << "Unknown option: " << o->name << "\n";
             }
             return EXIT_FAILURE;
         }
 
-        if (g.options[HELP]) {
+        if (options[HELP]) {
             printUsage(cout, usage);
             return EXIT_SUCCESS;
         }
 
-        if (g.options[CRITERION])
-            criterion = g.options[CRITERION].last()->arg;
+        if (options[CRITERION])
+            criterion = options[CRITERION].last()->arg;
 
-        if (g.options[SUBMEAN])
+        if (options[SUBMEAN])
             subtract_mean = true;
 
-        if (g.options[MAXORDER])
-            order = (size_t) strtol(g.options[MAXORDER].last()->arg, NULL, 10);
+        if (options[MAXORDER])
+            order = (size_t) strtol(options[MAXORDER].last()->arg, NULL, 10);
 
-        if (g.options[ABSRHO])
+        if (options[ABSRHO])
             absolute_rho = true;
     }
 
