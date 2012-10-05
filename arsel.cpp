@@ -34,7 +34,7 @@ struct Arg : public option::Arg
 };
 
 // Command line argument declarations for optionparser.h usage
-enum OptionIndex { UNKNOWN, CRITERION, HELP, SUBMEAN, ORDER, SIGNRHO };
+enum OptionIndex { UNKNOWN, CRITERION, HELP, SUBMEAN, MAXORDER, ABSRHO };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
@@ -42,16 +42,16 @@ const option::Descriptor usage[] = {
      "\n"
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
+    {ABSRHO,    0,  "a",  "absolute-rho",   Arg::None,
+     "  -a \t--absolute-rho   \tUse absolute autocorrelation when computing T0" },
     {CRITERION, 0,  "c",  "criterion",     Arg::NonEmpty,
      "  -c \t--criterion=ABBREV  \tUse the specified model order selection criterion" },
     {HELP,      0,  "h", "help",           Arg::None,
-     "  -h \t--help        \tDisplay this help message and immediately exit" },
-    {SUBMEAN,   0,  "m",  "subtract-mean", Arg::None,
-     "  -m \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
-    {ORDER,     0,  "o",  "order",         Arg::NonNegative,
-     "  -o \t--order=MAXIMUM  \tConsider models no higher than the given order" },
-    {SIGNRHO,   0,  "r",  "signed-rho",    Arg::None,
-     "  -r \t--signed-rho     \tUse signed autocorrelation values when computing T0" },
+     "  -h \t--help   \tDisplay this help message and immediately exit" },
+    {MAXORDER,  0,  "m",  "order",         Arg::NonNegative,
+     "  -m \t--maxorder=P  \tConsider models of at most order AR(p=P)" },
+    {SUBMEAN,   0,  "s",  "subtract-mean", Arg::None,
+     "  -s \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
     {0,0,0,0,0,0}
 };
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     string criterion     = "CIC";
     bool   subtract_mean = false;
     size_t order         = 512;
-    bool   absolute_rho  = true;
+    bool   absolute_rho  = false;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -97,11 +97,11 @@ int main(int argc, char *argv[])
         if (g.options[SUBMEAN])
             subtract_mean = true;
 
-        if (g.options[ORDER])
-            order = (size_t) strtol(g.options[ORDER].last()->arg, NULL, 10);
+        if (g.options[MAXORDER])
+            order = (size_t) strtol(g.options[MAXORDER].last()->arg, NULL, 10);
 
-        if (g.options[SIGNRHO])
-            absolute_rho = false;
+        if (g.options[ABSRHO])
+            absolute_rho = true;
     }
 
     // Look up desired model selection criterion using ar::best_model_function
