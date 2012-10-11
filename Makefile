@@ -1,3 +1,5 @@
+# GNU-compatible toolchain assumed
+
 HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
 HOWFAST   ?= -g -O3 -DNDEBUG -funsafe-math-optimizations # Not finite-math-only!
 # HOWFAST ?= -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
@@ -5,10 +7,19 @@ CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
 
 all:     zohar example test arsel
 
-zohar:   zohar.cpp   ar.hpp
-example: example.cpp ar.hpp
-test:    test.cpp    ar.hpp
-arsel:   arsel.cpp   ar.hpp
+CC = $(CXX) # Force compilation and linking with C++ compiler
+
+zohar.o:   zohar.cpp   ar.hpp
+zohar:     zohar.o
+
+example.o: example.cpp ar.hpp
+example:   example.o
+
+test.o:    test.cpp    ar.hpp
+test:      test.o
+
+arsel.o:   arsel.cpp   ar.hpp
+arsel:     arsel.o
 
 clean:
 	rm -f example zohar test arsel *.o
