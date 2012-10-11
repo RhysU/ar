@@ -5,4 +5,4 @@ compiler:
 before_script:
   - sudo apt-get -qq update
   - sudo apt-get -qq install octave
-script: make && make check
+script: make && make check && make stress
