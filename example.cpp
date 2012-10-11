@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
     printf("%2s  %9s %9s %s\n", "--", "-----", "----", "-------------------");
     for (size_t p = 0, c = 0; p <= maxorder; ++p)
     {
-        printf("%2lu  %9.2Le %9.2Le [ 1 ", p, sigma2e[p], gain[p]);
+        printf("%2lu  %9.2Le %9.2Le [ 1 ", static_cast<unsigned long>(p),
+                                           sigma2e[p], gain[p]);
         for (size_t i = 0; i < p; ++i)
             printf(" %8.4Lg", params[c++]);
         printf(" ]\n");
