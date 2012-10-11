@@ -4,5 +4,5 @@ compiler:
   - clang
 before_script:
   - sudo apt-get -qq update
-  - sudo apt-get -qq install octave
+  - sudo apt-get -qq install octave3.2 octave3.2-headers
 script: make && make check && make stress
