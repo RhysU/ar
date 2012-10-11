@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
 
     // Estimate process parameters using Burg's method
     printf("Estimating at most an AR(%lu) model using %lu samples\n\n",
-           maxorder, N);
+           static_cast<unsigned long>(maxorder),
+           static_cast<unsigned long>(N));
 
     long double mean;
     vector<long double> params, sigma2e, gain, autocor;
