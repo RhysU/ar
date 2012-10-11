@@ -54,7 +54,7 @@ stress: test
 
 # Expose functionality through GNU Octave when mkoctfile available
 MKOCTFILE ?= $(shell which mkoctfile)
-ifdef MKOCTFILE
+ifneq "$(MKOCTFILE)" ""
 
 all:      octfiles
 OCTFILES := $(patsubst %-octfile.cpp,%.oct,$(wildcard *-octfile.cpp))
