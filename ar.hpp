@@ -844,7 +844,7 @@ private:
  * @param autocor_first Beginning of range containing \f$\rho_0,...\rho_p\f$.
  *
  * @return An InputIterator across the autocorrelation function starting with
- *         \f$rho_0\f$.
+ *         \f$\rho_0\f$.
  */
 template <class RandomAccessIterator,
           class InputIterator,
