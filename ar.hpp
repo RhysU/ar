@@ -312,7 +312,7 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
  *         ..., AR(maxorder) are output.  Notice AR(0) has no parameters.
  *         </li>
  * </ul>
- * Note that the latter case is \e always computed;  The \c hierarchy flag
+ * Note that the latter case is \e always computed; the \c hierarchy flag
  * merely controls what is output.  In both cases, the maximum order is limited
  * by the number of data samples provided and is output to \c maxorder.
  *
