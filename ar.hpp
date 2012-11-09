@@ -317,15 +317,16 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
  * by the number of data samples provided and is output to \c maxorder.
  *
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
- * innovation variance, and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$ are
- * output for each model, including the trivial zeroth order model when \c
- * maxorder is zero or \c hierarchy is \c true, using \c sigma2e_first and \c
- * gain_first.  The autocorrelations for lags <tt>[0,k]</tt> are output using
- * \c autocor_first.  When \c hierarchy is \c true, only lags <tt>[0,m]</tt>
- * should be applied for some AR(<tt>m</tt>) model.  Outputting the lag \c k
- * autocorrelation is technically redundant as it may be computed from
- * \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.  Autocovariances may be computed by
- * multiplying the autocorrelations by \f$\text{gain} \sigma^2_\epsilon\f$.
+ * innovation variance, and gain, defined to be \f$\sigma^2_x /
+ * \sigma^2_\epsilon\f$, are output for each model, including the trivial
+ * zeroth order model when \c maxorder is zero or \c hierarchy is \c true,
+ * using \c sigma2e_first and \c gain_first.  The autocorrelations for lags
+ * <tt>[0,k]</tt> are output using \c autocor_first.  When \c hierarchy is \c
+ * true, only lags <tt>[0,m]</tt> should be applied for some AR(<tt>m</tt>)
+ * model.  Outputting the lag \c k autocorrelation is technically redundant as
+ * it may be computed from \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.
+ * Autocovariances may be computed by multiplying the autocorrelations by the
+ * gain times \f$\sigma^2_\epsilon\f$.
  *
  * The implementation has been refactored from Cedrick Collomb's 2009 article
  * <a
