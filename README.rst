@@ -96,6 +96,7 @@ turbulence signal::
 	# N         1753
 	# AR(p)     6
 	# sigma2eps 8.337493313975753e-09
+	# sigma2x   3.5429372570302953e-05
 	# submean   true
 	# T0        62.186734538790766
 	+1

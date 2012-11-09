@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
          << "\n# N         " << N
          << "\n# AR(p)     " << params.size()
          << "\n# sigma2eps " << sigma2e[0]
+         << "\n# sigma2x   " << gain[0]*sigma2e[0]
          << "\n# submean   " << subtract_mean
          << "\n# T0        " << T0
          << noboolalpha
