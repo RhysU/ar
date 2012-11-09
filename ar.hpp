@@ -46,7 +46,9 @@
  *     &
  *     \epsilon_n &\sim{} N\left(0, \sigma^2_\epsilon\right)
  *     \\
- *     \rho_0 + a_1 \rho_{1} + \dots + a_p \rho_{p} &= \sigma^2_\epsilon
+ *     \sigma^2_x \left(
+ *        \rho_0 + a_1 \rho_{1} + \dots + a_p \rho_{p}
+ *     \right) &= \sigma^2_\epsilon
  *     &
  *     \rho_0 &= 1
  *     \\
@@ -55,8 +57,10 @@
  *     k &\geq{} p
  * \f}
  * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
- * and \f$\rho_i\f$ are the lag \f$i\f$ autocorrelations.  The model has output
- * variance \f$\sigma^2_x\f$ and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$.
+ * and \f$\rho_i\f$ are the lag \f$i\f$ autocorrelations.  The white noise
+ * input process \f$\epsilon_n\f$ has variance \f$\sigma^2_\epsilon\f$.  The
+ * model has output variance \f$\sigma^2_x\f$ and therefore a gain equal to
+ * \f$\sigma^2_x / \sigma^2_\epsilon\f$.
  */
 namespace ar
 {
@@ -317,7 +321,7 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
  * by the number of data samples provided and is output to \c maxorder.
  *
  * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
- * innovation variance, and gain, defined to be \f$\sigma^2_x /
+ * innovation variance, and gain, defined as \f$\sigma^2_x /
  * \sigma^2_\epsilon\f$, are output for each model, including the trivial
  * zeroth order model when \c maxorder is zero or \c hierarchy is \c true,
  * using \c sigma2e_first and \c gain_first.  The autocorrelations for lags
