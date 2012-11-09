@@ -55,7 +55,7 @@
  *     k &\geq{} p
  * \f}
  * where \f$x_i\f$ are the process values, \f$a_i\f$ are the model parameters,
- * \f$\rho_i\f$ and are the lag \f$i\f$ autocorrelations.  The model has output
+ * and \f$\rho_i\f$ are the lag \f$i\f$ autocorrelations.  The model has output
  * variance \f$\sigma^2_x\f$ and gain \f$\sigma^2_x / \sigma^2_\epsilon\f$.
  */
 namespace ar
