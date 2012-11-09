@@ -68,10 +68,11 @@ DEFUN_DLD(
     "\tThe number of samples in data (i.e. the number of rows) is returned\n"
     "\tin field 'N'.  The filter()-ready process parameters are returned\n"
     "\tin field 'AR', the sample mean in 'mu', and the innovation variance\n"
-    "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process gains are returned\n"
-    "\tin 'gain' and the autocorrelation boundary conditions in 'autocor'\n"
-    "\tfor lags zero through the model order, inclusive.  The raw signals\n"
-    "\tare made available for later use in 'data'.\n"
+    "\t\\sigma^2_\\epsilon in 'sigma2eps'.  The process output variance\n"
+    "\t\\sigma^2_\\x and process gain are returned in 'sigma2x' and 'gain',\n"
+    "\trespectively.  Autocorrelations for lags zero through the model\n"
+    "\torder, inclusive, are returned in 'autocor'.  The raw signals are\n"
+    "\tmade available for later use in 'data'.\n"
     "\t\n"
     "\tGiven the observed autocorrelation structure, a decorrelation time\n"
     "\t'T0' is computed by ar::decorrelation_time and used to estimate\n"
@@ -143,6 +144,7 @@ DEFUN_DLD(
     ColumnVector _mu       (M);
     ColumnVector _mu_sigma (M);
     ColumnVector _sigma2eps(M);
+    ColumnVector _sigma2x  (M);
     ColumnVector _T0       (M);
 
     // Prepare vectors to capture burg_method() output
@@ -194,6 +196,9 @@ DEFUN_DLD(
         // Field 'gain'
         _gain(i) = gain[0];
 
+        // Field 'sigma2x'
+        _sigma2x(i) = gain[0]*sigma2e[0];
+
         // Field 'autocor'
         {
             RowVector t(autocor.size());
@@ -238,6 +243,7 @@ DEFUN_DLD(
     retval.assign("mu_sigma",  _mu_sigma);
     retval.assign("N",         octave_value(N));
     retval.assign("sigma2eps", _sigma2eps);
+    retval.assign("sigma2x",   _sigma2x);
     retval.assign("submean",   octave_value(submean));
     retval.assign("T0",        _T0);
 
