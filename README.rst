@@ -191,19 +191,24 @@ Contents
 Todo
 ----
 
-1. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
+1. Somehow monitor that T0 has indeed converged when computing
+   ar::decorrelation_time(...).  Currently up to some maximum autocorrelation
+   time is computed, but there's no check to indicate whether or not the value
+   provided was large enough.
+
+2. To find the lag 1, ..., p-1 autocorrelation boundary conditions given only
    process parameters, implement a ``Wule-Yalker`` solver based on the
    WuleYalker.tex write up using the Toeplitz-plus-Hankel solver approach due
    to [Merchant1982] which employs [Akaike1973].  The double Levinson recursion
    discussed by [Broersen2006] section 5.4 appears to be too numerically
    unstable to use in practice without requiring O(n^2) memory.
 
-2. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
+3. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
    based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].  This
    should reduce the sensitivity to phase shifted input signals when working
    with small data sets.
 
-3. Revisit arcov-octfile.cpp to ensure the formulas used for the Octave
+4. Revisit arcov-octfile.cpp to ensure the formulas used for the Octave
    arcov(...) function are correct.  As is, the results are suspect.  Compare
    the arcov(...) results versus the 'mu_sigma' output of arsel(...).
 
