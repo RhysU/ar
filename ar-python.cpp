@@ -4,6 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// TODO Figure out building extensions in C++ mode
+
+// TODO Trim includes to a minimal set
 #include <algorithm>
 #include <cstdlib>
 #include <iterator>
@@ -80,12 +83,16 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
     int         submean   = DEFAULT_SUBMEAN;
     int         absrho    = DEFAULT_ABSRHO;
     const char *criterion = DEFAULT_CRITERION;
-    long        maxorder  = DEFAULT_MAXORDER;
+    std::size_t maxorder  = DEFAULT_MAXORDER;
 
     // Parse input tuple with second and subsequent arguments optional
-    if (!PyArg_ParseTuple(args, "O|iisl", &data_obj, &submean, &absrho,
-                                          &criterion, &maxorder)) {
-        return NULL;
+    {
+        unsigned long ul_maxorder = maxorder;
+        if (!PyArg_ParseTuple(args, "O|iisk", &data_obj, &submean, &absrho,
+                                            &criterion, &ul_maxorder)) {
+            return NULL;
+        }
+        maxorder = ul_maxorder;
     }
 
     // Lookup the desired model selection criterion
@@ -109,18 +116,18 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
     }
 
     // How many data points are there?
-    const npy_intp M = PyArray_DIM(data, 0);
-    const npy_intp N = PyArray_DIM(data, 1);
+    npy_intp M = PyArray_DIM(data, 0);
+    npy_intp N = PyArray_DIM(data, 1);
 
     // Prepare per-signal storage locations to return to caller
     // TODO Ensure these invocations all worked as expected
     PyObject *_AR        = PyList_New(M);
-    for (npy_intp i = 0; i < M; ++i) {
-        PyList_SetItem(_AR, i, PyList_New(0));
+    for (npy_intp k = 0; k < M; ++k) {
+        PyList_SetItem(_AR, k, PyList_New(0));
     }
     PyObject *_autocor   = PyList_New(M);
-    for (npy_intp i = 0; i < M; ++i) {
-        PyList_SetItem(_autocor, i, PyList_New(0));
+    for (npy_intp k = 0; k < M; ++k) {
+        PyList_SetItem(_autocor, k, PyList_New(0));
     }
     PyObject *_eff_N     = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
     PyObject *_eff_var   = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
@@ -155,7 +162,9 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
         ar::strided_adaptor<const double*> signal_end  (
                 (const double*) PyArray_GETPTR2(data, i, N),
                 PyArray_STRIDES(data)[1] / sizeof(double));
-        ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
+        ar::burg_method(signal_begin, signal_end,
+                        *(double*)PyArray_GETPTR1(_mu, i),
+                        maxorder,
                         std::back_inserter(params),
                         std::back_inserter(sigma2e),
                         std::back_inserter(gain),
@@ -173,9 +182,9 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
 
         // Filter()-ready process parameters in field 'AR' with leading one
         PyList_Append(_AR, PyFloat_FromDouble(1));
-        for (std::vector<double>::iterator i = params.begin();
-                i != params.end(); ++i) {
-            PyList_Append(_AR, PyFloat_FromDouble(*i));
+        for (std::vector<double>::iterator k = params.begin();
+                k != params.end(); ++k) {
+            PyList_Append(_AR, PyFloat_FromDouble(*k));
         }
 
         // Field 'sigma2eps'
@@ -196,15 +205,17 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
         // Field 'eff_var'
         // Unbiased effective variance expression from [Trenberth1984]
         *(double*)PyArray_GETPTR1(_eff_var, i)
-            = (N*gain[0]*sigma2e[0]) / (N - _T0(i));
+            = (N*gain[0]*sigma2e[0]) / (N - *(double*)PyArray_GETPTR1(_T0, i));
 
         // Field 'eff_N'
-        *(double*)PyArray_GETPTR1(_eff_N, i) = N / _T0(i);
+        *(double*)PyArray_GETPTR1(_eff_N, i)
+            = N / *(double*)PyArray_GETPTR1(_T0, i);
 
         // Field 'mu_sigma'
         // Variance of the sample mean using effective quantities
         *(double*)PyArray_GETPTR1(_mu_sigma, i)
-            = std::sqrt(_eff_var(i) / _eff_N(i));
+            = std::sqrt(   *(double*)PyArray_GETPTR1(_eff_var, i)
+                         / *(double*)PyArray_GETPTR1(_eff_N,   i));
 
         // TODO Permit user to interrupt the computations at this time
     }
@@ -274,7 +285,7 @@ static PyMethodDef ar_methods[] = {
 static const char ar_docstring[] = "Autoregressive process modeling tools";
 
 // Initialize the module, including making NumPy available
-PyMODINIT_FUNC init_ar(void)
+PyMODINIT_FUNC initar(void)
 {
     if (!Py_InitModule3("ar", ar_methods, ar_docstring)) return;
     import_array();
