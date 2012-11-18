@@ -4,8 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+#include <cstdlib>
+#include <iterator>
+#include <limits>
+#include <list>
+#include <string>
+#include <vector>
+
 #include <Python.h>
 #include <numpy/arrayobject.h>
+
 #include "ar.hpp"
 
 // Compile-time defaults in the code also appearing in arsel docstring
@@ -66,53 +75,193 @@ static const char ar_arsel_docstring[] =
 
 static PyObject *ar_arsel(PyObject *self, PyObject *args)
 {
-    double m, b;
-    PyObject *x_obj, *y_obj, *yerr_obj;
+    // Prepare argument storage with default values
+    PyObject   *data_obj  = NULL;
+    int         submean   = DEFAULT_SUBMEAN;
+    int         absrho    = DEFAULT_ABSRHO;
+    const char *criterion = DEFAULT_CRITERION;
+    long        maxorder  = DEFAULT_MAXORDER;
 
-    /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "ddOOO", &m, &b, &x_obj, &y_obj,
-                                         &yerr_obj))
-        return NULL;
-
-    /* Interpret the input objects as numpy arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *yerr_array = PyArray_FROM_OTF(yerr_obj, NPY_DOUBLE,
-                                            NPY_IN_ARRAY);
-
-    /* If that didn't work, throw an exception. */
-    if (x_array == NULL || y_array == NULL || yerr_array == NULL) {
-        Py_XDECREF(x_array);
-        Py_XDECREF(y_array);
-        Py_XDECREF(yerr_array);
+    // Parse input tuple with second and subsequent arguments optional
+    if (!PyArg_ParseTuple(args, "O|iisl", &data_obj, &submean, &absrho,
+                                          &criterion, &maxorder)) {
         return NULL;
     }
 
-    /* How many data points are there? */
-    int N = (int)PyArray_DIM(x_array, 0);
-
-    /* Get pointers to the data as C-types. */
-    double *x    = (double*)PyArray_DATA(x_array);
-    double *y    = (double*)PyArray_DATA(y_array);
-    double *yerr = (double*)PyArray_DATA(yerr_array);
-
-    /* Call the external C function to compute the chi-squared. */
-    double value = chi2(m, b, x, y, yerr, N);
-
-    /* Clean up. */
-    Py_DECREF(x_array);
-    Py_DECREF(y_array);
-    Py_DECREF(yerr_array);
-
-    if (value < 0.0) {
+    // Lookup the desired model selection criterion
+    typedef ar::best_model_function<
+            ar::Burg,npy_intp,std::vector<double> > best_model_function;
+    const best_model_function::type best_model
+            = best_model_function::lookup(std::string(criterion), submean);
+    if (!best_model) {
         PyErr_SetString(PyExc_RuntimeError,
-                    "Chi-squared returned an impossible value.");
+            "Unknown model selection criterion provided to arsel.");
         return NULL;
     }
 
-    /* Build the output tuple */
-    PyObject *ret = Py_BuildValue("d", value);
+    // Incoming data may be noncontiguous but should otherwise be well-behaved
+    // On success, 'data' is returned so Py_DECREF is applied only on failure
+    PyObject *data = PyArray_FROMANY(data_obj, NPY_DOUBLE, 2, 2,
+            NPY_ALIGNED | NPY_ELEMENTSTRIDES | NPY_NOTSWAPPED);
+    if (!data) {
+        Py_DECREF(data);
+        return NULL;
+    }
+
+    // How many data points are there?
+    const npy_intp M = PyArray_DIM(data, 0);
+    const npy_intp N = PyArray_DIM(data, 1);
+
+    // Prepare per-signal storage locations to return to caller
+    // TODO Ensure these invocations all worked as expected
+    PyObject *_AR        = PyList_New(M);
+    for (npy_intp i = 0; i < M; ++i) {
+        PyList_SetItem(_AR, i, PyList_New(0));
+    }
+    PyObject *_autocor   = PyList_New(M);
+    for (npy_intp i = 0; i < M; ++i) {
+        PyList_SetItem(_autocor, i, PyList_New(0));
+    }
+    PyObject *_eff_N     = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_eff_var   = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_gain      = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_mu        = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_mu_sigma  = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_sigma2eps = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_sigma2x   = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+    PyObject *_T0        = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
+
+    // Prepare vectors to capture burg_method() output
+    std::vector<double> params, sigma2e, gain, autocor;
+    params .reserve(maxorder*(maxorder + 1)/2);
+    sigma2e.reserve(maxorder + 1);
+    gain   .reserve(maxorder + 1);
+    autocor.reserve(maxorder + 1);
+
+    // Prepare repeatedly-used working storage for burg_method()
+    std::vector<double> f, b, Ak, ac;
+
+    // Process each signal in turn...
+    for (npy_intp i = 0; i < M; ++i)
+    {
+        // Use burg_method to estimate a hierarchy of AR models from input data
+        params .clear();
+        sigma2e.clear();
+        gain   .clear();
+        autocor.clear();
+        ar::strided_adaptor<const double*> signal_begin(
+                (const double*) PyArray_GETPTR2(data, i, 0),
+                PyArray_STRIDES(data)[1] / sizeof(double));
+        ar::strided_adaptor<const double*> signal_end  (
+                (const double*) PyArray_GETPTR2(data, i, N),
+                PyArray_STRIDES(data)[1] / sizeof(double));
+        ar::burg_method(signal_begin, signal_end, _mu(i), maxorder,
+                        std::back_inserter(params),
+                        std::back_inserter(sigma2e),
+                        std::back_inserter(gain),
+                        std::back_inserter(autocor),
+                        submean, /* output hierarchy? */ true, f, b, Ak, ac);
+
+        // Keep only best model per chosen criterion via function pointer
+        best_model(N, params, sigma2e, gain, autocor);
+
+        // Compute decorrelation time from the estimated autocorrelation model
+        ar::predictor<double> p = ar::autocorrelation(
+                params.begin(), params.end(), gain[0], autocor.begin());
+        *(double*)PyArray_GETPTR1(_T0, i)
+            = ar::decorrelation_time(N, p, absrho);
+
+        // Filter()-ready process parameters in field 'AR' with leading one
+        PyList_Append(_AR, PyFloat_FromDouble(1));
+        for (std::vector<double>::iterator i = params.begin();
+                i != params.end(); ++i) {
+            PyList_Append(_AR, PyFloat_FromDouble(*i));
+        }
+
+        // Field 'sigma2eps'
+        *(double*)PyArray_GETPTR1(_sigma2eps, i) = sigma2e[0];
+
+        // Field 'gain'
+        *(double*)PyArray_GETPTR1(_gain, i) = gain[0];
+
+        // Field 'sigma2x'
+        *(double*)PyArray_GETPTR1(_sigma2x, i) = gain[0]*sigma2e[0];
+
+        // Field 'autocor'
+        for (std::vector<double>::iterator i = autocor.begin();
+                i != autocor.end(); ++i) {
+            PyList_Append(_autocor, PyFloat_FromDouble(*i));
+        }
+
+        // Field 'eff_var'
+        // Unbiased effective variance expression from [Trenberth1984]
+        *(double*)PyArray_GETPTR1(_eff_var, i)
+            = (N*gain[0]*sigma2e[0]) / (N - _T0(i));
+
+        // Field 'eff_N'
+        *(double*)PyArray_GETPTR1(_eff_N, i) = N / _T0(i);
+
+        // Field 'mu_sigma'
+        // Variance of the sample mean using effective quantities
+        *(double*)PyArray_GETPTR1(_mu_sigma, i)
+            = std::sqrt(_eff_var(i) / _eff_N(i));
+
+        // TODO Permit user to interrupt the computations at this time
+    }
+
+    // Allocate the dictionary returned by the method
+    PyObject *ret = PyDict_New();
+    if (!ret) goto fail;
+
+    // Arguments preserved as outputs
+    // TODO Ensure these invocations all worked as expected
+    PyDict_SetItemString(ret, "data"     , data);
+    PyDict_SetItemString(ret, "submean"  , PyBool_FromLong(submean));
+    PyDict_SetItemString(ret, "absrho"   , PyBool_FromLong(absrho));
+    PyDict_SetItemString(ret, "criterion", PyString_FromString(criterion));
+    PyDict_SetItemString(ret, "maxorder" , PyLong_FromLong(maxorder));
+    PyDict_SetItemString(ret, "N"        , PyLong_FromLong(N));
+
+    // Computed results
+    // TODO Ensure these invocations all worked as expected
+    PyDict_SetItemString(ret, "AR"       , _AR       );
+    PyDict_SetItemString(ret, "autocor"  , _autocor  );
+    PyDict_SetItemString(ret, "eff_N"    , _eff_N    );
+    PyDict_SetItemString(ret, "eff_var"  , _eff_var  );
+    PyDict_SetItemString(ret, "gain"     , _gain     );
+    PyDict_SetItemString(ret, "mu"       , _mu       );
+    PyDict_SetItemString(ret, "mu_sigma" , _mu_sigma );
+    PyDict_SetItemString(ret, "sigma2eps", _sigma2eps);
+    PyDict_SetItemString(ret, "sigma2x"  , _sigma2x  );
+    PyDict_SetItemString(ret, "T0"       , _T0       );
+
     return ret;
+
+fail:
+    Py_XDECREF(data);
+    if (_AR) {
+        const Py_ssize_t nelem = PyList_Size(_AR);
+        for (Py_ssize_t i = 0; i < nelem; ++i) {
+            Py_XDECREF(PyList_GetItem(_AR, i));
+        }
+        Py_DECREF(_AR);
+    }
+    if (_autocor) {
+        const Py_ssize_t nelem = PyList_Size(_autocor);
+        for (Py_ssize_t i = 0; i < nelem; ++i) {
+            Py_XDECREF(PyList_GetItem(_autocor, i));
+        }
+        Py_DECREF(_autocor);
+    }
+    Py_XDECREF(_eff_N);
+    Py_XDECREF(_eff_var);
+    Py_XDECREF(_gain);
+    Py_XDECREF(_mu);
+    Py_XDECREF(_mu_sigma);
+    Py_XDECREF(_sigma2eps);
+    Py_XDECREF(_sigma2x);
+    Py_XDECREF(_T0);
+    return NULL;
 }
 
 // Specification of methods available in the module
