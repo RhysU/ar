@@ -1,10 +1,12 @@
-from distutils.core import setup, Extension
-
+import distutils.core
 import numpy.distutils.misc_util
 
-ar = Extension('ar', sources = ['ar-python.cpp'])
-
-setup(name = 'ar',
-      url = 'http://rhysu.github.com/ar/',
-      ext_modules = [ar],
-      include_dirs = numpy.distutils.misc_util.get_numpy_include_dirs())
+distutils.core.setup(name = 'ar',
+    url = 'http://rhysu.github.com/ar/',
+    ext_modules = [
+        distutils.core.Extension(
+            'ar',
+            sources = ['ar-python.cpp'])
+    ],
+    include_dirs = numpy.distutils.misc_util.get_numpy_include_dirs()
+)
