@@ -68,3 +68,17 @@ octfiles-clean:
 	rm -f $(OCTFILES)
 
 endif
+
+# Expose functionality as a Python module called 'ar' when possible
+PYTHON ?= $(shell which python)
+ifneq "$(PYTHON)" ""
+
+all:   ar.so
+ar.so: ar-python.cpp ar.hpp setup.py
+	$(PYTHON) setup.py build_ext --inplace --build-temp python-build
+
+clean: python-clean
+python-clean:
+	rm -rf ar.so python-build
+
+endif

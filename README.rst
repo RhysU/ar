@@ -138,6 +138,7 @@ Contents
 *Makefile*
    Try ``make`` followed by ``make check``.  On Linux, try ``make stress`` to
    examine the implementation's performance when piping in plain text data.
+   Octave and/or Python functionality also will be built in-place when possible.
 
 *ar.hpp*
   The standalone header implementing all algorithms.  Complete API
@@ -154,6 +155,10 @@ Contents
    ("Dynamically Linked Functions") within [Octave] for implementation details.
    Also demonstrates how working storage may be reused across multiple
    invocations to reduce the number of allocations for processing data sets.
+
+*ar-python.cpp*, *setup.py*
+   Provides some functionality as a Python extension module called 'ar'.
+   This is modeled after the Octave wrapper but is not yet as robust.
 
 *test.cpp*
    A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].
