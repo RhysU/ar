@@ -76,7 +76,7 @@ static const char ar_arsel_docstring[] =
 "    When omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 ;
 
-static PyObject *ar_arsel(PyObject *self, PyObject *args)
+extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 {
     // Prepare argument storage with default values
     PyObject   *data_obj  = NULL;
@@ -197,9 +197,9 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
         *(double*)PyArray_GETPTR1(_sigma2x, i) = gain[0]*sigma2e[0];
 
         // Field 'autocor'
-        for (std::vector<double>::iterator i = autocor.begin();
-                i != autocor.end(); ++i) {
-            PyList_Append(_autocor, PyFloat_FromDouble(*i));
+        for (std::vector<double>::iterator k = autocor.begin();
+                k != autocor.end(); ++k) {
+            PyList_Append(_autocor, PyFloat_FromDouble(*k));
         }
 
         // Field 'eff_var'
@@ -225,6 +225,7 @@ static PyObject *ar_arsel(PyObject *self, PyObject *args)
     if (!ret) goto fail;
 
     // Arguments preserved as outputs
+    // TODO Use Py_BuildValue here?
     // TODO Ensure these invocations all worked as expected
     PyDict_SetItemString(ret, "data"     , data);
     PyDict_SetItemString(ret, "submean"  , PyBool_FromLong(submean));
@@ -285,7 +286,7 @@ static PyMethodDef ar_methods[] = {
 static const char ar_docstring[] = "Autoregressive process modeling tools";
 
 // Initialize the module, including making NumPy available
-PyMODINIT_FUNC initar(void)
+extern "C" PyMODINIT_FUNC initar(void)
 {
     if (!Py_InitModule3("ar", ar_methods, ar_docstring)) return;
     import_array();
