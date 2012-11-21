@@ -86,7 +86,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     {
         unsigned long ul_maxorder = maxorder;
         if (!PyArg_ParseTuple(args, "O|iisk", &data_obj, &submean, &absrho,
-                                            &criterion, &ul_maxorder)) {
+                                              &criterion, &ul_maxorder)) {
             return NULL;
         }
         maxorder = ul_maxorder;
@@ -179,11 +179,11 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 
         // Filter()-ready process parameters in field 'AR' with leading one
         {
-            PyObject *ARi = PyList_GET_ITEM(_AR, i);
-            PyList_Append(ARi, PyFloat_FromDouble(1));
+            PyObject *_ARi = PyList_GET_ITEM(_AR, i);
+            PyList_Append(_ARi, PyFloat_FromDouble(1));
             for (std::vector<double>::iterator k = params.begin();
-                    k != params.end(); ++k) {
-                PyList_Append(ARi, PyFloat_FromDouble(*k));
+                 k != params.end(); ++k) {
+                PyList_Append(_ARi, PyFloat_FromDouble(*k));
             }
         }
 
@@ -197,9 +197,12 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
         *(double*)PyArray_GETPTR1(_sigma2x, i) = gain[0]*sigma2e[0];
 
         // Field 'autocor'
-        for (std::vector<double>::iterator k = autocor.begin();
-                k != autocor.end(); ++k) {
-            PyList_Append(_autocor, PyFloat_FromDouble(*k));
+        {
+            PyObject *_autocori = PyList_GET_ITEM(_autocor, i);
+            for (std::vector<double>::iterator k = autocor.begin();
+                 k != autocor.end(); ++k) {
+                PyList_Append(_autocori, PyFloat_FromDouble(*k));
+            }
         }
 
         // Field 'eff_var'
@@ -216,8 +219,6 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
         *(double*)PyArray_GETPTR1(_mu_sigma, i)
             = std::sqrt(   *(double*)PyArray_GETPTR1(_eff_var, i)
                          / *(double*)PyArray_GETPTR1(_eff_N,   i));
-
-        // TODO Permit user to interrupt the computations at this time
     }
 
     // Allocate the dictionary returned by the method
@@ -225,14 +226,13 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     if (!ret) goto fail;
 
     // Arguments preserved as outputs
-    // TODO Use Py_BuildValue here?
     // TODO Ensure these invocations all worked as expected
     PyDict_SetItemString(ret, "data"     , data);
     PyDict_SetItemString(ret, "submean"  , PyBool_FromLong(submean));
     PyDict_SetItemString(ret, "absrho"   , PyBool_FromLong(absrho));
     PyDict_SetItemString(ret, "criterion", PyString_FromString(criterion));
-    PyDict_SetItemString(ret, "maxorder" , PyLong_FromLong(maxorder));
-    PyDict_SetItemString(ret, "N"        , PyLong_FromLong(N));
+    PyDict_SetItemString(ret, "maxorder" , PyInt_FromSize_t(maxorder));
+    PyDict_SetItemString(ret, "N"        , PyInt_FromLong(N));
 
     // Computed results
     // TODO Ensure these invocations all worked as expected
