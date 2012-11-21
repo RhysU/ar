@@ -268,20 +268,8 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 
 fail:
     Py_XDECREF(data);
-    if (_AR) {
-        const Py_ssize_t nelem = PyList_Size(_AR);
-        for (Py_ssize_t i = 0; i < nelem; ++i) {
-            Py_XDECREF(PyList_GetItem(_AR, i));
-        }
-        Py_DECREF(_AR);
-    }
-    if (_autocor) {
-        const Py_ssize_t nelem = PyList_Size(_autocor);
-        for (Py_ssize_t i = 0; i < nelem; ++i) {
-            Py_XDECREF(PyList_GetItem(_autocor, i));
-        }
-        Py_DECREF(_autocor);
-    }
+    Py_XDECREF(_AR);
+    Py_XDECREF(_autocor);
     Py_XDECREF(_eff_N);
     Py_XDECREF(_eff_var);
     Py_XDECREF(_gain);
@@ -302,9 +290,18 @@ static PyMethodDef ar_methods[] = {
 // Module docstring
 static const char ar_docstring[] = "Autoregressive process modeling tools";
 
-// Initialize the module, including making NumPy available
 extern "C" PyMODINIT_FUNC initar(void)
 {
+    // Initialize the module, including making NumPy available
     if (!Py_InitModule3("ar", ar_methods, ar_docstring)) return;
     import_array();
+
+////// Use collections.namedtuple() to make a type for ar_arsel use
+////PyObject *modName = PyString_FromString((char *)"collections");
+////PyObject *mod     = PyImport_Import(modName);
+////PyObject *func    = PyObject_GetAttrString(mod,(char*)"namedtuple");
+
+////Py_DECREF(modName);
+////Py_DECREF(mod);
+////Py_DECREF(func);
 }
