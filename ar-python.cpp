@@ -15,6 +15,10 @@
 
 #include "ar.hpp"
 
+/** @file
+ * A Python extension module for exposing autoregressive model utilities.
+ */
+
 // Compile-time defaults in the code also appearing in arsel docstring
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    false
