@@ -136,13 +136,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     // Prepare per-signal storage locations to return to caller
     // TODO Ensure these invocations all worked as expected
     PyObject *_AR        = PyList_New(M);
-    for (npy_intp k = 0; k < M; ++k) {
-        PyList_SetItem(_AR, k, PyList_New(0));
-    }
     PyObject *_autocor   = PyList_New(M);
-    for (npy_intp k = 0; k < M; ++k) {
-        PyList_SetItem(_autocor, k, PyList_New(0));
-    }
     PyObject *_eff_N     = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
     PyObject *_eff_var   = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
     PyObject *_gain      = PyArray_ZEROS(1, &M, NPY_DOUBLE, 0);
@@ -195,13 +189,11 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
             = ar::decorrelation_time(N, p, absrho);
 
         // Filter()-ready process parameters in field 'AR' with leading one
-        {
-            PyObject *_ARi = PyList_GET_ITEM(_AR, i);
-            PyList_Append(_ARi, PyFloat_FromDouble(1));
-            for (std::vector<double>::iterator k = params.begin();
-                 k != params.end(); ++k) {
-                PyList_Append(_ARi, PyFloat_FromDouble(*k));
-            }
+        PyObject *_ARi = PyList_New(params.size() + 1);
+        PyList_SET_ITEM(_AR, i, _ARi);
+        PyList_SET_ITEM(_ARi, 0, PyFloat_FromDouble(1));
+        for (std::size_t k = 0; k < params.size(); ++k) {
+            PyList_SET_ITEM(_ARi, k+1, PyFloat_FromDouble(params[k]));
         }
 
         // Field 'sigma2eps'
@@ -214,12 +206,10 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
         *(double*)PyArray_GETPTR1(_sigma2x, i) = gain[0]*sigma2e[0];
 
         // Field 'autocor'
-        {
-            PyObject *_autocori = PyList_GET_ITEM(_autocor, i);
-            for (std::vector<double>::iterator k = autocor.begin();
-                 k != autocor.end(); ++k) {
-                PyList_Append(_autocori, PyFloat_FromDouble(*k));
-            }
+        PyObject *_autocori = PyList_New(autocor.size());
+        PyList_SET_ITEM(_autocor, i, _autocori);
+        for (std::size_t k = 0; k < autocor.size(); ++k) {
+            PyList_SET_ITEM(_autocori, k, PyFloat_FromDouble(autocor[k]));
         }
 
         // Field 'eff_var'
