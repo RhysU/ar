@@ -178,10 +178,13 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
             = ar::decorrelation_time(N, p, absrho);
 
         // Filter()-ready process parameters in field 'AR' with leading one
-        PyList_Append(_AR, PyFloat_FromDouble(1));
-        for (std::vector<double>::iterator k = params.begin();
-                k != params.end(); ++k) {
-            PyList_Append(_AR, PyFloat_FromDouble(*k));
+        {
+            PyObject *ARi = PyList_GET_ITEM(_AR, i);
+            PyList_Append(ARi, PyFloat_FromDouble(1));
+            for (std::vector<double>::iterator k = params.begin();
+                    k != params.end(); ++k) {
+                PyList_Append(ARi, PyFloat_FromDouble(*k));
+            }
         }
 
         // Field 'sigma2eps'
