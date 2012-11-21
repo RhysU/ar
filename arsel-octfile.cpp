@@ -17,9 +17,6 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <iterator>
-#include <limits>
-#include <list>
 #include <string>
 #include <vector>
 

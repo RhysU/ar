@@ -6,12 +6,7 @@
 
 // TODO Figure out building extensions in C++ mode
 
-// TODO Trim includes to a minimal set
-#include <algorithm>
 #include <cstdlib>
-#include <iterator>
-#include <limits>
-#include <list>
 #include <string>
 #include <vector>
 
