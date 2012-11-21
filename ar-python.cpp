@@ -105,11 +105,28 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 
     // Incoming data may be noncontiguous but should otherwise be well-behaved
     // On success, 'data' is returned so Py_DECREF is applied only on failure
-    PyObject *data = PyArray_FROMANY(data_obj, NPY_DOUBLE, 2, 2,
+    PyObject *data = PyArray_FROMANY(data_obj, NPY_DOUBLE, 1, 2,
             NPY_ALIGNED | NPY_ELEMENTSTRIDES | NPY_NOTSWAPPED);
     if (!data) {
         Py_DECREF(data);
         return NULL;
+    }
+
+    // Reshape any 1D ndarray into a 2D ndarray organized as a row vector.
+    // Permits the remainder of the routine to uniformly worry about 2D only.
+    if (1 == ((PyArrayObject *)(data))->nd) {
+        npy_intp dim[2] = { 1, PyArray_DIM(data, 0) };
+        PyArray_Dims newshape = { dim, sizeof(dim)/sizeof(dim[0]) };
+        PyObject *olddata = data;
+        data = PyArray_Newshape((PyArrayObject *)olddata,
+                                &newshape, NPY_ANYORDER);
+        Py_DECREF(olddata);
+        if (!data) {
+            Py_DECREF(data);
+            PyErr_SetString(PyExc_RuntimeError,
+                "Unable to reorganize data into matrix-like row vector.");
+            return NULL;
+        }
     }
 
     // How many data points are there?
