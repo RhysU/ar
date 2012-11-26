@@ -73,8 +73,18 @@ static const char ar_arsel_docstring[] =
 "    When omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 ;
 
+// Return type for ar_arsel initialized within initar
+static PyTypeObject *ar_ArselType = NULL;
+
 extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 {
+    // Sanity check that initar could build ar_ArselType
+    if (!PyType_Check(ar_ArselType)) {
+        PyErr_SetString(PyExc_RuntimeError,
+            "PyType_Check(ar_ArselType) failed");
+        return NULL;
+    }
+
     // Prepare argument storage with default values
     PyObject   *data_obj  = NULL;
     int         submean   = DEFAULT_SUBMEAN;
@@ -228,35 +238,42 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
                          / *(double*)PyArray_GETPTR1(_eff_N,   i));
     }
 
-    // Allocate the dictionary returned by the method
-    PyObject *ret = PyDict_New();
-    if (!ret) goto fail;
-
-    // Arguments preserved as outputs
-    // TODO Ensure these invocations all worked as expected
-    PyDict_SetItemString(ret, "data"     , data);
-    PyDict_SetItemString(ret, "submean"  , PyBool_FromLong(submean));
-    PyDict_SetItemString(ret, "absrho"   , PyBool_FromLong(absrho));
-    PyDict_SetItemString(ret, "criterion", PyString_FromString(criterion));
-    PyDict_SetItemString(ret, "maxorder" , PyInt_FromSize_t(maxorder));
-    PyDict_SetItemString(ret, "N"        , PyInt_FromLong(N));
-
-    // Computed results
-    // TODO Ensure these invocations all worked as expected
-    PyDict_SetItemString(ret, "AR"       , _AR       );
-    PyDict_SetItemString(ret, "autocor"  , _autocor  );
-    PyDict_SetItemString(ret, "eff_N"    , _eff_N    );
-    PyDict_SetItemString(ret, "eff_var"  , _eff_var  );
-    PyDict_SetItemString(ret, "gain"     , _gain     );
-    PyDict_SetItemString(ret, "mu"       , _mu       );
-    PyDict_SetItemString(ret, "mu_sigma" , _mu_sigma );
-    PyDict_SetItemString(ret, "sigma2eps", _sigma2eps);
-    PyDict_SetItemString(ret, "sigma2x"  , _sigma2x  );
-    PyDict_SetItemString(ret, "T0"       , _T0       );
+    // Prepare build and return an ar_ArselType via tuple constructor
+    // See initar(...) method for the collections.namedtuple-based definition
+    PyObject *ret_args = NULL, *ret = NULL;
+    ret_args = PyTuple_Pack(16, PyBool_FromLong(absrho),
+                                _AR,
+                                _autocor,
+                                PyString_FromString(criterion),
+                                data,
+                                _eff_N,
+                                _eff_var,
+                                _gain,
+                                PyInt_FromSize_t(maxorder),
+                                _mu,
+                                _mu_sigma,
+                                PyInt_FromLong(N),
+                                _sigma2eps,
+                                _sigma2x,
+                                PyBool_FromLong(submean),
+                                _T0);
+    if (!ret_args) {
+        PyErr_SetString(PyExc_RuntimeError,
+            "Unable to prepare arguments used to build return value.");
+        goto fail;
+    }
+    ret = PyObject_CallObject((PyObject *)ar_ArselType, ret_args);
+    if (!ret) {
+        PyErr_SetString(PyExc_RuntimeError,
+            "Unable to construct return value.");
+        goto fail;
+    }
 
     return ret;
 
 fail:
+    Py_XDECREF(ret_args);
+    Py_XDECREF(ret);
     Py_XDECREF(data);
     Py_XDECREF(_AR);
     Py_XDECREF(_autocor);
@@ -286,12 +303,32 @@ extern "C" PyMODINIT_FUNC initar(void)
     if (!Py_InitModule3("ar", ar_methods, ar_docstring)) return;
     import_array();
 
-////// Use collections.namedtuple() to make a type for ar_arsel use
-////PyObject *modName = PyString_FromString((char *)"collections");
-////PyObject *mod     = PyImport_Import(modName);
-////PyObject *func    = PyObject_GetAttrString(mod,(char*)"namedtuple");
-
-////Py_DECREF(modName);
-////Py_DECREF(mod);
-////Py_DECREF(func);
+    // Use collections.namedtuple() to make type 'Arsel' for ar_arsel use
+    // The tuple is ordered alphabetically in case-insensitive manner
+    PyObject *modName = PyString_FromString((char *)"collections");
+    PyObject *mod     = PyImport_Import(modName);
+    PyObject *func    = PyObject_GetAttrString(mod,(char*)"namedtuple");
+    PyObject *args    = PyTuple_Pack(2,
+                                     PyString_FromString((char *) "Arsel"),
+                                     PyString_FromString((char *) " absrho"
+                                                                  " AR"
+                                                                  " autocor"
+                                                                  " criterion"
+                                                                  " data"
+                                                                  " eff_N"
+                                                                  " eff_var"
+                                                                  " gain"
+                                                                  " maxorder"
+                                                                  " mu"
+                                                                  " mu_sigma"
+                                                                  " N"
+                                                                  " sigma2eps"
+                                                                  " sigma2x"
+                                                                  " submean"
+                                                                  " T0"));
+    ar_ArselType = (PyTypeObject *) PyObject_CallObject(func, args);
+    Py_DECREF(args);
+    Py_DECREF(func);
+    Py_DECREF(mod);
+    Py_DECREF(modName);
 }
