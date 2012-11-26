@@ -25,7 +25,6 @@
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
-// TODO Suggest using scipy.signal.{lfilter,lfiltic} to manipulate results
 static const char ar_arsel_docstring[] =
 "    Usage: M = arsel (data, submean, absrho, criterion, maxorder)\n"
 "\n"
@@ -67,6 +66,15 @@ static const char ar_arsel_docstring[] =
 "    of the sample mean) as field 'mu_sigma'.  The absolute value of the\n"
 "    autocorrelation function will be used in computing the decorrelation\n"
 "    times whenever absrho is true.\n"
+"\n"
+
+"    For example, given a sequence or *row-vector* of samples 'x', one can\n"
+"    fit a process and then simulate a sample realization of length M using\n"
+"\n"
+"        a = arsel(x)\n"
+"        from numpy.random import randn\n"
+"        from scipy.signal import lfilter\n"
+"        x = a.mu[0] + lfilter([1], a.AR[0], sqrt(a.sigma2eps[0])*randn(M))\n"
 "\n"
 "    When omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
 "    When omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
