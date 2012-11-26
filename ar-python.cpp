@@ -25,6 +25,7 @@
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
+// TODO Suggest using scipy.signal.{lfilter,lfiltic} to manipulate results
 static const char ar_arsel_docstring[] =
 "    Usage: M = arsel (data, submean, absrho, criterion, maxorder)\n"
 "\n"
