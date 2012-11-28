@@ -46,7 +46,7 @@ check: all
 stress: SHELL=/bin/bash                      # Bash required here
 stress: TIME=command time --verbose          # Command timer to use
 stress: ORDER=0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  # Fit an AR(15) model
-stress: COUNT=1000000                        # Number of samples to generate
+stress: COUNT=5000000                        # Number of samples to generate
 stress: RAND=/dev/urandom                    # Random source to use
 stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
