@@ -1,8 +1,7 @@
 # GNU-compatible toolchain assumed
 
 HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
-HOWFAST   ?= -g -O3 -DNDEBUG -funsafe-math-optimizations # Not finite-math-only!
-# HOWFAST ?= -g -O0 -fno-unsafe-math-optimizations -D_GLIBCXX_DEBUG
+HOWFAST   ?= -g -O2 -DNDEBUG
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
 
 all:     zohar example test arsel
