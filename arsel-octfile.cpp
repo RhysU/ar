@@ -32,7 +32,7 @@
 
 // Compile-time defaults in the code also appearing in the help message
 #define DEFAULT_SUBMEAN   true
-#define DEFAULT_ABSRHO    false
+#define DEFAULT_ABSRHO    true
 #define DEFAULT_CRITERION "CIC"
 #define DEFAULT_MAXORDER  512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)

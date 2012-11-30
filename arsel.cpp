@@ -34,7 +34,7 @@ struct Arg : public option::Arg
 };
 
 // Command line argument declarations for optionparser.h usage
-enum OptionIndex { UNKNOWN, CRITERION, HELP, SUBMEAN, MAXORDER, ABSRHO };
+enum OptionIndex { UNKNOWN, CRITERION, HELP, MAXORDER, NONABSRHO, SUBMEAN };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
@@ -42,15 +42,15 @@ const option::Descriptor usage[] = {
      "\n"
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
-    {ABSRHO,    0,  "a",  "absolute-rho",   Arg::None,
-     "  -a \t--absolute-rho   \tUse absolute autocorrelation when computing T0" },
-    {CRITERION, 0,  "c",  "criterion",     Arg::NonEmpty,
+    {CRITERION, 0,  "c",  "criterion",         Arg::NonEmpty,
      "  -c \t--criterion=ABBREV  \tUse the specified model order selection criterion" },
-    {HELP,      0,  "h", "help",           Arg::None,
+    {HELP,      0,  "h", "help",               Arg::None,
      "  -h \t--help   \tDisplay this help message and immediately exit" },
-    {MAXORDER,  0,  "m",  "order",         Arg::NonNegative,
+    {MAXORDER,  0,  "m",  "order",             Arg::NonNegative,
      "  -m \t--maxorder=P  \tConsider models of at most order AR(p=P)" },
-    {SUBMEAN,   0,  "s",  "subtract-mean", Arg::None,
+    {NONABSRHO, 0,  "n",  "non-absolute-rho",  Arg::None,
+     "  -a \t--non-absolute-rho   \tUse non-absolute autocorrelation when computing T0" },
+    {SUBMEAN,   0,  "s",  "subtract-mean",     Arg::None,
      "  -s \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
     {0,0,0,0,0,0}
 };
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     string criterion     = "CIC";
     bool   subtract_mean = false;
     size_t order         = 512;
-    bool   absolute_rho  = false;
+    bool   absolute_rho  = true;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -95,8 +95,8 @@ int main(int argc, char *argv[])
         if (options[MAXORDER])
             order = (size_t) strtol(options[MAXORDER].last()->arg, NULL, 10);
 
-        if (options[ABSRHO])
-            absolute_rho = true;
+        if (options[NONABSRHO])
+            absolute_rho = false;
     }
 
     // Look up desired model selection criterion using ar::best_model_function
