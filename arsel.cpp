@@ -34,7 +34,7 @@ struct Arg : public option::Arg
 };
 
 // Command line argument declarations for optionparser.h usage
-enum OptionIndex { UNKNOWN, CRITERION, HELP, MAXORDER, NONABSRHO, SUBMEAN };
+enum OptionIndex { UNKNOWN, CRITERION, HELP, MAXORDER, NONABSRHO, SUBMEAN, WINT0 };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
@@ -52,6 +52,8 @@ const option::Descriptor usage[] = {
      "  -a \t--non-absolute-rho   \tUse non-absolute autocorrelation when computing T0" },
     {SUBMEAN,   0,  "s",  "subtract-mean",     Arg::None,
      "  -s \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
+    {WINT0,   0,    "w",  "window-T0",         Arg::NonNegative,
+     "  -w \t--window-T0=W  \tIntegrate T0 until W times the data length (default 1)" },
     {0,0,0,0,0,0}
 };
 
@@ -66,6 +68,7 @@ int main(int argc, char *argv[])
     bool   subtract_mean = false;
     size_t order         = 512;
     bool   absolute_rho  = true;
+    double window_T0     = 1.0;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -89,14 +92,17 @@ int main(int argc, char *argv[])
         if (options[CRITERION])
             criterion = options[CRITERION].last()->arg;
 
-        if (options[SUBMEAN])
-            subtract_mean = true;
-
         if (options[MAXORDER])
             order = (size_t) strtol(options[MAXORDER].last()->arg, NULL, 10);
 
         if (options[NONABSRHO])
             absolute_rho = false;
+
+        if (options[SUBMEAN])
+            subtract_mean = true;
+
+        if (options[WINT0])
+            window_T0 = strtod(options[WINT0].last()->arg, NULL);
     }
 
     // Look up desired model selection criterion using ar::best_model_function
@@ -133,8 +139,10 @@ int main(int argc, char *argv[])
     best_model(N, params, sigma2e, gain, autocor);
 
     // Compute decorrelation time from the estimated autocorrelation model
-    const double T0  = ar::decorrelation_time(N, ar::autocorrelation(
-                params.begin(), params.end(), gain[0], autocor.begin()),
+    const double T0 = ar::decorrelation_time(
+                static_cast<size_t>(window_T0*N),
+                ar::autocorrelation(params.begin(), params.end(),
+                                    gain[0], autocor.begin()),
                 absolute_rho);
 
     // Compute effective variance and effective number of independent samples
@@ -160,6 +168,7 @@ int main(int argc, char *argv[])
          << "\n# sigma2x   " << gain[0]*sigma2e[0]
          << "\n# submean   " << subtract_mean
          << "\n# T0        " << T0
+         << "\n# window_T0 " << window_T0
          << noboolalpha
          << showpos                               // Line up signs
          << '\n'             << double(1)         // Leading one coefficient

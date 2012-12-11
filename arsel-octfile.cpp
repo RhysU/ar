@@ -30,6 +30,8 @@
  * Compare \ref arsel.cpp.
  */
 
+// FIXME Add window_T0-like option per arsel.cpp
+
 // Compile-time defaults in the code also appearing in the help message
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
