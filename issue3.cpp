@@ -74,7 +74,7 @@ int main( int argc, char* argv[] )
 {
     int order;
     if (argc < 2) {
-        cerr << "Missing mandatory order argument";
+        cerr << "Missing mandatory order argument" << endl;
         return 1;
     }
     order = atoi(argv[1]);
