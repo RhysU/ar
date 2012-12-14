@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <vector>
 
 using namespace std;
@@ -71,20 +72,26 @@ void BurgAlgorithm( vector<double>& coeffs, const vector<double>& x )
 // Example program using Burg’s algorithm
 int main( int argc, char* argv[] )
 {
+    int order;
+    if (argc < 2) {
+        cerr << "Missing mandatory order argument";
+        return 1;
+    }
+    order = atoi(argv[1]);
+
     // Load data from cin
     vector<double> original;
     copy(istream_iterator<double>(cin), istream_iterator<double>(), back_inserter(original));
 
-    // GET LINEAR PREDICTION COEFFICIENTS
-    vector<double> coeffs( 6, 0.0 );
+    // Compute AR model of given order
+    vector<double> coeffs( order, 0.0 );
     BurgAlgorithm( coeffs, original );
 
     // Output them
-    printf("%.24g\n", 1.0);
-    for (int i = 0; i < coeffs.size(); ++i)
-    {
-        printf("%.24g\n", coeffs[i]);
-    }
+    cout.precision(numeric_limits<double>::digits10 + 2);
+    cout << showpos;
+    cout << 1.0 << endl;
+    copy(coeffs.begin(), coeffs.end(), ostream_iterator<double>(cout, "\n"));
 
     return 0;
 }
