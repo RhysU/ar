@@ -34,7 +34,9 @@ struct Arg : public option::Arg
 };
 
 // Command line argument declarations for optionparser.h usage
-enum OptionIndex { UNKNOWN, CRITERION, HELP, MAXORDER, NONABSRHO, SUBMEAN, WINT0 };
+enum OptionIndex {
+    UNKNOWN, CRITERION, HELP, MAXORDER, MINORDER, NONABSRHO, SUBMEAN, WINT0
+};
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
@@ -43,11 +45,13 @@ const option::Descriptor usage[] = {
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
     {CRITERION, 0,  "c",  "criterion",         Arg::NonEmpty,
-     "  -c \t--criterion=ABBREV  \tUse the specified model order selection criterion" },
+     "  -c \t--criterion=ABBREV  \tUse the specified model selection criterion" },
     {HELP,      0,  "h", "help",               Arg::None,
      "  -h \t--help   \tDisplay this help message and immediately exit" },
-    {MAXORDER,  0,  "m",  "order",             Arg::NonNegative,
-     "  -m \t--maxorder=P  \tConsider models of at most order AR(p=P)" },
+    {MINORDER,  0,  "M",  "minorder",          Arg::NonNegative,
+     "  -M \t--minorder=MIN  \tConsider only models of at least order AR(p=MIN)" },
+    {MAXORDER,  0,  "m",  "maxorder",          Arg::NonNegative,
+     "  -m \t--maxorder=MAX  \tConsider only models of at most order AR(p=MAX)" },
     {NONABSRHO, 0,  "n",  "non-absolute-rho",  Arg::None,
      "  -a \t--non-absolute-rho   \tUse non-absolute autocorrelation when computing T0" },
     {SUBMEAN,   0,  "s",  "subtract-mean",     Arg::None,
@@ -66,7 +70,8 @@ int main(int argc, char *argv[])
     // Parse and process any command line arguments using optionparser.h
     string criterion     = "CIC";
     bool   subtract_mean = false;
-    size_t order         = 512;
+    size_t minorder      = 0;
+    size_t maxorder      = 512;
     bool   absolute_rho  = true;
     double window_T0     = 1.0;
     {
@@ -93,7 +98,10 @@ int main(int argc, char *argv[])
             criterion = options[CRITERION].last()->arg;
 
         if (options[MAXORDER])
-            order = (size_t) strtol(options[MAXORDER].last()->arg, NULL, 10);
+            maxorder = (size_t) strtol(options[MAXORDER].last()->arg, NULL, 10);
+
+        if (options[MINORDER])
+            minorder = (size_t) strtol(options[MINORDER].last()->arg, NULL, 10);
 
         if (options[NONABSRHO])
             absolute_rho = false;
@@ -108,7 +116,8 @@ int main(int argc, char *argv[])
     // Look up desired model selection criterion using ar::best_model_function
     // best_model_function template parameters fit ar::burg_method usage below
     typedef ar::best_model_function<
-            ar::Burg,size_t,vector<double> > best_model_function;
+                ar::Burg,size_t,size_t,vector<double>
+            > best_model_function;
     const best_model_function::type best_model
             = best_model_function::lookup(criterion, subtract_mean);
     if (!best_model) {
@@ -119,14 +128,14 @@ int main(int argc, char *argv[])
     // Use burg_method to estimate a hierarchy of AR models from input data
     double mu;
     vector<double> params, sigma2e, gain, autocor;
-    params .reserve(order*(order + 1)/2);
-    sigma2e.reserve(order + 1);
-    gain   .reserve(order + 1);
-    autocor.reserve(order + 1);
+    params .reserve(maxorder*(maxorder + 1)/2);
+    sigma2e.reserve(maxorder + 1);
+    gain   .reserve(maxorder + 1);
+    autocor.reserve(maxorder + 1);
     const size_t N = ar::burg_method(istream_iterator<double>(cin),
                                      istream_iterator<double>(),
                                      mu,
-                                     order,
+                                     maxorder,
                                      back_inserter(params),
                                      back_inserter(sigma2e),
                                      back_inserter(gain),
@@ -136,7 +145,7 @@ int main(int argc, char *argv[])
 
 
     // Keep only best model according to selected criterion
-    best_model(N, params, sigma2e, gain, autocor);
+    best_model(N, minorder, params, sigma2e, gain, autocor);
 
     // Compute decorrelation time from the estimated autocorrelation model
     const double T0 = ar::decorrelation_time(
@@ -159,7 +168,8 @@ int main(int argc, char *argv[])
          << "\n# eff_N     " << eff_N
          << "\n# eff_var   " << eff_var
          << "\n# gain      " << gain[0]
-         << "\n# maxorder  " << order
+         << "\n# maxorder  " << maxorder
+         << "\n# minorder  " << minorder
          << "\n# mu        " << mu
          << "\n# mu_sigma  " << mu_sigma
          << "\n# N         " << N

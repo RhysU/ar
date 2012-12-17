@@ -36,17 +36,18 @@
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
 #define DEFAULT_CRITERION "CIC"
+#define DEFAULT_MINORDER  0
 #define DEFAULT_MAXORDER  512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 DEFUN_DLD(arsel, args, nargout,
-"    M = arsel (data, submean, absrho, criterion, maxorder)\n"
+"    M = arsel (data, submean, absrho, criterion, minorder, maxorder)\n"
 "    Automatically fit autoregressive models to input signals.\n"
 "\n"
 "    Use ar::burg_method and ar::best_model to fit an autoregressive process\n"
 "    for signals contained in the rows of matrix data.  Sample means will\n"
-"    be subtracted whenever submean is true.  Model orders zero through\n"
+"    be subtracted whenever submean is true.  Model orders minorder through\n"
 "    min(columns(data), maxorder) will be considered.  A structure is\n"
 "    returned where each field either contains a result indexable by the\n"
 "    signal number (i.e. the row indices of input matrix data) or it contains\n"
@@ -96,6 +97,7 @@ DEFUN_DLD(arsel, args, nargout,
 "    When omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
 "    When omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
 "    When omitted, criterion defaults to " STRINGIFY(DEFAULT_CRITERION) ".\n"
+"    When omitted, minorder defaults to " STRINGIFY(DEFAULT_MINORDER) ".\n"
 "    When omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 )
 {
@@ -105,13 +107,15 @@ DEFUN_DLD(arsel, args, nargout,
     typedef std::vector<element_type> vector;
 
     size_t maxorder  = DEFAULT_MAXORDER;
+    size_t minorder  = DEFAULT_MINORDER;
     string criterion = DEFAULT_CRITERION;
     bool   absrho    = DEFAULT_ABSRHO;
     bool   submean   = DEFAULT_SUBMEAN;
     Matrix data;
     switch (args.length())
     {
-        case 5: maxorder  = args(4).ulong_value();
+        case 6: maxorder  = args(5).ulong_value();
+        case 5: minorder  = args(4).ulong_value();
         case 4: criterion = args(3).string_value();
         case 3: absrho    = args(2).bool_value();
         case 2: submean   = args(1).bool_value();
@@ -127,7 +131,8 @@ DEFUN_DLD(arsel, args, nargout,
 
     // Lookup the desired model selection criterion
     typedef ar::best_model_function<
-            ar::Burg,octave_idx_type,vector> best_model_function;
+                ar::Burg,octave_idx_type,octave_idx_type,vector
+            > best_model_function;
     const best_model_function::type best_model
             = best_model_function::lookup(criterion, submean);
     if (!best_model)
@@ -179,7 +184,7 @@ DEFUN_DLD(arsel, args, nargout,
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
         // Keep only best model per chosen criterion via function pointer
-        best_model(N, params, sigma2e, gain, autocor);
+        best_model(N, minorder, params, sigma2e, gain, autocor);
 
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<element_type> p = ar::autocorrelation(
@@ -243,6 +248,7 @@ DEFUN_DLD(arsel, args, nargout,
     retval.assign("eff_var",   _eff_var);
     retval.assign("gain",      _gain);
     retval.assign("maxorder",  octave_value(maxorder));
+    retval.assign("minorder",  octave_value(minorder));
     retval.assign("mu",        _mu);
     retval.assign("mu_sigma",  _mu_sigma);
     retval.assign("N",         octave_value(N));

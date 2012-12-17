@@ -23,19 +23,20 @@
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
 #define DEFAULT_CRITERION "CIC"
+#define DEFAULT_MINORDER  0
 #define DEFAULT_MAXORDER  512
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define STRINGIFY_HELPER(x) #x
 
 // TODO The returned values are no longer keys but attributes
 static const char ar_arsel_docstring[] =
-"    Usage: M = arsel (data, submean, absrho, criterion, maxorder)\n"
+"    Usage: M = arsel (data, submean, absrho, criterion, minorder, maxorder)\n"
 "\n"
 "    Automatically fit autoregressive models to input signals.\n"
 "\n"
 "    Use ar::burg_method and ar::best_model to fit an autoregressive process\n"
 "    for signals contained in the rows of matrix data.  Sample means will\n"
-"    be subtracted whenever submean is true.  Model orders zero through\n"
+"    be subtracted whenever submean is true.  Model orders minorder through\n"
 "    min(columns(data), maxorder) will be considered.  A dictionary is\n"
 "    returned where each key either contains a result indexable by the\n"
 "    signal number (i.e. the row indices of input matrix data) or it contains\n"
@@ -92,6 +93,7 @@ static const char ar_arsel_docstring[] =
 "    When omitted, submean defaults to " STRINGIFY(DEFAULT_SUBMEAN) ".\n"
 "    When omitted, absrho defaults to " STRINGIFY(DEFAULT_ABSRHO) ".\n"
 "    When omitted, criterion defaults to " STRINGIFY(DEFAULT_CRITERION) ".\n"
+"    When omitted, minorder defaults to " STRINGIFY(DEFAULT_MINORDER) ".\n"
 "    When omitted, maxorder defaults to " STRINGIFY(DEFAULT_MAXORDER) ".\n"
 ;
 
@@ -112,21 +114,25 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     int         submean   = DEFAULT_SUBMEAN;
     int         absrho    = DEFAULT_ABSRHO;
     const char *criterion = DEFAULT_CRITERION;
+    std::size_t minorder  = DEFAULT_MINORDER;
     std::size_t maxorder  = DEFAULT_MAXORDER;
 
     // Parse input tuple with second and subsequent arguments optional
     {
-        unsigned long ul_maxorder = maxorder;
-        if (!PyArg_ParseTuple(args, "O|iisk", &data_obj, &submean, &absrho,
-                                              &criterion, &ul_maxorder)) {
+        unsigned long ul_minorder = minorder, ul_maxorder = maxorder;
+        if (!PyArg_ParseTuple(args, "O|iiskk", &data_obj, &submean, &absrho,
+                                               &criterion,
+                                               &ul_minorder, &ul_maxorder)) {
             return NULL;
         }
+        minorder = ul_minorder;
         maxorder = ul_maxorder;
     }
 
     // Lookup the desired model selection criterion
     typedef ar::best_model_function<
-            ar::Burg,npy_intp,std::vector<double> > best_model_function;
+                ar::Burg,npy_intp,npy_intp,std::vector<double>
+            > best_model_function;
     const best_model_function::type best_model
             = best_model_function::lookup(std::string(criterion), submean);
     if (!best_model) {
@@ -212,7 +218,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
         // Keep only best model per chosen criterion via function pointer
-        best_model(N, params, sigma2e, gain, autocor);
+        best_model(N, minorder, params, sigma2e, gain, autocor);
 
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<double> p = ar::autocorrelation(
@@ -263,7 +269,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     // Prepare build and return an ar_ArselType via tuple constructor
     // See initar(...) method for the collections.namedtuple-based definition
     PyObject *ret_args = NULL, *ret = NULL;
-    ret_args = PyTuple_Pack(16, PyBool_FromLong(absrho),
+    ret_args = PyTuple_Pack(17, PyBool_FromLong(absrho),
                                 _AR,
                                 _autocor,
                                 PyString_FromString(criterion),
@@ -272,6 +278,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
                                 _eff_var,
                                 _gain,
                                 PyInt_FromSize_t(maxorder),
+                                PyInt_FromSize_t(minorder),
                                 _mu,
                                 _mu_sigma,
                                 PyInt_FromLong(N),
@@ -341,6 +348,7 @@ extern "C" PyMODINIT_FUNC initar(void)
                                                                   " eff_var"
                                                                   " gain"
                                                                   " maxorder"
+                                                                  " minorder"
                                                                   " mu"
                                                                   " mu_sigma"
                                                                   " N"

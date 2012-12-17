@@ -2009,6 +2009,7 @@ struct CIC : public criterion
  * @param[out] crit     Value assigned to each model by the criterion.
  *
  * @return The distance from \c first to the best model.
+ *         An obscenely negative value is returned on error.
  */
 template <class    Criterion,
           typename Integer1,
@@ -2023,23 +2024,24 @@ evaluate_models(Integer1       N,
                 OutputIterator crit)
 {
     using std::iterator_traits;
+    using std::numeric_limits;
 
     typedef InputIterator iterator;
-    typedef typename iterator_traits<iterator>::difference_type difference;
-    typedef typename iterator_traits<iterator>::value_type      value;
+    typedef typename iterator_traits<iterator>::difference_type difference_type;
+    typedef typename iterator_traits<iterator>::value_type      value_type;
 
     // Short circuit on trivial input
     if (first == last)
-        return -1;
+        return numeric_limits<difference_type>::min();
 
     // Handle first iteration without comparison as AICC blows up on N == 1
-    value best_val = evaluate<Criterion>(*first++, N, ordfirst);
-    difference best_pos = 0, dist = 0;
+    value_type best_val = evaluate<Criterion>(*first++, N, ordfirst);
+    difference_type best_pos = 0, dist = 0;
 
     // Scan through rest of candidates (up to order N-1) updating best as we go
     while (first != last && static_cast<Integer1>(++dist) < N)
     {
-        value candidate = evaluate<Criterion>(*first++, N, dist + ordfirst);
+        value_type candidate = evaluate<Criterion>(*first++, N, dist+ordfirst);
         *crit++ = candidate;
 
         if (candidate < best_val) {
@@ -2061,25 +2063,29 @@ evaluate_models(Integer1       N,
  * equivalent manner).  On output, these arguments will contain only values
  * relevant to the best model.
  *
- * @param[in]  N          Sample count used to compute \f$\sigma^2_\epsilon\f$.
- *                        For example, the return value of \ref burg_method.
- * @param[in,out] params  Model parameters
- * @param[in,out] sigma2e \f$\sigma^2_\epsilon\f$
- * @param[in,out] gain    Model gain
- * @param[in,out] autocor Model autocorrelations
- * @param[out]    crit    Value assigned to each model by the criterion.
+ * @param[in]     N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ *                         For example, the return value of \ref burg_method.
+ * @param[in]     minorder Constrain the best model to be at least this order.
+ *                         Supplying zero specifies no constraint.
+ * @param[in,out] params   Model parameters
+ * @param[in,out] sigma2e  \f$\sigma^2_\epsilon\f$
+ * @param[in,out] gain     Model gain
+ * @param[in,out] autocor  Model autocorrelations
+ * @param[out]    crit     Value assigned to each model by the criterion.
  *
  * @return The index of the best criterion value within \c crit.
  */
 template <class    Criterion,
-          typename Integer,
+          typename Integer1,
+          typename Integer2,
           class    Sequence1,
           class    Sequence2,
           class    Sequence3,
           class    Sequence4,
           class    OutputIterator>
 typename Sequence1::difference_type
-best_model(Integer        N,
+best_model(Integer1       N,
+           Integer2       minorder,
            Sequence1&     params,
            Sequence2&     sigma2e,
            Sequence3&     gain,
@@ -2094,10 +2100,16 @@ best_model(Integer        N,
     assert(params .size() == (sigma2e.size()-1)*(sigma2e.size())/2);
     assert(gain   .size() == sigma2e.size());
     assert(autocor.size() == sigma2e.size());
+    assert(minorder <= sigma2e.size());
 
-    // Find the best model index according to the given criterion
-    const typename Sequence1::difference_type best = evaluate_models<Criterion>(
-            N, 0, sigma2e.begin(), sigma2e.end(), crit);
+    // Find the best model index according to the given minorder and criterion
+    typename Sequence1::difference_type best = minorder;
+    {
+        typename Sequence2::iterator iter = sigma2e.begin();
+        advance(iter, minorder);
+        best += evaluate_models<Criterion>(N, minorder, iter,
+                                           sigma2e.end(), crit);
+    }
 
     // Now trim away everything and leaving only the best model in Sequences...
 
@@ -2196,31 +2208,35 @@ evaluate_models(Integer1      N,
  * equivalent manner).  On output, these arguments will contain only values
  * relevant to the best model.
  *
- * @param[in]     N       Sample count used to compute \f$\sigma^2_\epsilon\f$.
- *                        For example, the return value of \ref burg_method.
- * @param[in,out] params  Model parameters
- * @param[in,out] sigma2e \f$\sigma^2_\epsilon\f$
- * @param[in,out] gain    Model gain
- * @param[in,out] autocor Model autocorrelations
+ * @param[in]     N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
+ *                         For example, the return value of \ref burg_method.
+ * @param[in]     minorder Constrain the best model to be at least this order.
+ *                         Supplying zero specifies no constraint.
+ * @param[in,out] params   Model parameters
+ * @param[in,out] sigma2e  \f$\sigma^2_\epsilon\f$
+ * @param[in,out] gain     Model gain
+ * @param[in,out] autocor  Model autocorrelations
  *
  * @return The index of the best model within the inputs.
  *
- * @see best_model(Integer,Sequence1,Sequence2,Sequence3,Sequence4,OutputIterator)
+ * @see best_model(Integer1,Integer2,Sequence1,Sequence2,Sequence3,Sequence4,OutputIterator)
  */
 template <class    Criterion,
-          typename Integer,
+          typename Integer1,
+          typename Integer2,
           class    Sequence1,
           class    Sequence2,
           class    Sequence3,
           class    Sequence4>
 typename Sequence1::difference_type
-best_model(Integer        N,
+best_model(Integer1       N,
+           Integer2       minorder,
            Sequence1&     params,
            Sequence2&     sigma2e,
            Sequence3&     gain,
            Sequence4&     autocor)
 {
-    return best_model<Criterion>(N, params, sigma2e, gain,
+    return best_model<Criterion>(N, minorder, params, sigma2e, gain,
                                  autocor, null_output());
 }
 
@@ -2248,14 +2264,16 @@ best_model(Integer        N,
  * ignored.
  *
  * @tparam EstimationMethod One of Burg, YuleWalker, LSFB, or LSF.
- * @tparam Integer          Per the \c Integer parameter of \ref best_model
+ * @tparam Integer1         Per the \c Integer1 parameter of \ref best_model
+ * @tparam Integer2         Per the \c Integer2 parameter of \ref best_model
  * @tparam Sequence1        Per the \c Sequence1 parameter of \ref best_model
  * @tparam Sequence2        Per the \c Sequence2 parameter of \ref best_model
  * @tparam Sequence3        Per the \c Sequence3 parameter of \ref best_model
  * @tparam Sequence4        Per the \c Sequence4 parameter of \ref best_model
  */
 template <template <class> class EstimationMethod,
-          typename Integer,
+          typename Integer1,
+          typename Integer2,
           class    Sequence1,
           class    Sequence2 = Sequence1,
           class    Sequence3 = Sequence2,
@@ -2263,7 +2281,8 @@ template <template <class> class EstimationMethod,
 struct best_model_function
 {
     /** The type returned by the \ref lookup function. */
-    typedef typename Sequence1::difference_type (*type)(Integer    N,
+    typedef typename Sequence1::difference_type (*type)(Integer1   N,
+                                                        Integer2   minorder,
                                                         Sequence1& params,
                                                         Sequence2& sigma2e,
                                                         Sequence3& gain,
@@ -2311,17 +2330,18 @@ struct best_model_function
 };
 
 template <template <class> class EstimationMethod,
-          typename Integer,
+          typename Integer1,
+          typename Integer2,
           class    Sequence1,
           class    Sequence2,
           class    Sequence3,
           class    Sequence4>
 template <class CharT, class Traits, class Allocator>
 typename best_model_function<
-    EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
+    EstimationMethod,Integer1,Integer2,Sequence1,Sequence2,Sequence3,Sequence4
 >::type
 best_model_function<
-    EstimationMethod,Integer,Sequence1,Sequence2,Sequence3,Sequence4
+    EstimationMethod,Integer1,Integer2,Sequence1,Sequence2,Sequence3,Sequence4
 >::lookup(std::basic_string<CharT,Traits,Allocator> abbrev,
           const bool subtract_mean)
 {
