@@ -184,7 +184,14 @@ DEFUN_DLD(arsel, args, nargout,
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
         // Keep only best model per chosen criterion via function pointer
-        best_model(N, minorder, params, sigma2e, gain, autocor);
+        try {
+            best_model(N, minorder, params, sigma2e, gain, autocor);
+        }
+        catch (std::exception &e)
+        {
+            error(e.what());
+            return octave_value();
+        }
 
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<element_type> p = ar::autocorrelation(

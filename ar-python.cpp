@@ -102,6 +102,8 @@ static PyTypeObject *ar_ArselType = NULL;
 
 extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 {
+    PyObject *ret_args = NULL, *ret = NULL;
+
     // Sanity check that initar could build ar_ArselType
     if (!PyType_Check(ar_ArselType)) {
         PyErr_SetString(PyExc_RuntimeError,
@@ -218,7 +220,14 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
                         submean, /* output hierarchy? */ true, f, b, Ak, ac);
 
         // Keep only best model per chosen criterion via function pointer
-        best_model(N, minorder, params, sigma2e, gain, autocor);
+        try {
+            best_model(N, minorder, params, sigma2e, gain, autocor);
+        }
+        catch (std::exception &e)
+        {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            goto fail;
+        }
 
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<double> p = ar::autocorrelation(
@@ -268,7 +277,6 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
 
     // Prepare build and return an ar_ArselType via tuple constructor
     // See initar(...) method for the collections.namedtuple-based definition
-    PyObject *ret_args = NULL, *ret = NULL;
     ret_args = PyTuple_Pack(17, PyBool_FromLong(absrho),
                                 _AR,
                                 _autocor,
