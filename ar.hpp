@@ -70,6 +70,68 @@ namespace ar
 /////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Preprocessor macros to simplify ensuring preconditions are met.
+ *
+ * @{
+ */
+
+/** Helper macro for implementing \ref AR_STRINGIFY. */
+#define AR_STRINGIFY_HELPER(x) #x
+
+/** Expand and stringify the provided argument. */
+#define AR_STRINGIFY(x) AR_STRINGIFY_HELPER(x)
+
+/**
+ * Ensure that \c expr evaluates to boolean \c true at runtime.  If \c expr
+ * evaluates to boolean \c false, then an exception \c except is thrown with
+ * message \c msg.
+ *
+ * This macro is intended for <tt>assert</tt>-like checks which should always
+ * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ */
+#define AR_ENSURE_MSGEXCEPT(expr, msg, except) \
+    if (!(expr)) throw except(msg)
+
+/**
+ * Ensure that \c expr evaluates to boolean \c true at runtime.  If \c expr
+ * evaluates to boolean \c false, then a <tt>std::logic_error</tt> is thrown
+ * with message \c msg.
+ *
+ * This macro is intended for <tt>assert</tt>-like checks which should always
+ * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ */
+#define AR_ENSURE_MSG(expr, msg) \
+    AR_ENSURE_MSGEXCEPT(expr, msg, std::logic_error)
+
+/**
+ * Ensure that \c expr evaluates to boolean \c true at runtime.  If \c expr
+ * evaluates to boolean \c false, then a <tt>std::logic_error</tt> is thrown.
+ *
+ * This macro is intended for <tt>assert</tt>-like checks which should always
+ * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ */
+#define AR_ENSURE(expr) \
+    AR_ENSURE_MSG(expr, AR_STRINGIFY(expr) " false")
+
+/**
+ * Ensure that \c expr evaluates to boolean \c true at runtime.  If \c expr
+ * evaluates to boolean \c false, then an exception \c except is thrown.
+ *
+ * This macro is intended for <tt>assert</tt>-like checks which should always
+ * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ */
+#define AR_ENSURE_EXCEPT(expr, except) \
+    AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr) " false", except)
+
+/**
+ * @}
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
  * Stable, one-pass algorithms for computing variances and covariances.
  *
  * @{
@@ -2094,6 +2156,7 @@ best_model(Integer1       N,
 {
     using std::advance;
     using std::copy_backward;
+    using std::invalid_argument;
 
     // Ensure all inputs have conformant sizes
     assert(sigma2e.size() > 0);
