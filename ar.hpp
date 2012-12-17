@@ -98,11 +98,12 @@ std::size_t welford_nvariance(InputIterator first,
                               OutputType2&   nvar)
 {
     using std::iterator_traits;
+    using std::size_t;
     typedef typename iterator_traits<InputIterator>::value_type value;
 
-    std::size_t N  = 1;  // Running next sample number
-    value       m  = 0;  // Running mean of data thus far
-    value       nv = 0;  // Running variance times the number of samples
+    size_t N  = 1;  // Running next sample number
+    value  m  = 0;  // Running mean of data thus far
+    value  nv = 0;  // Running variance times the number of samples
 
     while (first != last)
     {
@@ -135,7 +136,8 @@ std::size_t welford_variance_population(InputIterator first,
                                         OutputType1&  mean,
                                         OutputType2&  var)
 {
-    std::size_t N = welford_nvariance(first, last, mean, var);
+    using std::size_t;
+    size_t N = welford_nvariance(first, last, mean, var);
     var /= N;
     return N;
 }
@@ -158,7 +160,8 @@ std::size_t welford_variance_sample(InputIterator first,
                                     OutputType1&  mean,
                                     OutputType2&  var)
 {
-    std::size_t N = welford_nvariance(first, last, mean, var);
+    using std::size_t;
+    size_t N = welford_nvariance(first, last, mean, var);
     var /= (N - 1);
     return N;
 }
@@ -190,10 +193,11 @@ std::size_t welford_ncovariance(InputIterator1 first1,
                                 OutputType3&   ncovar)
 {
     using std::iterator_traits;
+    using std::size_t;
     typedef typename iterator_traits<InputIterator1>::value_type value1;
     typedef typename iterator_traits<InputIterator2>::value_type value2;
 
-    std::size_t N  = 1;  // Running next sample number
+    size_t      N  = 1;  // Running next sample number
     value1      m1 = 0;  // Running mean of first data set thus far
     value2      m2 = 0;  // Running mean of second data set thus far
     OutputType3 nc = 0;  // Running covariance times the number of samples
@@ -243,8 +247,8 @@ std::size_t welford_covariance_population(InputIterator1 first1,
                                           OutputType2&   mean2,
                                           OutputType3&   covar)
 {
-    std::size_t N = welford_ncovariance(first1, last1, first2,
-                                        mean1, mean2, covar);
+    using std::size_t;
+    size_t N = welford_ncovariance(first1, last1, first2, mean1, mean2, covar);
     covar /= N;
     return N;
 }
@@ -273,8 +277,8 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
                                       OutputType2&   mean2,
                                       OutputType3&   covar)
 {
-    std::size_t N = welford_ncovariance(first1, last1, first2,
-                                        mean1, mean2, covar);
+    using std::size_t;
+    size_t N = welford_ncovariance(first1, last1, first2, mean1, mean2, covar);
     covar /= (N - 1);
     return N;
 }
@@ -524,7 +528,8 @@ std::size_t burg_method(InputIterator     data_first,
                         const bool        subtract_mean = false,
                         const bool        hierarchy     = false)
 {
-    std::vector<Value> f, b, Ak, ac; // Working storage
+    using std::vector;
+    vector<Value> f, b, Ak, ac; // Working storage
 
     return burg_method(data_first, data_last, mean, maxorder,
                        params_first, sigma2e_first, gain_first,
@@ -628,7 +633,8 @@ public:
           xn((*g)())
     {
         // Finish preparing d = [ a_p, ..., a_1, 0, ..., 0 ]
-        typename std::vector<Value>::size_type i = d.size() / 2;
+        using std::vector;
+        typename vector<Value>::size_type i = d.size() / 2;
         while (i --> 0) d[i] = *params_first++;
 
         // Now x_n = 0 because x_{n-p} = ... = x_{n-1} = 0 by construction.
@@ -659,7 +665,8 @@ public:
           xn((*g)())
     {
         // Finish preparing d = [ a_p, ..., a_1, 0, ..., 0 ]
-        typename std::vector<Value>::size_type i = d.size() / 2;
+        using std::vector;
+        typename vector<Value>::size_type i = d.size() / 2;
         while (i --> 0) d[i] = *params_first++;
 
         // Here x_0 = \epsilon_0 because x_{0-p} = ... = x_{0-1} = 0.
@@ -723,8 +730,9 @@ public:
         n = 0;
 
         // Set d = [ a_p, ..., a_1, x_{n-p}, ..., x_{n-1} ]
-        typename std::vector<Value>::size_type i = d.size();
-        typename std::vector<Value>::size_type p = i / 2;
+        using std::vector;
+        typename vector<Value>::size_type i = d.size();
+        typename vector<Value>::size_type p = i / 2;
         while (i --> p) d[i] = *initial_first++;
 
         // Make x_n := - a_p*x_{n-p} - ... - a_1*x_{n-1} + x_n + x0adjust.
@@ -743,19 +751,20 @@ public:
     {
         using std::distance;
         using std::inner_product;
+        using std::vector;
 
         if (g)
         {
-            typename std::vector<Value>::size_type p = d.size() / 2;
+            typename vector<Value>::size_type p = d.size() / 2;
             if (p)
             {
                 // Make x_n = - a_p*x_{n-p} - ... - a_1*x_{n-1} + \epsilon_n
                 // by (conceptually) storing previously computed x_n into
                 // circular buffer, updating ++n, and computing x_{n+1}.
-                typename std::vector<Value>::iterator ab = d.begin();
-                typename std::vector<Value>::iterator xb = ab + p;
-                typename std::vector<Value>::iterator c  = xb + n % p;
-                typename std::vector<Value>::iterator xe = d.end();
+                typename vector<Value>::iterator ab = d.begin();
+                typename vector<Value>::iterator xb = ab + p;
+                typename vector<Value>::iterator c  = xb + n % p;
+                typename vector<Value>::iterator xe = d.end();
                 *c++ =  xn;
                 xn   =  inner_product(c,  xe, ab,                   -(*g)());
                 xn   = -inner_product(xb,  c, ab + distance(c, xe),   xn   );
@@ -892,15 +901,17 @@ Value decorrelation_time(const std::size_t N,
                          predictor<Value> rho,
                          const bool abs_rho = false)
 {
+    using std::abs;
+    using std::size_t;
+
     Value T0 = *rho++;
 
     const Value twoinvN = Value(2) / N;
     if (abs_rho) {
-        using std::abs;
-        for (std::size_t i = 1; i <= N; ++i, ++rho)
+        for (size_t i = 1; i <= N; ++i, ++rho)
             T0 += (2 - i*twoinvN) * abs(*rho);
     } else {
-        for (std::size_t i = 1; i <= N; ++i, ++rho)
+        for (size_t i = 1; i <= N; ++i, ++rho)
             T0 += (2 - i*twoinvN) * (*rho);
     }
 
@@ -942,17 +953,19 @@ Value decorrelation_time(const std::size_t N,
                          predictor<Value> rho2,
                          const bool abs_rho = false)
 {
+    using std::abs;
+    using std::size_t;
+
     Value T0 = 1;
     ++rho1;
     ++rho2;
 
     const Value twoinvN = Value(2) / N;
     if (abs_rho) {
-        using std::abs;
-        for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
+        for (size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
             T0 += (2 - i*twoinvN) * abs((*rho1) * (*rho2));
     } else {
-        for (std::size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
+        for (size_t i = 1; i <= N; ++i, ++rho1, ++rho2)
             T0 += (2 - i*twoinvN) * ((*rho1) * (*rho2));
     }
 
@@ -1009,26 +1022,29 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     using std::copy;
     using std::distance;
     using std::inner_product;
+    using std::invalid_argument;
+    using std::iterator_traits;
     using std::reverse_iterator;
+    using std::vector;
 
     // Tildes indicate transposes while hats indicate reversed vectors.
 
     // InputIterator::value_type determines the working precision
-    typedef typename std::iterator_traits<InputIterator>::value_type value;
-    typedef typename std::vector<value> vector;
-    typedef typename vector::size_type size;
+    typedef typename iterator_traits<InputIterator>::value_type value_type;
+    typedef vector<value_type> vector_type;
+    typedef typename vector_type::size_type size_type;
 
     // Determine problem size using [a_first,a_last) and ensure nontrivial
-    typename std::iterator_traits<RandomAccessIterator>::difference_type dist
+    typename iterator_traits<RandomAccessIterator>::difference_type dist
             = distance(a_first, a_last);
-    if (dist < 1) throw std::invalid_argument("distance(a_first, a_last) < 1");
-    const size n = static_cast<size>(dist);
+    if (dist < 1) throw invalid_argument("distance(a_first, a_last) < 1");
+    const size_type n = static_cast<size_type>(dist);
 
     // Allocate working storage and set initial values for recursion:
-    vector s;    s   .reserve(n+1); s   .push_back( *d_first);
-    vector ehat; ehat.reserve(n  ); ehat.push_back(-a_first[0]);
-    vector g;    g   .reserve(n  ); g   .push_back(-r_first[0]);
-    value lambda  = 1 - a_first[0]*r_first[0];
+    vector_type s;    s   .reserve(n+1); s   .push_back( *d_first);
+    vector_type ehat; ehat.reserve(n  ); ehat.push_back(-a_first[0]);
+    vector_type g;    g   .reserve(n  ); g   .push_back(-r_first[0]);
+    value_type lambda  = 1 - a_first[0]*r_first[0];
 
     // Though recursive updates to s and g can be done in-place, updates to
     // ehat seemingly require one additional vector for storage:
@@ -1036,25 +1052,25 @@ void zohar_linear_solve(RandomAccessIterator a_first,
     // "This sequence of computations is economical of storage.  It is only
     // necessary to retain quantities computed at level m - 1 until the
     // computations at level m are complete." [Trench1967, page 1504]
-    vector next_ehat; next_ehat.reserve(n);
+    vector_type next_ehat; next_ehat.reserve(n);
 
     // Recursion for i = {1, 2, ..., n - 1}:
-    for (size i = 1; i < n; ++i)
+    for (size_type i = 1; i < n; ++i)
     {
 
         reverse_iterator<RandomAccessIterator> rhat_first(r_first + i);
 
         // \theta_i =  \delta_{i+1}  - \tilde{s}_i \hat{r}_i
-        const value neg_theta = inner_product(
-                s.begin(), s.end(), rhat_first, value(-(*++d_first)));
+        const value_type neg_theta = inner_product(
+                s.begin(), s.end(), rhat_first, value_type(-(*++d_first)));
 
         // \eta_i   = -\rho_{-(i+1)} - \tilde{a}_i \hat{e}_i
-        const value neg_eta   = inner_product(
-                ehat.begin(), ehat.end(), a_first, value(a_first[i]));
+        const value_type neg_eta   = inner_product(
+                ehat.begin(), ehat.end(), a_first, value_type(a_first[i]));
 
         // \gamma_i = -\rho_{i+1}    - \tilde{g}_i \hat{r}_i
-        const value neg_gamma = inner_product(
-                g.begin(), g.end(), rhat_first, value(r_first[i]));
+        const value_type neg_gamma = inner_product(
+                g.begin(), g.end(), rhat_first, value_type(r_first[i]));
 
         /*
          * s_{i+1} = \bigl(\begin{smallmatrix}
@@ -1072,12 +1088,12 @@ void zohar_linear_solve(RandomAccessIterator a_first,
          *               \gamma_i/\lambda_i
          *           \end{smallmatrix}\bigr)
          */
-        const value theta_by_lambda = -neg_theta/lambda;
-        const value   eta_by_lambda = -neg_eta  /lambda;
-        const value gamma_by_lambda = -neg_gamma/lambda;
+        const value_type theta_by_lambda = -neg_theta/lambda;
+        const value_type   eta_by_lambda = -neg_eta  /lambda;
+        const value_type gamma_by_lambda = -neg_gamma/lambda;
         next_ehat.clear();
         next_ehat.push_back(eta_by_lambda);
-        for (size j = 0; j < i; ++j)
+        for (size_type j = 0; j < i; ++j)
         {
             s[j] += theta_by_lambda*ehat[j];
             next_ehat.push_back(ehat[j] + eta_by_lambda*g[j]);
@@ -1097,8 +1113,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
         reverse_iterator<RandomAccessIterator> rhat_first(r_first + n);
 
         // \theta_n =  \delta_{n+1}  - \tilde{s}_n \hat{r}_n
-        const value neg_theta = inner_product(
-                s.begin(), s.end(), rhat_first, value(-(*++d_first)));
+        const value_type neg_theta = inner_product(
+                s.begin(), s.end(), rhat_first, value_type(-(*++d_first)));
 
         /*
          * s_{n+1} = \bigl(\begin{smallmatrix}
@@ -1106,8 +1122,8 @@ void zohar_linear_solve(RandomAccessIterator a_first,
          *              \theta_n/\lambda_n
          *          \end{smallmatrix}\bigr)
          */
-        const value theta_by_lambda = -neg_theta/lambda;
-        for (size j = 0; j < n; ++j)
+        const value_type theta_by_lambda = -neg_theta/lambda;
+        for (size_type j = 0; j < n; ++j)
         {
             s[j] += theta_by_lambda*ehat[j];
         }
@@ -2308,21 +2324,24 @@ best_model_function<
 >::lookup(std::basic_string<CharT,Traits,Allocator> abbrev,
           const bool subtract_mean)
 {
-    type retval;
+    using std::basic_string;
+    using std::toupper;
 
     // Canonicalize the abbreviation by making it uppercase and trimming it
     // For nothing but this reason the method accepts 'abbrev' by value
-    typedef typename std::basic_string<CharT,Traits,Allocator> basic_string;
-    for (typename basic_string::iterator p = abbrev.begin();
+    typedef basic_string<CharT,Traits,Allocator> string_type;
+    for (typename string_type::iterator p = abbrev.begin();
          abbrev.end() != p; ++p)
     {
-        *p = std::toupper(*p);
+        *p = toupper(*p);
     }
     abbrev.erase(0, abbrev.find_first_not_of(" \n\r\t"));
     abbrev.erase(1 + abbrev.find_last_not_of(" \n\r\t"));
 
     // Obtain best_model(...) per abbrev, subtract_mean, EstimationMethod
     // and assign to retval to provide unambiguous overload resolution.
+    type retval;
+
     if      (abbrev.empty() || 0 == abbrev.compare("CIC" ))  // Default
     {
         if (subtract_mean)
