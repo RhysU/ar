@@ -2002,7 +2002,7 @@ struct CIC : public criterion
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
  *                      When \f$sigma^2_\epsilon\f$ is produced entirely by
- *                      \ref burg_method, this should be \c 0u.
+ *                      \ref burg_method, this should be \c 0.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
  * @param[out] crit     Value assigned to each model by the criterion.
@@ -2096,7 +2096,7 @@ best_model(Integer        N,
 
     // Find the best model index according to the given criterion
     const typename Sequence1::difference_type best = evaluate_models<Criterion>(
-            N, 0u, sigma2e.begin(), sigma2e.end(), crit);
+            N, 0, sigma2e.begin(), sigma2e.end(), crit);
 
     // Now trim away everything and leaving only the best model in Sequences...
 
