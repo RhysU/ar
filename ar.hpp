@@ -111,7 +111,18 @@ namespace ar
  * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
  */
 #define AR_ENSURE(expr) \
-    AR_ENSURE_MSG(expr, AR_STRINGIFY(expr) " false")
+    AR_ENSURE_MSG(expr, AR_STRINGIFY(expr)" false")
+
+/**
+ * Ensure that the argument-related \c expr evaluates to boolean \c true at
+ * runtime.  If \c expr evaluates to boolean \c false, then a
+ * <tt>std::invalid_argument</tt> is thrown.
+ *
+ * This macro is intended for <tt>assert</tt>-like checks which should always
+ * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ */
+#define AR_ENSURE_ARG(expr) \
+    AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr)" false", std::invalid_argument)
 
 /**
  * Ensure that \c expr evaluates to boolean \c true at runtime.  If \c expr
@@ -121,7 +132,7 @@ namespace ar
  * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
  */
 #define AR_ENSURE_EXCEPT(expr, except) \
-    AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr) " false", except)
+    AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr)" false", except)
 
 /**
  * @}
@@ -2157,13 +2168,18 @@ best_model(Integer1       N,
     using std::advance;
     using std::copy_backward;
     using std::invalid_argument;
+    using std::size_t;
 
     // Ensure all inputs have conformant sizes
-    assert(sigma2e.size() > 0);
-    assert(params .size() == (sigma2e.size()-1)*(sigma2e.size())/2);
-    assert(gain   .size() == sigma2e.size());
-    assert(autocor.size() == sigma2e.size());
-    assert(minorder <= sigma2e.size());
+    // Sanity checks written to provide order messages readable by end users
+    AR_ENSURE_ARG(sigma2e.size() > 0);
+    const size_t maxorder = sigma2e.size() - 1;
+    AR_ENSURE_ARG(maxorder > 0);
+    AR_ENSURE_ARG(is_nonnegative(minorder));
+    AR_ENSURE_ARG(static_cast<size_t>(minorder) <= maxorder);
+    AR_ENSURE_ARG(params .size() == (sigma2e.size()-1)*sigma2e.size()/2);
+    AR_ENSURE_ARG(gain   .size() == sigma2e.size());
+    AR_ENSURE_ARG(autocor.size() == sigma2e.size());
 
     // Find the best model index according to the given minorder and criterion
     typename Sequence1::difference_type best = minorder;
