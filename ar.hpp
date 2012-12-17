@@ -2002,7 +2002,8 @@ struct CIC : public criterion
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
  *                      When \f$sigma^2_\epsilon\f$ is produced entirely by
- *                      \ref burg_method, this should be \c 0.
+ *                      \ref burg_method with <tt>hierarchy == true</tt>,
+ *                      this should be \c 0.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
  * @param[in]  last     Exclusive end of input range.
  * @param[out] crit     Value assigned to each model by the criterion.
