@@ -357,6 +357,61 @@ std::size_t welford_covariance_sample(InputIterator1 first1,
 }
 
 /**
+ * Compute the inner product of <tt>[first, last)</tt> with itself using \ref
+ * welford_nvariance.  Welford's algorithm is combined with the linearity of
+ * the expectation operator to compute a more expensive but also more
+ * numerically stable result than can be had using <tt>std::inner_product</tt>.
+ *
+ * @param[in] first Beginning of the input data range.
+ * @param[in] last  Exclusive end of the input data range.
+ * @param[in] init  Initial value, often zero, establishing the result type.
+ *
+ * @returns The inner product of <tt>[first, last)</tt> with itself.
+ */
+template <typename InputIterator,
+          typename ValueType>
+ValueType welford_inner_product(InputIterator first,
+                                InputIterator last,
+                                ValueType     init)
+{
+    typename std::iterator_traits<InputIterator>::value_type mean;
+    ValueType nvar;
+    const std::size_t N = welford_nvariance(first, last, mean, nvar);
+    return init + (nvar + N*(mean*mean));
+}
+
+/**
+ * Compute the inner product of <tt>[first1, last1)</tt> against <tt>[first2,
+ * ...)</tt> using \ref welford_ncovariance.  Welford's algorithm is combined
+ * with the linearity of the expectation operator to compute a more expensive
+ * but also numerically stable result than can be had using
+ * <tt>std::inner_product</tt>.
+ *
+ * @param[in] first1 Beginning of the first input range.
+ * @param[in] last1  Exclusive end of first input range.
+ * @param[in] first2 Beginning of the second input range.
+ * @param[in] init   Initial value, often zero, establishing the result type.
+ *
+ * @returns The inner product of <tt>[first1, last1)</tt> against
+ *          <tt>[first2, ...)</tt>.
+ */
+template <typename InputIterator1,
+          typename InputIterator2,
+          typename ValueType>
+ValueType welford_inner_product(InputIterator1 first1,
+                                InputIterator1 last1,
+                                InputIterator2 first2,
+                                ValueType      init)
+{
+    typename std::iterator_traits<InputIterator1>::value_type mean1;
+    typename std::iterator_traits<InputIterator2>::value_type mean2;
+    ValueType ncovar;
+    const std::size_t N = welford_ncovariance(
+            first1, last1, first2, mean1, mean2, ncovar);
+    return init + (ncovar + N*(mean1*mean2));
+}
+
+/**
  * @}
  */
 
