@@ -86,7 +86,7 @@ DEFUN_DLD(arsel, args, nargout,
 "    obtain its poles, and then simulate a realization of length M using\n"
 "\n"
 "        a = arsel(d);\n"
-"        p = 1 ./ roots(fliplr(a.AR{1}));\n"
+"        p = cellfun(@(model) 1./roots(fliplr(model)), a.AR, 'UniformOutput', 0);\n"
 "        x = a.mu(1) + filter([1], a.AR{1}, sqrt(a.sigma2eps(1)).*randn(1,M));\n"
 "\n"
 "    Continuing the example, if the Octave signal package has been loaded,\n"
