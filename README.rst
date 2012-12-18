@@ -193,13 +193,6 @@ Contents
 *Collomb_Burg.pdf*
    For posterity, a copy of [Collomb2009].
 
-Todo
-----
-
-1. Revisit arcov-octfile.cpp to ensure the formulas used for the Octave
-   arcov(...) function are correct.  As is, the results are suspect.  Compare
-   the arcov(...) results versus the 'mu_sigma' output of arsel(...).
-
 References
 ----------
 
