@@ -251,7 +251,7 @@ std::size_t welford_variance_sample(InputIterator first,
  * @param[out] mean2  Mean of the second data set.
  * @param[out] ncovar N times the covariance of the two sets.
  *
- * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ * @returns the number data values processed within <tt>[first1, last1)</tt>.
  */
 template <typename InputIterator1,
           typename InputIterator2,
@@ -306,7 +306,7 @@ std::size_t welford_ncovariance(InputIterator1 first1,
  * @param[out] mean2  Mean of the second data set.
  * @param[out] covar  The covariance of the two sets.
  *
- * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ * @returns the number data values processed within <tt>[first1, last1)</tt>.
  */
 template <typename InputIterator1,
           typename InputIterator2,
@@ -336,7 +336,7 @@ std::size_t welford_covariance_population(InputIterator1 first1,
  * @param[out] mean2  Mean of the second data set.
  * @param[out] covar  The covariance of the two sets.
  *
- * @returns the number data values processed within <tt>[first1, last2)</tt>.
+ * @returns the number data values processed within <tt>[first1, last1)</tt>.
  */
 template <typename InputIterator1,
           typename InputIterator2,
