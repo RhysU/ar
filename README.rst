@@ -203,12 +203,7 @@ Todo
    discussed by [Broersen2006] section 5.4 appears to be too numerically
    unstable to use in practice without requiring O(n^2) memory.
 
-2. Implement the Ibrahim Optimum Tapered Burg as described by [Campbell1993]
-   based on work in [Ibrahim1987a], [Ibrahim1987b], and [Ibrahim1989].  This
-   should reduce the sensitivity to phase shifted input signals when working
-   with small data sets.
-
-3. Revisit arcov-octfile.cpp to ensure the formulas used for the Octave
+2. Revisit arcov-octfile.cpp to ensure the formulas used for the Octave
    arcov(...) function are correct.  As is, the results are suspect.  Compare
    the arcov(...) results versus the 'mu_sigma' output of arsel(...).
 
