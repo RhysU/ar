@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <Python.h>
+#include <numpy/arrayobject.h>
+
 #include <cstdlib>
 #include <string>
 #include <vector>
-
-#include <Python.h>
-#include <numpy/arrayobject.h>
 
 #include "ar.hpp"
 
