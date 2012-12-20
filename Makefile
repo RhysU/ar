@@ -4,7 +4,7 @@ HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wn
 HOWFAST   ?= -g -O2 -DNDEBUG
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
 
-all:     zohar example test arsel issue3
+all:     zohar example test arsel faber1986 collomb2009
 
 CC = $(CXX) # Force compilation and linking with C++ compiler
 
@@ -20,11 +20,14 @@ test:      test.o
 arsel.o:   arsel.cpp   ar.hpp
 arsel:     arsel.o
 
-issue3.o:  issue3.cpp
-issue3:    issue3.o
+faber1986.o:  faber1986.cpp
+faber1986:    faber1986.o
+
+collomb2009.o:  collomb2009.cpp
+collomb2009:    collomb2009.o
 
 clean:
-	rm -f example zohar test arsel issue3 *.o
+	rm -f example zohar test arsel collomb2009 faber1986 *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: all

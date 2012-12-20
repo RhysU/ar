@@ -1,6 +1,4 @@
 #include <algorithm>
-#include <cmath>
-#include <cstdio>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -9,7 +7,9 @@
 using namespace std;
 
 // Returns in vector coefficients calculated using Burg algorithm applied to the input source data x
-// Taken directly from http://www.emptyloop.com/technotes/
+//
+// Taken from Cedrick Collomb. "Burg's method, algorithm, and
+// recursion", November 2009 available at http://www.emptyloop.com/technotes/.
 void BurgAlgorithm( vector<double>& coeffs, const vector<double>& x )
 {
     // GET SIZE FROM INPUT VECTORS
@@ -80,14 +80,14 @@ int main( int argc, char* argv[] )
     order = atoi(argv[1]);
 
     // Load data from cin
-    vector<double> original;
-    copy(istream_iterator<double>(cin), istream_iterator<double>(), back_inserter(original));
+    vector<double> data;
+    copy(istream_iterator<double>(cin), istream_iterator<double>(), back_inserter(data));
 
     // Compute AR model of given order
-    vector<double> coeffs( order, 0.0 );
-    BurgAlgorithm( coeffs, original );
+    vector<double> coeffs( order );
+    BurgAlgorithm( coeffs, data );
 
-    // Output them
+    // Output them, including a leading 1 not computed by BurgAlgorithm
     cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos;
     cout << 1.0 << endl;
