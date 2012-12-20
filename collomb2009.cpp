@@ -6,11 +6,18 @@
 
 using namespace std;
 
-// Returns in vector coefficients calculated using Burg algorithm applied to the input source data x
-//
-// Taken from Cedrick Collomb. "Burg's method, algorithm, and
-// recursion", November 2009 available at http://www.emptyloop.com/technotes/.
-void BurgAlgorithm( vector<double>& coeffs, const vector<double>& x )
+/** @file
+ * A test harness for Cedrick Collomb's Burg algorithm variant.
+ *
+ * Taken from Cedrick Collomb. "Burg's method, algorithm, and recursion",
+ * November 2009 available at http://www.emptyloop.com/technotes/.
+ */
+
+/**
+ * Returns in vector coefficients calculated using Burg algorithm applied to
+ * the input source data x
+ */
+static void BurgAlgorithm( vector<double>& coeffs, const vector<double>& x )
 {
     // GET SIZE FROM INPUT VECTORS
     size_t N = x.size() - 1;
@@ -69,7 +76,7 @@ void BurgAlgorithm( vector<double>& coeffs, const vector<double>& x )
     coeffs.assign( ++Ak.begin(), Ak.end() );
 }
 
-// Example program using Burg’s algorithm
+/** Fit data from standard input using \ref BurgAlgorithm. */
 int main( int argc, char* argv[] )
 {
     int order;

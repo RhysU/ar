@@ -1,35 +1,49 @@
-// This function implements Burg's block data processing
-// algorithm to compute lattice [k] parameters.
-// The autoregressive (a) parameters are also computed
-// and returned (after the final iteration only).  This
-// method minimizes the sum of the forward and backward
-// squared errors, subject to the constraint on the AR
-// parameters of the Levinson/Durbin algorithm.
-// This program is based on equations in:
-//     S. M. Kay and S. L. Marple, "Spectrum Analysis--
-//     A Modern Perspective."  Proc. IEEE, Vol. 69,
-//     No. 11, Nov. 1981, pp. 1380-1419.
-// Equation numbers are noted in comments.  Note that
-// eq. (2.74) for the denominator recursion is wrong
-// in that paper; it is corrected here.
-//
-// Relative to the code appearing in:
-//     L. J. Faber, "Commentary on the denominator
-//     recursion for Burg's block algorithm," Proc.
-//     IEEE, Vol. 74, No. 7, Jul. 1986, pp. 1046-1047.
-// The maximum input size and order and been modified.
-// Double precision is used throughout.  ANSI C is used.
-// The method has been renamed to faber1986.
+/** @file
+ * A test harness for Andersen's Burg algorithm variant as implemented by
+ * Faber.
+ */
 
+/** Maximum number of input data points */
 #define MAXSIZE (100000)
+
+/** Maximum model order to fit */
 #define MAXORD  (50)
 
-void faber1986(double data[], /* input data to analyze */
-               int    ndat,   /* number of data points */
-               double k[],    /* reflection coefficients */
-               double a[],    /* autoregressive coeff. */
-               double err[],  /* AR prediction error energy */
-               int p)         /* system order (# of coeff.) */
+/**
+ * This function implements Burg's block data processing algorithm to compute
+ * lattice [k] parameters.  The autoregressive (a) parameters are also computed
+ * and returned (after the final iteration only).  This method minimizes the
+ * sum of the forward and backward squared errors, subject to the constraint on
+ * the AR parameters of the Levinson/Durbin algorithm.  This program is based
+ * on equations in:
+ *     S. M. Kay and S. L. Marple, "Spectrum Analysis--
+ *     A Modern Perspective."  Proc. IEEE, Vol. 69,
+ *     No. 11, Nov. 1981, pp. 1380-1419.
+ * Equation numbers are noted in comments.  Note that eq. (2.74) for the
+ * denominator recursion is wrong in that paper; it is corrected here.
+ *
+ * Adapted from L. J. Faber, "Commentary on the denominator recursion for
+ * Burg's block algorithm," Proc.  IEEE, Vol. 74, No. 7, Jul. 1986, pp.
+ * 1046-1047.
+ *
+ * Relative to the code appearing in [Faber1986]:
+ * \li The maximum input size and order and been modified.
+ * \li Double precision is used throughout.  ANSI C is used.
+ * \li The method has been renamed to \ref faber1986.
+ *
+ * @param[in]  data input data to analyze
+ * @param[in]  ndat number of data points
+ * @param[out] k    reflection coefficients
+ * @param[out] a    autoregressive coefficients
+ * @param[out] err  AR prediction error energy
+ * @param[in]  p    system order (# of coefficients)
+ */
+static void faber1986(double data[],
+                      int    ndat,
+                      double k[],
+                      double a[],
+                      double err[],
+                      int p)
 {
     int i;                    /* order index, i <= i <= p */
     int j;                    /* order sub-index, j < i */
@@ -85,7 +99,7 @@ void faber1986(double data[], /* input data to analyze */
 
 using namespace std;
 
-// Example program using Burg’s algorithm
+/** Fit data from standard input using \ref faber1986. */
 int main( int argc, char* argv[] )
 {
     int p;
