@@ -409,6 +409,20 @@ ValueType welford_inner_product(InputIterator1 first1,
 }
 
 /**
+ * @}
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Algorithms for autoregressive parameter estimation and manipulation.
+ *
+ * @{
+ */
+
+/**
  * Stably compute negative one half the reflection coefficient assuming
  * \f$\vec{a}\f$ and \f$\vec{b}\f$ contain real-valued backward and forward
  * prediction error sequences, respectively.
@@ -478,20 +492,6 @@ ValueType welford_negative_half_reflection_coefficient(InputIterator1 a_first,
 ////
 ////return (nab + ma*mb) / (naa + nbb + ma*ma + mb*mb);
 }
-
-/**
- * @}
- */
-
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-/**
- * Algorithms for autoregressive parameter estimation and manipulation.
- *
- * @{
- */
 
 /**
  * Fit an autoregressive model to stationary time series data using %Burg's
