@@ -412,6 +412,62 @@ ValueType welford_inner_product(InputIterator1 first1,
 }
 
 /**
+ * Stably compute negative one half the reflection coefficient assuming
+ * \f$\vec{a}\f$ and \f$\vec{b}\f$ contain real-valued backward and forward
+ * prediction error sequences, respectively.
+ *
+ * Presumably the stable computation of these values should not be expensive as
+ * computing the numerator alone represents a memory-bound Level 1 BLAS
+ * operation.  Combining the three related inner products within a Welford-like
+ * algorithm should more effectively utilize modern processors.
+ *
+ * @param[in] a_first Beginning of the first input range \f$\vec{a}\f$.
+ * @param[in] a_last  Exclusive end of first input range \f$\vec{a}\f$.
+ * @param[in] b_first Beginning of the second input range \f$\vec{b}\f$.
+ *
+ * @return \f$\frac{\vec{a}\cdot{}\vec{b}}{\vec{a}\cdot{}\vec{a} +
+ * \vec{b}\cdot{}\vec{b}}\f$.
+ *
+ * @see Methods \ref welford_nvariance and \ref welford_ncovariance for the
+ *      basic algorithms upon which this is build.
+ */
+template <typename InputIterator>
+typename std::numeric_limits<InputIterator>::value_type
+welford_negative_half_reflection_coefficient(InputIterator a_first,
+                                             InputIterator a_last,
+                                             InputIterator b_first)
+{
+    using std::size_t;
+    typedef typename std::iterator_traits<InputIterator>::value_type value_type;
+
+    size_t     N   = 1;  // Running next sample number
+    value_type ma  = 0;  // Running mean of \vec{a} thus far
+    value_type mb  = 0;  // Running mean of \vec{b} thus far
+    value_type naa = 0;  // Running variance of \vec{a} thus far
+    value_type nbb = 0;  // Running variance of \vec{b} thus far
+    value_type nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
+
+    while (a_first != a_last)
+    {
+        value_type xa  = *a_first++;    // Welford variance on \vec{a}
+        value_type da  = xa - ma;
+        ma            += da / N;
+        naa           += da*(xa - ma);
+
+        value_type xb  = *b_first++;    // Welford variance on \vec{b}
+        value_type db  = xb - mb;
+        mb            += db / N;
+        nbb           += db*(xb - mb);
+
+        nab           += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
+
+        ++N;
+    }
+
+    return (nab + ma*mb) / (naa + nbb + ma*ma + mb*mb);
+}
+
+/**
  * @}
  */
 
