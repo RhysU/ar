@@ -216,6 +216,8 @@ References
 
 -- [Collomb2009]     Cedrick Collomb. Burg's method, algorithm, and recursion, November 2009. http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf
 
+-- [Faber1986]       Faber, L. J. "Commentary on the denominator recursion for Burg's block algorithm." Proceedings of the IEEE 74 (July 1986): 1046-1047. http://dx.doi.org/10.1109/PROC.1986.13584
+
 -- [GalassiGSL]      M. Galassi et al, GNU Scientific Library Reference Manual (3rd Ed.), ISBN 0954612078. \url{http://www.gnu.org/software/gsl/}
 
 -- [Hurvich1989]     Hurvich, Clifford M. and Chih-Ling Tsai. "Regression and time series model selection in small samples." Biometrika 76 (June 1989): 297-307. http://dx.doi.org/10.1093/biomet/76.2.297
