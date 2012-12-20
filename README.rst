@@ -228,6 +228,8 @@ References
 
 -- [Ibrahim1989]     Ibrahim, M. K. "Correction to 'Improvement in the speed of the data-adaptive weighted Burg technique'." IEEE Transactions on Acoustics, Speech, and Signal Processing 37 (1989): 128. http://dx.doi.org/10.1109/29.17511
 
+-- [Kay1981]         Kay, S. M. and S. L. Marple. "Spectrum analysis- A modern perspective." Proceedings of the IEEE 69 (November 1981): 1380-1419. http://dx.doi.org/10.1109/PROC.1981.12184
+
 -- [Merchant1982]    Merchant, G. and T. Parks. "Efficient solution of a Toeplitz-plus-Hankel coefficient matrix system of equations." IEEE Transactions on Acoustics, Speech, and Signal Processing 30 (February 1982): 40-44. http://dx.doi.org/10.1109/TASSP.1982.1163845
 
 -- [Octave]          Eaton, John W., David Bateman, and Søren Hauberg. GNU Octave Manual Version 3. Network Theory Limited, 2008. http://www.octave.org/
