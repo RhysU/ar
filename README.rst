@@ -5,66 +5,30 @@ Overview
 --------
 
 This package contains a precision-agnostic, header-only, C++ implementation of
-Burg's recursive method for estimating autoregressive model parameters based on
-the presentation in [Collomb2009].   Many usability-related extensions have
-been added to permit simply obtaining autocorrelation information from the
-resulting estimated model.  The expressions differ slightly from those
-presented in [Press2007] (whose source cannot be distributed due to licensing
-restrictions).  Still, the results match Numerical Recipes code to floating
-point error against benchmark data by [Bourke1998]::
+Burg's recursive method for estimating autoregressive model parameters.  Many
+usability-related extensions, in particular Octave- and Python-friendly
+functions, have been added to permit simply obtaining autocorrelation
+information from the resulting estimated model.
 
-	./test test1.coeff test1.dat
+The implementation permits extracting a sequence of AR(p) models for p from one
+up to some maximum order::
 
-	         Coefficient   NumericalRecipes        burg_method           PercentDiff
-	         -----------   ----------------        -----------           -----------
-	                 1.4    1.3722815374162    1.3722815374161  -7.4431168445089e-12
-	                -0.7  -0.69066992983051   -0.6906699298305  -1.9289498094656e-12
-	                0.04  0.034482949286973  0.034482949287216   7.0461579987592e-10
-	                 0.7   0.74323368158906   0.74323368158868  -5.1385819821096e-11
-	                -0.5  -0.46165133140387  -0.46165133140364  -4.9240227164672e-11
-
-	  Mean^2 Discrepancy    1.0600415436226    1.0600415436232   6.0934192590181e-11
-
-	./test test2.coeff test2.dat
-
-	         Coefficient   NumericalRecipes        burg_method           PercentDiff
-	         -----------   ----------------        -----------           -----------
-	               0.677   0.65876631854655   0.65876631854655  -1.1797144076101e-13
-	               0.175   0.20659300731471   0.20659300731471  -4.2991698085266e-13
-	               0.297   0.28423342541501   0.28423342541501  -3.5154230038347e-13
-	               0.006  0.046456925303432  0.046456925303431  -3.2859614554535e-13
-	              -0.114  -0.12126498977465  -0.12126498977465   1.2588601720054e-13
-	              -0.083 -0.088294332237173 -0.088294332237173  -2.9863521436483e-13
-	              -0.025  -0.05546648074175  -0.05546648074175  -3.2526174202682e-13
-
-	  Mean^2 Discrepancy   0.97858693598551   0.97858693598555   3.8006302717997e-12
-
-	./test test3.coeff test3.dat
-
-	         Coefficient   NumericalRecipes        burg_method           PercentDiff
-	         -----------   ----------------        -----------           -----------
-	                1.02    1.0251761581124    1.0251761581124   3.4654665451271e-13
-	               -0.53  -0.52577027224279  -0.52577027224279   4.8567085121517e-13
-
-	  Mean^2 Discrepancy    1.0577040559129    1.0577040559129  -6.5078532262362e-13
-
-The implementation also permits extracting a sequence of AR(p) models for p
-from one up to some maximum order::
-
+	Estimating at most an AR(7) model using 10 samples
+	
 	AR      RMS/N      Gain Filter Coefficients
 	--      -----      ---- -------------------
 	 0   5.91e+00  1.00e+00 [ 1  ]
-	 1   6.02e-04  9.82e+03 [ 1   -0.9999 ]
-	 2   1.91e-05  3.09e+05 [ 1    -1.984    0.984 ]
-	 3   3.33e-07  1.78e+07 [ 1    -2.959    2.951  -0.9913 ]
-	 4   3.54e-08  1.67e+08 [ 1    -3.896     5.74   -3.789   0.9453 ]
-	 5   2.82e-09  2.10e+09 [ 1    -4.803    9.375   -9.295    4.683  -0.9594 ]
-	 6   6.26e-10  9.44e+09 [ 1    -5.649     13.5   -17.49    12.95   -5.195   0.8819 ]
-	 7   1.15e-10  5.15e+10 [ 1    -6.446     18.2    -29.2    28.76    -17.4    5.987  -0.9037 ]
-
+	 1   1.71e-03  3.45e+03 [ 1   -0.9999 ]
+	 2   2.01e-05  2.94e+05 [ 1    -1.994   0.9941 ]
+	 3   2.55e-08  2.32e+08 [ 1    -2.987    2.987  -0.9994 ]
+	 4   1.01e-09  5.83e+09 [ 1    -3.967    5.913   -3.927   0.9799 ]
+	 5   2.61e-11  2.26e+11 [ 1    -4.934    9.789   -9.763    4.895   -0.987 ]
+	 6   3.42e-12  1.73e+12 [ 1    -5.854    14.35   -18.86    14.02   -5.586   0.9322 ]
+	 7   3.65e-13  1.62e+13 [ 1    -6.735    19.63   -32.12    31.85   -19.15    6.465  -0.9452 ]
+	
 	AIC  selects model order 7 as best
 	AICC selects model order 6 as best
-	CIC  selects model order 6 as best
+	CIC  selects model order 7 as best
 
 A variety of finite sample model selection criteria are implemented following
 [Broersen2000].  In particular, the
@@ -87,25 +51,28 @@ turbulence signal::
 
 	# absrho    true
 	# criterion CIC
-	# eff_N     28.189291703466367
-	# eff_var   3.6732436032076988e-05
-	# gain      4249.4034161220061
+	# eff_N     28.18777014115533
+	# eff_var   3.6732508957963943e-05
+	# gain      4249.4040527950729
 	# maxorder  512
+	# minorder  0
 	# mu        0.20955287956200269
-	# mu_sigma  0.0011415180514446697
+	# mu_sigma  0.0011415499935005066
 	# N         1753
 	# AR(p)     6
-	# sigma2eps 8.337493313975753e-09
-	# sigma2x   3.5429372570302953e-05
+	# sigma2eps 8.3374920647988362e-09
+	# sigma2x   3.5429372570302933e-05
 	# submean   true
-	# T0        62.186734538790766
+	# T0        62.190091348891279
+	# window_T0 1
 	+1
-	-2.6990358155957219
-	+2.8771725714475669
-	-1.7247889414504787
-	+0.75024991258362694
-	-0.26867206148922779
-	+0.067007468565782782
+	-2.6990334396411866
+	+2.8771681702855281
+	-1.7247852051789097
+	+0.75024605955486146
+	-0.26866837869957461
+	+0.06700587276734557
+
 
 Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
@@ -202,9 +169,6 @@ Contents
 *optionparser.h*
    The Lean Mean C++ Option Parser from http://optionparser.sourceforge.net
    which is used to parse command line arguments within sample applications.
-
-*Collomb_Burg.pdf*
-   For posterity, a copy of [Collomb2009].
 
 References
 ----------

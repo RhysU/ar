@@ -1,6 +1,3 @@
-// Except for any way in which it interferes with Cedrick Collomb's 2009
-// copyright assertion in the article "Burg’s Method, Algorithm and Recursion":
-//
 // Copyright (C) 2012 Rhys Ulerich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -425,41 +422,41 @@ ValueType welford_inner_product(InputIterator1 first1,
  * @param[in] a_last  Exclusive end of first input range \f$\vec{a}\f$.
  * @param[in] b_first Beginning of the second input range \f$\vec{b}\f$.
  *
- * @return \f$\frac{\vec{a}\cdot{}\vec{b}}{\vec{a}\cdot{}\vec{a} +
- * \vec{b}\cdot{}\vec{b}}\f$.
+ * @return \f$\frac{\vec{a}\cdot{}\vec{b}}
+ *                 {\vec{a}\cdot{}\vec{a} + \vec{b}\cdot{}\vec{b}}\f$.
  *
  * @see Methods \ref welford_nvariance and \ref welford_ncovariance for the
  *      basic algorithms upon which this is build.
  */
-template <typename InputIterator>
-typename std::numeric_limits<InputIterator>::value_type
-welford_negative_half_reflection_coefficient(InputIterator a_first,
-                                             InputIterator a_last,
-                                             InputIterator b_first)
+template <typename ValueType,
+          typename InputIterator1,
+          typename InputIterator2>
+ValueType welford_negative_half_reflection_coefficient(InputIterator1 a_first,
+                                                       InputIterator1 a_last,
+                                                       InputIterator2 b_first)
 {
     using std::size_t;
-    typedef typename std::iterator_traits<InputIterator>::value_type value_type;
 
-    size_t     N   = 1;  // Running next sample number
-    value_type ma  = 0;  // Running mean of \vec{a} thus far
-    value_type mb  = 0;  // Running mean of \vec{b} thus far
-    value_type naa = 0;  // Running variance of \vec{a} thus far
-    value_type nbb = 0;  // Running variance of \vec{b} thus far
-    value_type nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
+    size_t N       = 1;  // Running next sample number
+    ValueType  ma  = 0;  // Running mean of \vec{a} thus far
+    ValueType  mb  = 0;  // Running mean of \vec{b} thus far
+    ValueType  naa = 0;  // Running variance of \vec{a} thus far
+    ValueType  nbb = 0;  // Running variance of \vec{b} thus far
+    ValueType  nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
 
     while (a_first != a_last)
     {
-        value_type xa  = *a_first++;    // Welford variance on \vec{a}
-        value_type da  = xa - ma;
-        ma            += da / N;
-        naa           += da*(xa - ma);
+        ValueType xa  = *a_first++;    // Welford variance on \vec{a}
+        ValueType da  = xa - ma;
+        ma           += da / N;
+        naa          += da*(xa - ma);
 
-        value_type xb  = *b_first++;    // Welford variance on \vec{b}
-        value_type db  = xb - mb;
-        mb            += db / N;
-        nbb           += db*(xb - mb);
+        ValueType xb  = *b_first++;    // Welford variance on \vec{b}
+        ValueType db  = xb - mb;
+        mb           += db / N;
+        nbb          += db*(xb - mb);
 
-        nab           += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
+        nab          += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
 
         ++N;
     }
@@ -520,18 +517,24 @@ welford_negative_half_reflection_coefficient(InputIterator a_first,
  * Autocovariances may be computed by multiplying the autocorrelations by the
  * gain times \f$\sigma^2_\epsilon\f$.
  *
- * The implementation has been refactored from Cedrick Collomb's 2009 article
- * <a
- * href="http://www.emptyloop.com/technotes/A%20tutorial%20on%20Burg's%20method,%20algorithm%20and%20recursion.pdf">"Burg’s
- * Method, Algorithm and Recursion"</a>.  In particular, iterators are
- * employed, the working precision is selectable using \c mean, the mean
- * squared discrepancy calculation has been added, some loop index
- * transformations have been performed, working storage may be passed into the
- * method to reduce allocations across many invocations, and all lower order
- * models may be output during the recursion using \c hierarchy.  Gain and
- * autocorrelation calculations have been added based on sections 5.2 and 5.3
- * of Broersen, P.  M.  T. Automatic autocorrelation and spectral analysis.
- * Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.
+ * The software aspects of the implementation differs from many other sources.
+ * In particular,
+ * <ul>
+ *     <li>iterators are employed,</li>
+ *     <li>the working precision is selectable using \c mean,</li>
+ *     <li>the mean squared discrepancy calculation has been added,</li>
+ *     <li>some loop index transformations have been performed,</li>
+ *     <li>working storage may be passed into the method to reduce allocations
+ *     across many invocations, and</li>
+ *     <li>and all lower order models may be output during the recursion using
+ *     \c hierarchy.</li>
+ * </ul>
+ * Gain and autocorrelation calculations have been added based on sections 5.2
+ * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
+ * analysis.  Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.  The
+ * classical algorithm, rather than the variant using denominator recursion due
+ * to Andersen (http://dx.doi.org/10.1109/PROC.1978.11160), has been chosen as
+ * the latter can be numerically unstable.
  *
  * @param[in]     data_first    Beginning of the input data range.
  * @param[in]     data_last     Exclusive end of the input data range.
@@ -600,52 +603,47 @@ std::size_t burg_method(InputIterator   data_first,
     f.assign(data_first, data_last);
     const size_t N = f.size();
 
-    // Compute the incoming data's mean and centered sum of squares
+    // Stably compute the incoming data's mean and population variance
     mean = 0;
     Value sigma2e = 0;
-    welford_nvariance(f.begin(), f.end(), mean, sigma2e);
+    welford_variance_population(f.begin(), f.end(), mean, sigma2e);
 
     // When requested, subtract the just-computed mean from the data.
-    // Adjust, as necessary, so sigma2e is N times the second moment.
+    // Adjust, if necessary, to make sigma2e the second moment.
     if (subtract_mean)
     {
         transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
     }
     else
     {
-        sigma2e += N*(mean*mean);
+        sigma2e += mean*mean;
     }
-
-    // Initialize gain, Dk, and update sigma2e so it is the second moment.
-    Value gain = 1;
-    Value Dk = - f[0]*f[0] - f[N - 1]*f[N - 1] + 2*sigma2e;
-    sigma2e /= N;
 
     // At most maxorder N-1 can be fit from N samples.  Beware N is unsigned.
     maxorder = (N == 0) ? 0 : min(static_cast<size_t>(maxorder), N-1);
 
     // Output sigma2e and gain for a zeroth order model, if requested.
+    Value gain = 1;
     if (hierarchy || maxorder == 0)
     {
         *sigma2e_first++ = sigma2e;
         *gain_first++    = gain;
     }
 
-    // Initialize Burg recursion following Collomb
+    // Initialize and perform Burg recursion
     if (maxorder) b = f;  // Copy iff non-trivial work required
     Ak.assign(maxorder + 1, Value(0));
     Ak[0] = 1;
     ac.clear();
     ac.reserve(maxorder);
-
-    // Perform Burg recursion following Collomb
     for (size_t kp1 = 1; kp1 <= maxorder; ++kp1)
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
         // By the recurrence, Ak[kp1] will also be the reflection coefficient
-        const Value mu = 2/Dk*inner_product(f.begin() + kp1, f.end(),
-                                            b.begin(), Value(0));
+        Value mu = 2 * welford_negative_half_reflection_coefficient<Value>(
+                f.begin() + kp1, f.end(), b.begin());
+
         sigma2e *= (1 - mu*mu);
         for (size_t n = 0; n <= kp1/2; ++n)
         {
@@ -672,7 +670,7 @@ std::size_t burg_method(InputIterator   data_first,
             *gain_first++    = gain;
         }
 
-        // Update f, b, and then Dk for the next iteration if another remains
+        // Update f and b for the next iteration if another remains
         if (kp1 < maxorder)
         {
             for (size_t n = 0; n < N - kp1; ++n)
@@ -682,7 +680,6 @@ std::size_t burg_method(InputIterator   data_first,
                 f[n + kp1] = t1;
                 b[n] = t2;
             }
-            Dk = (1 - mu*mu)*Dk - f[kp1]*f[kp1] - b[N - kp1 - 1]*b[N - kp1 - 1];
         }
     }
 
