@@ -435,33 +435,48 @@ ValueType welford_negative_half_reflection_coefficient(InputIterator1 a_first,
                                                        InputIterator1 a_last,
                                                        InputIterator2 b_first)
 {
-    using std::size_t;
 
-    size_t N       = 1;  // Running next sample number
-    ValueType  ma  = 0;  // Running mean of \vec{a} thus far
-    ValueType  mb  = 0;  // Running mean of \vec{b} thus far
-    ValueType  naa = 0;  // Running variance of \vec{a} thus far
-    ValueType  nbb = 0;  // Running variance of \vec{b} thus far
-    ValueType  nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
+    // DEBUG: Non-compensated algorithm
+    ValueType num = 0;
+    ValueType den = 0;
 
     while (a_first != a_last)
     {
-        ValueType xa  = *a_first++;    // Welford variance on \vec{a}
-        ValueType da  = xa - ma;
-        ma           += da / N;
-        naa          += da*(xa - ma);
-
-        ValueType xb  = *b_first++;    // Welford variance on \vec{b}
-        ValueType db  = xb - mb;
-        mb           += db / N;
-        nbb          += db*(xb - mb);
-
-        nab          += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
-
-        ++N;
+        ValueType xa = *a_first++;
+        ValueType xb = *b_first++;
+        num         += xa * xb;
+        den         += xa * xa + xb * xb;
     }
 
-    return (nab + ma*mb) / (naa + nbb + ma*ma + mb*mb);
+    return num / den;
+
+////using std::size_t;
+////
+////size_t N       = 1;  // Running next sample number
+////ValueType  ma  = 0;  // Running mean of \vec{a} thus far
+////ValueType  mb  = 0;  // Running mean of \vec{b} thus far
+////ValueType  naa = 0;  // Running variance of \vec{a} thus far
+////ValueType  nbb = 0;  // Running variance of \vec{b} thus far
+////ValueType  nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
+////
+////while (a_first != a_last)
+////{
+////    ValueType xa  = *a_first++;    // Welford variance on \vec{a}
+////    ValueType da  = xa - ma;
+////    ma           += da / N;
+////    naa          += da*(xa - ma);
+////
+////    ValueType xb  = *b_first++;    // Welford variance on \vec{b}
+////    ValueType db  = xb - mb;
+////    mb           += db / N;
+////    nbb          += db*(xb - mb);
+////
+////    nab          += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
+////
+////    ++N;
+////}
+////
+////return (nab + ma*mb) / (naa + nbb + ma*ma + mb*mb);
 }
 
 /**
