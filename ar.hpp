@@ -440,7 +440,7 @@ ValueType welford_inner_product(InputIterator1 first1,
  *                 {\vec{a}\cdot{}\vec{a} + \vec{b}\cdot{}\vec{b}}\f$.
  *
  * @see Methods \ref welford_nvariance and \ref welford_ncovariance for the
- *      basic algorithms upon which this is build.
+ *      basic algorithms upon which this is built.
  */
 template <typename ValueType,
           typename InputIterator1,
