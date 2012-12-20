@@ -445,9 +445,9 @@ ValueType welford_inner_product(InputIterator1 first1,
 template <typename ValueType,
           typename InputIterator1,
           typename InputIterator2>
-ValueType welford_negative_half_reflection_coefficient(InputIterator1 a_first,
-                                                       InputIterator1 a_last,
-                                                       InputIterator2 b_first)
+ValueType negative_half_reflection_coefficient(InputIterator1 a_first,
+                                               InputIterator1 a_last,
+                                               InputIterator2 b_first)
 {
 
     // DEBUG: Non-compensated algorithm
@@ -656,14 +656,14 @@ std::size_t burg_method(InputIterator   data_first,
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
         // By the recurrence, Ak[kp1] will also be the reflection coefficient
-        Value mu = 2 * welford_negative_half_reflection_coefficient<Value>(
+        Value mu = -2 * negative_half_reflection_coefficient<Value>(
                 f.begin() + kp1, f.end(), b.begin());
 
         sigma2e *= (1 - mu*mu);
         for (size_t n = 0; n <= kp1/2; ++n)
         {
-            Value t1 = Ak[n] - mu*Ak[kp1 - n];
-            Value t2 = Ak[kp1 - n] - mu*Ak[n];
+            Value t1 = Ak[n] + mu*Ak[kp1 - n];
+            Value t2 = Ak[kp1 - n] + mu*Ak[n];
             Ak[n] = t1;
             Ak[kp1 - n] = t2;
         }
@@ -690,8 +690,8 @@ std::size_t burg_method(InputIterator   data_first,
         {
             for (size_t n = 0; n < N - kp1; ++n)
             {
-                Value t1 = f[n + kp1] - mu*b[n];
-                Value t2 = b[n] - mu*f[n + kp1];
+                Value t1 = f[n + kp1] + mu*b[n];
+                Value t2 = b[n] + mu*f[n + kp1];
                 f[n + kp1] = t1;
                 b[n] = t2;
             }
