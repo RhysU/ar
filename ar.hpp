@@ -67,10 +67,14 @@ namespace ar
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * Preprocessor macros to simplify ensuring preconditions are met.
+ * Preprocessor macros to simplify implementation.
  *
  * @{
  */
+
+/** Helper for defining GCC version checks. */
+#define AR_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 /** Helper macro for implementing \ref AR_STRINGIFY. */
 #define AR_STRINGIFY_HELPER(x) #x
@@ -422,6 +426,11 @@ ValueType welford_inner_product(InputIterator1 first1,
  * @{
  */
 
+#if _MSC_VER > 1400
+# pragma float_control(push)
+# pragma float_control(precise, on)
+#endif
+
 /**
  * Robustly compute negative one half the reflection coefficient assuming
  * \f$\vec{a}\f$ and \f$\vec{b}\f$ contain real-valued backward and forward
@@ -441,23 +450,16 @@ template <typename ValueType,
           typename InputIterator1,
           typename InputIterator2>
 ValueType
-/*
-#if !defined(__INTEL_COMPILER) &&                                        \
-    ( __GNUC__*10000 + __GNUC_MINOR__*100 + __GNUC_PATCHLEVEL__) > 40305
-    __attribute__((optimize("no-associative-math")))
+#if (AR_GCC_VERSION > 40305)
+    __attribute__((__optimize__("no-associative-math")))
 #endif
-*/
 negative_half_reflection_coefficient(InputIterator1 a_first,
                                      InputIterator1 a_last,
                                      InputIterator2 b_first)
-/*
-#if !defined(__INTEL_COMPILER) &&                                        \
-    ( __GNUC__*10000 + __GNUC_MINOR__*100 + __GNUC_PATCHLEVEL__) > 40305
-    __attribute__((optimize("no-associative-math")))
-#endif
+#if (AR_GCC_VERSION > 40305) ||  (_MSC_VER > 1400)
 {
-    ValueType ns = 0, nt = 0, nc, ny;  // Kahan numerator accumulation
-    ValueType ds = 0, dt = 0, dc, dy;  // Kahan denominator accumulation
+    ValueType ns = 0, nt, nc = 0, ny;  // Kahan numerator accumulation
+    ValueType ds = 0, dt, dc = 0, dy;  // Kahan denominator accumulation
 
     while (a_first != a_last)
     {
@@ -482,8 +484,7 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
     return ns / ds;
 }
 #else
-#warning Using non-Kahan ar::negative_half_reflection_coefficient
-*/
+#warning Using Non-Kahan version of ar::negative_half_reflection_coefficient.
 {
     ValueType ns = 0;
     ValueType ds = 0;
@@ -498,9 +499,11 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
 
     return ns / ds;
 }
-/*
 #endif
-*/
+
+#if _MSC_VER > 1400
+# pragma float_control(pop)
+#endif
 
 /**
  * Fit an autoregressive model to stationary time series data using %Burg's
