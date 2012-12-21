@@ -12,7 +12,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -100,5 +100,5 @@ int main()
     for (size_t i = 0; i < exp.size(); ++i) abserr += std::abs(err[i]);
     cout << "Sum of the absolute errors is:\n\t" << abserr << endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }

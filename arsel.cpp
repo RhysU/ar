@@ -14,13 +14,9 @@
 #include "optionparser.h"
 
 #include <algorithm>
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <functional>
-#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <limits>
