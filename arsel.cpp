@@ -65,8 +65,6 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
-    // TODO Add processing of files specified on the command line
-
     // Parse and process any command line arguments using optionparser.h
     string criterion     = "CIC";
     bool   subtract_mean = false;
