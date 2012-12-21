@@ -423,75 +423,84 @@ ValueType welford_inner_product(InputIterator1 first1,
  */
 
 /**
- * Stably compute negative one half the reflection coefficient assuming
+ * Robustly compute negative one half the reflection coefficient assuming
  * \f$\vec{a}\f$ and \f$\vec{b}\f$ contain real-valued backward and forward
  * prediction error sequences, respectively.
- *
- * Presumably the stable computation of these values should not be expensive as
- * computing the numerator alone represents a memory-bound Level 1 BLAS
- * operation.  Combining the three related inner products within a Welford-like
- * algorithm should more effectively utilize modern processors.
  *
  * @param[in] a_first Beginning of the first input range \f$\vec{a}\f$.
  * @param[in] a_last  Exclusive end of first input range \f$\vec{a}\f$.
  * @param[in] b_first Beginning of the second input range \f$\vec{b}\f$.
  *
- * @return \f$\frac{\vec{a}\cdot{}\vec{b}}
- *                 {\vec{a}\cdot{}\vec{a} + \vec{b}\cdot{}\vec{b}}\f$.
+ * @return \f$\frac{\vec{a}\cdot\vec{b}}
+ *                 {\vec{a}\cdot\vec{a} + \vec{b}\cdot\vec{b}}\f$.
  *
- * @see Methods \ref welford_nvariance and \ref welford_ncovariance for the
- *      basic algorithms upon which this is built.
+ * @see Wikipedia's article on <a href="">Kahan summation</a> for
+ *      background on how the accumulation error is reduced in the result.
  */
 template <typename ValueType,
           typename InputIterator1,
           typename InputIterator2>
-ValueType negative_half_reflection_coefficient(InputIterator1 a_first,
-                                               InputIterator1 a_last,
-                                               InputIterator2 b_first)
+ValueType
+/*
+#if !defined(__INTEL_COMPILER) &&                                        \
+    ( __GNUC__*10000 + __GNUC_MINOR__*100 + __GNUC_PATCHLEVEL__) > 40305
+    __attribute__((optimize("no-associative-math")))
+#endif
+*/
+negative_half_reflection_coefficient(InputIterator1 a_first,
+                                     InputIterator1 a_last,
+                                     InputIterator2 b_first)
+/*
+#if !defined(__INTEL_COMPILER) &&                                        \
+    ( __GNUC__*10000 + __GNUC_MINOR__*100 + __GNUC_PATCHLEVEL__) > 40305
+    __attribute__((optimize("no-associative-math")))
+#endif
 {
-
-    // DEBUG: Non-compensated algorithm
-    ValueType num = 0;
-    ValueType den = 0;
+    ValueType ns = 0, nt = 0, nc, ny;  // Kahan numerator accumulation
+    ValueType ds = 0, dt = 0, dc, dy;  // Kahan denominator accumulation
 
     while (a_first != a_last)
     {
-        ValueType xa = *a_first++;
-        ValueType xb = *b_first++;
-        num         += xa * xb;
-        den         += xa * xa + xb * xb;
+        ValueType xa = *a_first++;     // Denominator: \vec{a}\cdot\vec{a}
+        dy = (xa * xa) - dc;
+        dt = ds + dy;
+        dc = (dt - ds) - dy;
+        ds = dt;
+
+        ValueType xb = *b_first++;     // Denominator: \vec{b}\cdot\vec{b}
+        dy = (xb * xb) - dc;
+        dt = ds + dy;
+        dc = (dt - ds) - dy;
+        ds = dt;
+
+        ny = (xa * xb) - nc;           // Numerator:   \vec{a}\cdot\vec{b}
+        nt = ns + ny;
+        nc = (nt - ns) - ny;
+        ns = nt;
     }
 
-    return num / den;
-
-////using std::size_t;
-////
-////size_t N       = 1;  // Running next sample number
-////ValueType  ma  = 0;  // Running mean of \vec{a} thus far
-////ValueType  mb  = 0;  // Running mean of \vec{b} thus far
-////ValueType  naa = 0;  // Running variance of \vec{a} thus far
-////ValueType  nbb = 0;  // Running variance of \vec{b} thus far
-////ValueType  nab = 0;  // Running covariance of \vec{a} and \vec{b} thus far
-////
-////while (a_first != a_last)
-////{
-////    ValueType xa  = *a_first++;    // Welford variance on \vec{a}
-////    ValueType da  = xa - ma;
-////    ma           += da / N;
-////    naa          += da*(xa - ma);
-////
-////    ValueType xb  = *b_first++;    // Welford variance on \vec{b}
-////    ValueType db  = xb - mb;
-////    mb           += db / N;
-////    nbb          += db*(xb - mb);
-////
-////    nab          += da*(xb - mb);  // Welford covariance on \vec{a}\vec{b}
-////
-////    ++N;
-////}
-////
-////return (nab + ma*mb) / (naa + nbb + ma*ma + mb*mb);
+    return ns / ds;
 }
+#else
+#warning Using non-Kahan ar::negative_half_reflection_coefficient
+*/
+{
+    ValueType ns = 0;
+    ValueType ds = 0;
+
+    while (a_first != a_last)
+    {
+        ValueType xa  = *a_first++;
+        ValueType xb  = *b_first++;
+        ns           += xa * xb;
+        ds           += xa * xa + xb * xb;
+    }
+
+    return ns / ds;
+}
+/*
+#endif
+*/
 
 /**
  * Fit an autoregressive model to stationary time series data using %Burg's
