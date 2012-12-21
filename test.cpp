@@ -9,6 +9,7 @@
  */
 
 #include "ar.hpp"
+#include "optionparser.h"
 
 #include <algorithm>
 #include <cmath>
@@ -19,6 +20,24 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
+
+// Command line argument declarations for optionparser.h usage
+enum OptionIndex {
+    UNKNOWN, HELP, SUBMEAN
+};
+const option::Descriptor usage[] = {
+    {UNKNOWN, 0, "", "",      option::Arg::None,
+     "Usage: test COEFFICIENTS DATA\n"
+     "Compute ar::burg_method deviation from known coefficients on test data.\n"
+     "\n"
+     "Options:" },
+    {0,0,"","",option::Arg::None,0}, // table break
+    {HELP,    0,  "h", "help",          option::Arg::None,
+     "  -h \t--help   \tDisplay this help message and immediately exit" },
+    {SUBMEAN, 0,  "s", "subtract-mean", option::Arg::None,
+     "  -s \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
+    {0,0,0,0,0,0}
+};
 
 // Computes percent difference of \c b against theoretical result \c a.
 template<typename FPT> FPT pdiff(FPT a, FPT b) { return (b - a) / a * 100; }
@@ -36,30 +55,54 @@ int main(int argc, char *argv[])
     using namespace ar;
     using namespace std;
 
-    // Process a possible --subtract-mean flag shifting arguments if needed
+    string filename_coeffs, filename_data;
     bool subtract_mean = false;
-    if (argc > 0 && 0 == strcmp("--subtract-mean", argv[1])) {
-        subtract_mean = true;
-        argv[1] = argv[0];
-        ++argv;
-        --argc;
+    {
+        option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
+
+        vector<option::Option> options(stats.options_max + stats.buffer_max);
+
+        option::Parser parse(usage, argc-(argc>0), argv+(argc>0),
+                             &options[0], &options[stats.options_max]);
+
+        if (parse.error() || options[UNKNOWN]) {
+            for (option::Option* o = options[UNKNOWN]; o; o = o->next()) {
+                cerr << "Unknown option: " << o->name << "\n";
+            }
+            return EXIT_FAILURE;
+        }
+
+        if (options[HELP]) {
+            printUsage(cout, usage);
+            return EXIT_SUCCESS;
+        }
+
+        if (options[SUBMEAN])
+            subtract_mean = true;
+
+        if (parse.nonOptionsCount() != 2) {
+            cerr << "Missing one or more file operands.  Try --help.\n";
+            return EXIT_FAILURE;
+        }
+        filename_coeffs = parse.nonOption(0);
+        filename_data = parse.nonOption(1);
     }
 
-    // Read "exact" coefficients from file argv[1] or a default file
+    // Read "exact" coefficients
     vector<real> exact;
     {
         ifstream f;
         f.exceptions(ifstream::badbit);
-        f.open(argc > 1 ? argv[1] : "test1.coeff");
+        f.open(filename_coeffs.c_str());
         copy(istream_iterator<real>(f), istream_iterator<real>(),
              back_inserter(exact));
     }
     vector<real> est(exact.size()), cor(exact.size() + 1);
 
-    // Read time series from file argv[2] or a default file
+    // Read time series data
     ifstream f;
     f.exceptions(ifstream::badbit);
-    f.open(argc > 2 ? argv[2] : "test1.dat");
+    f.open(filename_data.c_str());
 
     // Use burg_method to fit an AR model and characterize it completely
     size_t maxorder = exact.size();
