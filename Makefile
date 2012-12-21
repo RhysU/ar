@@ -57,7 +57,9 @@ stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
 	@$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
 
+##################################################################
 # Expose functionality through GNU Octave when mkoctfile available
+##################################################################
 MKOCTFILE ?= $(shell which mkoctfile)
 ifneq "$(MKOCTFILE)" ""
 
@@ -74,7 +76,9 @@ octfiles-clean:
 
 endif
 
+###################################################################
 # Expose functionality as a Python module called 'ar' when possible
+###################################################################
 PYTHON ?= $(shell which python)
 ifneq "$(PYTHON)" ""
 
@@ -85,5 +89,25 @@ ar.so: ar-python.cpp ar.hpp setup.py
 clean: python-clean
 python-clean:
 	rm -rf ar.so python-build
+
+endif
+
+###################################################################
+# Build LaTeX-based write ups as PDFs whenever latexmk is available
+###################################################################
+LATEXMK ?= $(shell which latexmk)
+ifneq "$(LATEXMK)" ""
+
+all:      writeups
+WRITEUPS := $(patsubst %.tex,%.pdf,$(wildcard *.tex))
+writeups: $(WRITEUPS)
+
+%.pdf : %.tex
+	$(LATEXMK)    -dvi- -ps- -pdf $<
+	$(LATEXMK) -c -dvi- -ps- -pdf $<
+
+clean: writeups-clean
+writeups-clean:
+	rm -f $(WRITEUPS)
 
 endif
