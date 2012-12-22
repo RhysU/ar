@@ -240,11 +240,18 @@ int main(int argc, char *argv[])
         if (opts[RHO   ]) rho    = strtod(opts[RHO   ].last()->arg, NULL);
         if (opts[SIGMA ]) sigma  = strtod(opts[SIGMA ].last()->arg, NULL);
         if (opts[TFINAL]) tfinal = strtod(opts[TFINAL].last()->arg, NULL);
+
+        // Warn whenever burn >= tfinal
+        if (burn >= tfinal) {
+            cerr << "Warning: burn >= tfinal suppresses output ("
+                 << burn << " >= " << tfinal << ") \n";
+        }
     }
 
     // Discard 0 <= t < burn
     switch (scheme) {  // Switch designed to avoid spurious jumps
-        default:  cerr << "Unknown scheme!" << endl;
+        default:  cerr << "Sanity failure: unknown scheme at "
+                       << __FILE__ << ":" << __LINE__ << '\n';
                   return EXIT_FAILURE;
         case RK1: while (t < burn) euler  (dt, beta, rho, sigma, t, x, y, z);
                   break;
@@ -258,7 +265,8 @@ int main(int argc, char *argv[])
     cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos;
     switch (scheme) {  // Switch designed to avoid spurious jumps
-        default:  cerr << "Unknown scheme!" << endl;
+        default:  cerr << "Sanity failure: unknown scheme at "
+                       << __FILE__ << ":" << __LINE__ << '\n';
                   return EXIT_FAILURE;
         case RK1: do {
                       cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
