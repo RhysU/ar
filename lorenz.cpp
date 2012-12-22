@@ -176,6 +176,8 @@ static void tvd_rk3(
 # warning Popping precise floating point behavior unimplemented for compiler
 #endif
 
+// TODO Simulation time t drifts slowly due to accumulation error
+
 int main(int argc, char *argv[])
 {
     using namespace std;
