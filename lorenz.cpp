@@ -45,35 +45,35 @@ const option::Descriptor usage[] = {
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
     {BETA,     0, "B", "beta",     Arg::Double,
-     "  -B \t--beta=BETA  \tBeta coefficient defaulting to 8/3"               },
+     "  -B \t--beta=BETA  \t Beta coefficient defaulting to 8/3"              },
     {BURN,     0, "b", "burn",     Arg::DoublePos,
-     "  -b \t--burn=T0    \t\"Burn-in\" for 0 <= t < T0 defaulting to 500"    },
+     "  -b \t--burn=BURN  \t \"Burn-in\" for 0 <= t < BURN defaulting to 500" },
     {DT,       0, "d", "dt",       Arg::DoublePos,
-     "  -d \t--dt=DT      \tFixed time step size defaulting to 0.01"          },
+     "  -d \t--dt=DT      \t Fixed time step size defaulting to 0.01"         },
     {EVERY,    0, "e", "every",    Arg::IntNonNeg,
-     "  -e \t--every=N    \tOutput every Nth step defaulting to 10"           },
+     "  -e \t--every=N    \t Output every Nth step defaulting to 1"           },
     {RHO,      0, "R", "rho",      Arg::Double,
-     "  -R \t--rho=RHO    \tRho coefficient defaulting to 28"                 },
+     "  -R \t--rho=RHO    \t Rho coefficient defaulting to 28"                },
     {SEED,     0, "s", "seed",     Arg::Double,
-     "  -s \t--seed=SEED  \tRandom seed defaulting to gettimeofday tv_usec"   },
+     "  -s \t--seed=SEED  \t Random seed defaulting to gettimeofday tv_usec"  },
     {SIGMA,    0, "S", "sigma",    Arg::Double,
-     "  -S \t--sigma=SIGMA\tSigma coefficient defaulting to 10"               },
+     "  -S \t--sigma=SIGMA\t Sigma coefficient defaulting to 10"              },
     {TFINAL,   0, "t", "tfinal",   Arg::DoublePos,
-     "  -t \t--tfinal=T   \tAdvance time until t >= T defaulting to 3000"     },
+     "  -t \t--tfinal=T   \t Advance time until t >= T defaulting to 3000"    },
     {INITX,    0, "x", "initx",    Arg::Double,
-     "  -x \t--initx=POS  \tInitial x at t = 0 defaulting to rand(3)/RAND_MAX"},
+     "  -x \t--initx=POS  \t Initial x at t = 0 defaulting to rand()/RAND_MAX"},
     {INITY,    0, "y", "inity",    Arg::Double,
-     "  -y \t--inity=POS  \tInitial y at t = 0 defaulting to rand(3)/RAND_MAX"},
+     "  -y \t--inity=POS  \t Initial y at t = 0 defaulting to rand()/RAND_MAX"},
     {INITZ,    0, "z", "initz",    Arg::Double,
-     "  -z \t--initz=POS  \tInitial z at t = 0 defaulting to rand(3)/RAND_MAX"},
+     "  -z \t--initz=POS  \t Initial z at t = 0 defaulting to rand()/RAND_MAX"},
     {SCHEME, RK1, "1", "euler",    Arg::None,
-     "  -1 \t--euler      \tAdvance with 1st order Forward Euler scheme"      },
+     "  -1 \t--euler      \t Advance with 1st order Forward Euler scheme"     },
     {SCHEME, RK2, "2", "rk2",      Arg::None,
-     "  -2 \t--rk2        \tAdvance with 2nd order TVD Runge--Kutta scheme"   },
+     "  -2 \t--rk2        \t Advance with 2nd order TVD Runge--Kutta scheme"  },
     {SCHEME, RK3, "3", "rk3",      Arg::None,
-     "  -3 \t--rk3        \tAdvance with default 3rd order TVD Runge--Kutta"  },
+     "  -3 \t--rk3        \t Advance with default 3rd order TVD Runge--Kutta" },
     {HELP,     0, "h", "help",     Arg::None,
-     "  -h \t--help       \tDisplay this help message and immediately exit"   },
+     "  -h \t--help       \t Display this help message and immediately exit"  },
     {0,0,0,0,0,0}
 };
 
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     double     beta   = 8./3;
     double     burn   = 500;
     double     dt     = 0.01;
-    long       every  = 10;
+    long       every  = 1;
     double     rho    = 28;
     SchemeType scheme = RK3;
     double     sigma  = 10;
