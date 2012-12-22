@@ -259,21 +259,21 @@ int main(int argc, char *argv[])
         default:  cerr << "Unknown scheme!" << endl;
                   return EXIT_FAILURE;
         case RK1: do {
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
+                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
                       for (long i = 0; i < every; ++i) {
                           euler  (dt, beta, rho, sigma, t, x, y, z);
                       }
                   } while (t < tfinal);
                   break;
         case RK2: do {
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
+                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
                       for (long i = 0; i < every; ++i) {
                           tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
                       }
                   } while (t < tfinal);
                   break;
         case RK3: do {
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
+                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
                       for (long i = 0; i < every; ++i) {
                           tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
                       }
