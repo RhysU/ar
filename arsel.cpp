@@ -49,7 +49,7 @@ const option::Descriptor usage[] = {
     {MAXORDER,  0,  "m",  "maxorder",          Arg::NonNegative,
      "  -m \t--maxorder=MAX  \tConsider only models of at most order AR(p=MAX)" },
     {NONABSRHO, 0,  "n",  "non-absolute-rho",  Arg::None,
-     "  -a \t--non-absolute-rho   \tUse non-absolute autocorrelation when computing T0" },
+     "  -n \t--non-absolute-rho   \tUse non-absolute autocorrelation when computing T0" },
     {SUBMEAN,   0,  "s",  "subtract-mean",     Arg::None,
      "  -s \t--subtract-mean  \tSubtract the sample mean from the incoming data" },
     {WINT0,   0,    "w",  "window-T0",         Arg::NonNegative,
