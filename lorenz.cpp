@@ -38,8 +38,9 @@ const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "", Arg::None,
      "Usage: lorenz [OPTION]...\n"
      "Output tab-separated (t, x, y, z) data from the Lorenz equations:\n"
-     "\td/dt {x,y,z} = {sigma*(y - x), x*(rho - z) - y, x*y - beta*z}"
+     "  d/dt {x,y,z} = {sigma*(y - x), x*(rho - z) - y, x*y - beta*z}\n"
      "Advance per Gottlieb and Shu 1998 (doi:10.1090/S0025-5718-98-00913-2).\n"
+     "Individual columns may be extracted by piping to cut(1) utility.\n"
      "\n"
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
@@ -258,24 +259,24 @@ int main(int argc, char *argv[])
         default:  cerr << "Unknown scheme!" << endl;
                   return EXIT_FAILURE;
         case RK1: do {
+                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                       for (long i = 0; i < every; ++i) {
                           euler  (dt, beta, rho, sigma, t, x, y, z);
                       }
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                   } while (t < tfinal);
                   break;
         case RK2: do {
+                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                       for (long i = 0; i < every; ++i) {
                           tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
                       }
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                   } while (t < tfinal);
                   break;
         case RK3: do {
+                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                       for (long i = 0; i < every; ++i) {
                           tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
                       }
-                      cout << t << "\t" << x << "\t" << y << "\t" << z << "\n";
                   } while (t < tfinal);
                   break;
     }
