@@ -144,6 +144,14 @@ Contents
    [Kay1981,Faber1986] and [Collomb2009].  See comments at *issue3.dat*
    regarding numerical stability.
 
+*lorenz.cpp*
+   To aid investigating the behavior of the model selection and decorrelation
+   routines for stationary chaotic systems, this is a flexible utility for
+   outputting the ``(t, x, y, z)`` trajectory of the Lorenz attractor to
+   standard output.  This can be directly plotted, or manipulated using
+   ``cut(1)`` and piped to ``arsel --subtract-mean``.  Try ``lorenz --help`` to
+   see the available options.
+
 *test\*.coeff*, *test\*.dat*
    Sample data and exact parameters from [Bourke1998] used for ``make check``.
 
