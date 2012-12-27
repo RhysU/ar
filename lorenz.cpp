@@ -28,7 +28,7 @@ struct Arg : public option::Arg
 
 // Command line argument declarations for optionparser.h usage
 enum OptionIndex {
-    UNKNOWN, BETA, BURN, DT, EVERY, SCHEME, RHO, SEED, SIGMA,
+    UNKNOWN, BETA, BURN, DT, EVERY, MORE, SCHEME, RHO, SEED, SIGMA,
     TFINAL, INITX, INITY, INITZ, HELP
 };
 enum SchemeType {
@@ -52,6 +52,8 @@ const option::Descriptor usage[] = {
      "  -d \t--dt=DT      \t Fixed time step size defaulting to 0.01"         },
     {EVERY,    0, "e", "every",    Arg::IntNonNeg,
      "  -e \t--every=N    \t Output every Nth step defaulting to 1"           },
+    {MORE,      0, "m", "more",    Arg::None,
+     "  -m \t--more       \t Output more columns (xx, xy, xz, yy, yz, zz)"    },
     {RHO,      0, "R", "rho",      Arg::Double,
      "  -R \t--rho=RHO    \t Rho coefficient defaulting to 28"                },
     {SEED,     0, "s", "seed",     Arg::Double,
@@ -191,6 +193,7 @@ int main(int argc, char *argv[])
     double     sigma  = 10;
     double     t      = 0;
     double     tfinal = 3000;
+    bool       more   = false;
     double     x;
     double     y;
     double     z;
@@ -240,6 +243,7 @@ int main(int argc, char *argv[])
         if (opts[RHO   ]) rho    = strtod(opts[RHO   ].last()->arg, NULL);
         if (opts[SIGMA ]) sigma  = strtod(opts[SIGMA ].last()->arg, NULL);
         if (opts[TFINAL]) tfinal = strtod(opts[TFINAL].last()->arg, NULL);
+        if (opts[MORE  ]) more   = true;
 
         // Warn whenever burn >= tfinal
         if (burn >= tfinal) {
@@ -264,32 +268,39 @@ int main(int argc, char *argv[])
     // Output (t, x, y, z) during burn < t <= tfinal at periodic intervals
     cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos;
-    switch (scheme) {  // Switch designed to avoid spurious jumps
-        default:  cerr << "Sanity failure: unknown scheme at "
-                       << __FILE__ << ":" << __LINE__ << '\n';
-                  return EXIT_FAILURE;
-        case RK1: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          euler  (dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-        case RK2: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-        case RK3: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-    }
+    do {
+
+        cout << t << '\t' << x << '\t' << y << '\t' << z;
+        if (more) {
+            cout << '\t' << x*x << '\t' << x*y << '\t' << x*z
+                                << '\t' << y*y << '\t' << y*z
+                                               << '\t' << z*z;
+        }
+        cout << '\n';
+
+        switch (scheme) {
+        default:
+            cerr << "Sanity failure: unknown scheme at "
+                 << __FILE__ << ":" << __LINE__ << '\n';
+            return EXIT_FAILURE;
+        case RK1:
+            for (long i = 0; i < every; ++i) {
+                euler  (dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        case RK2:
+            for (long i = 0; i < every; ++i) {
+                tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        case RK3:
+            for (long i = 0; i < every; ++i) {
+                tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        }
+
+    } while (t < tfinal);
 
     return EXIT_SUCCESS;
 }
