@@ -152,6 +152,11 @@ Contents
    ``cut(1)`` and piped to ``arsel --subtract-mean``.  Try ``lorenz --help`` to
    see the available options.
 
+   For example, one can examine the long-time behavior of the Lorenz ``z``
+   coordinate using something akin to::
+
+   	./lorenz --every=5 | cut -f 4 | ./arsel -ns | cut -s '-d ' -f 2-
+
 *test\*.coeff*, *test\*.dat*
    Sample data and exact parameters from [Bourke1998] used for ``make check``.
 
