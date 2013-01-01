@@ -46,7 +46,7 @@ const option::Descriptor usage[] = {
     {0,0,"","",Arg::None,0}, // table break
     {BETA,     0, "B", "beta",     Arg::Double,
      "  -B \t--beta=BETA  \t Beta coefficient defaulting to 8/3"              },
-    {BURN,     0, "b", "burn",     Arg::DoublePos,
+    {BURN,     0, "b", "burn",     Arg::Double,
      "  -b \t--burn=BURN  \t \"Burn-in\" for 0 <= t < BURN defaulting to 500" },
     {DT,       0, "d", "dt",       Arg::DoublePos,
      "  -d \t--dt=DT      \t Fixed time step size defaulting to 0.01"         },
