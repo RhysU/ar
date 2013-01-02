@@ -1,7 +1,7 @@
 // Except for any way in which it interferes with Cedrick Collomb's 2009
 // copyright assertion in the article "Burg’s Method, Algorithm and Recursion":
 //
-// Copyright (C) 2012 Rhys Ulerich
+// Copyright (C) 2012, 2013 Rhys Ulerich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
