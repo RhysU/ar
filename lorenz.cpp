@@ -94,7 +94,7 @@ const option::Descriptor usage[] = {
 static inline void lorenz(
     const double  beta, const double rho,   const double sigma,
     const double  x,    const double y,     const double z,
-            double &dxdt,       double &dydt,       double &dzdt)
+          double &dxdt,       double &dydt,       double &dzdt)
 {
      dxdt = sigma*(y - x);
      dydt = x*(rho - z) - y;
@@ -105,7 +105,7 @@ static inline void lorenz(
 static void euler(
         const double dt,
         const double beta, const double rho, const double sigma,
-              double &t,
+         long double &t,
               double &x,         double &y,        double &z)
 {
     double dxdt, dydt, dzdt;
@@ -123,7 +123,7 @@ static void euler(
 static void tvd_rk2(
         const double dt,
         const double beta, const double rho, const double sigma,
-              double &t,
+         long double &t,
               double &x,         double &y,        double &z)
 {
     double dxdt, dydt, dzdt;
@@ -147,7 +147,7 @@ static void tvd_rk2(
 static void tvd_rk3(
         const double dt,
         const double beta, const double rho, const double sigma,
-              double &t,
+         long double &t,
               double &x,         double &y,        double &z)
 {
     double dxdt, dydt, dzdt;
@@ -184,19 +184,19 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
-    double     beta   = 8./3;
-    double     burn   = 500;
-    double     dt     = 0.01;
-    long       every  = 1;
-    double     rho    = 28;
-    SchemeType scheme = RK3;
-    double     sigma  = 10;
-    double     t      = 0;
-    double     tfinal = 3000;
-    bool       more   = false;
-    double     x;
-    double     y;
-    double     z;
+    double      beta   = 8./3;
+    double      burn   = 500;
+    double      dt     = 0.01;
+    long        every  = 1;
+    double      rho    = 28;
+    SchemeType  scheme = RK3;
+    double      sigma  = 10;
+    long double t      = 0;
+    double      tfinal = 3000;
+    bool        more   = false;
+    double      x;
+    double      y;
+    double      z;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
