@@ -2,7 +2,8 @@
 
 HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
 HOWFAST   ?= -g -O2 -DNDEBUG
-CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
+PRECISION ?= -DREAL=double
+CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
 
 all:     zohar example test arsel faber1986 collomb2009 lorenz
 
