@@ -1,7 +1,7 @@
 # GNU-compatible toolchain assumed
 
 HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
-HOWFAST   ?= -g -O2 -DNDEBUG
+HOWFAST   ?= -g -O2 -DNDEBUG -march=native
 PRECISION ?= -DREAL=double
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
 
