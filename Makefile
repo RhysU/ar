@@ -34,7 +34,7 @@ clean:
 	rm -f example zohar test arsel collomb2009 faber1986 lorenz *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
-check: all
+check: zohar example test
 	@echo
 	./zohar
 	@echo
