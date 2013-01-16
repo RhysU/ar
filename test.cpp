@@ -8,15 +8,15 @@
  * Test \ref ar::burg_method against synthetic data.
  */
 
-#include "ar.hpp"
-#include "optionparser.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <vector>
+
+#include "ar.hpp"
+#include "optionparser.h"
 
 // Command line argument declarations for optionparser.h usage
 enum OptionIndex {

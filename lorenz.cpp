@@ -9,13 +9,13 @@
  * Intended to be piped into another program, e.g. arsel.cpp, for analysis.
  */
 
-#include "optionparser.h"
-
 #include <sys/time.h>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <vector>
+
+#include "optionparser.h"
 
 // Declarations for argument checking logic based upon optionparser.h examples
 struct Arg : public option::Arg

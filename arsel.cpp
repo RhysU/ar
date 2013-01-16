@@ -10,9 +10,6 @@
  * and \ref ar::decorrelation_time.
  */
 
-#include "ar.hpp"
-#include "optionparser.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -21,6 +18,9 @@
 #include <iterator>
 #include <limits>
 #include <vector>
+
+#include "ar.hpp"
+#include "optionparser.h"
 
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
