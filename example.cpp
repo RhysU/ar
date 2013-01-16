@@ -12,13 +12,13 @@
  * Example program using \ref ar::burg_method and \ref ar::evaluate_models.
  */
 
-#include "ar.hpp"
-
 #include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <iterator>
 #include <vector>
+
+#include "ar.hpp"
 
 int main(int argc, char *argv[])
 {

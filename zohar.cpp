@@ -8,8 +8,6 @@
  * Test \ref ar::zohar_linear_solve routine against a reference solution.
  */
 
-#include "ar.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -17,12 +15,15 @@
 #include <iterator>
 #include <vector>
 
+#include "ar.hpp"
+#include "real.hpp"
+
 int main()
 {
     using namespace ar;
     using namespace std;
 
-    vector<double> a;
+    vector<real> a;
     a.push_back( 2);
     a.push_back( 3);
     a.push_back( 5);
@@ -32,10 +33,10 @@ int main()
     a.push_back(17);
 
     cout << "Topmost row of Toeplitz matrix is: \n\t1 ";
-    copy(a.begin(), a.end(), ostream_iterator<double>(cout," "));
+    copy(a.begin(), a.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
-    vector<double> r;
+    vector<real> r;
     r.push_back(  2);
     r.push_back(  4);
     r.push_back(  8);
@@ -47,10 +48,10 @@ int main()
     assert(a.size() == r.size());
 
     cout << "Leftmost column of Toeplitz matrix is: \n\t1 ";
-    copy(r.begin(), r.end(), ostream_iterator<double>(cout," "));
+    copy(r.begin(), r.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
-    vector<double> d;
+    vector<real> d;
     d.push_back(1);
     d.push_back(2);
     d.push_back(3);
@@ -63,10 +64,10 @@ int main()
     assert(d.size() == a.size() + 1);
 
     cout << "Right hand side data is:\n\t";
-    copy(d.begin(), d.end(), ostream_iterator<double>(cout," "));
+    copy(d.begin(), d.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
-    vector<double> exp;
+    vector<real> exp;
     exp.push_back(-17./27);
     exp.push_back(  4./27);
     exp.push_back( 32./ 9);
@@ -79,24 +80,24 @@ int main()
     assert(exp.size() == d.size());
 
     cout << "Expected solution is:\n\t";
-    copy(exp.begin(), exp.end(), ostream_iterator<double>(cout," "));
+    copy(exp.begin(), exp.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
     cout << "Solution computed by zohar_linear_solve is:\n\t";
     zohar_linear_solve(a.begin(), a.end(), r.begin(), d.begin());
-    copy(d.begin(), d.end(), ostream_iterator<double>(cout," "));
+    copy(d.begin(), d.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
-    vector<double> err(exp.size());
+    vector<real> err(exp.size());
     for (size_t i = 0; i < err.size(); ++i) {
         err[i] = exp[i] - d[i];
     }
 
     cout << "Term-by-term errors are:\n\t";
-    copy(err.begin(), err.end(), ostream_iterator<double>(cout," "));
+    copy(err.begin(), err.end(), ostream_iterator<real>(cout," "));
     cout << endl;
 
-    double abserr = 0;
+    real abserr = 0;
     for (size_t i = 0; i < exp.size(); ++i) abserr += std::abs(err[i]);
     cout << "Sum of the absolute errors is:\n\t" << abserr << endl;
 

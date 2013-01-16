@@ -17,6 +17,10 @@
 
 #include "ar.hpp"
 #include "optionparser.h"
+#include "real.hpp"
+
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 // Command line argument declarations for optionparser.h usage
 enum OptionIndex {
@@ -25,7 +29,8 @@ enum OptionIndex {
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: test COEFFICIENTS DATA\n"
-     "Compute ar::burg_method deviation from known coefficients on test data.\n"
+     "Compute ar::burg_method deviation from known coefficients on test data ("
+         /* Working precision */ STRINGIFY(REAL) ").\n"
      "\n"
      "Options:" },
     {0,0,"","",option::Arg::None,0}, // table break
@@ -42,9 +47,6 @@ template<typename FPT> FPT pdiff(FPT a, FPT b) { return (b - a) / a * 100; }
 template<typename T> struct sum_error : public std::binary_function<T,T,T> {
     T operator() (T a, T b) {using std::abs; return a + abs(b);}
 };
-
-// Set working precision
-typedef double real;
 
 // Test burg_method against synthetic data
 int main(int argc, char *argv[])
@@ -124,14 +126,15 @@ int main(int argc, char *argv[])
     for (vector<real>::const_iterator i = exact.begin(), j = est.begin();
          i != exact.end(); ++i, ++j)
     {
-        printf("%22.14g %22.14g %22.14g\n", *i, *j, pdiff(*i, *j));
+        printf("%22.14g %22.14g %22.14g\n",
+               (double) *i, (double) *j, (double) pdiff(*i, *j));
     }
     printf("\n");
-    printf("%22s %22.14g\n", "mean of data:",         mean);
-    printf("%22s %22.14g\n", "\\sigma^2_\\epsilon:",  sigma2e);
-    printf("%22s %22.14g\n", "signal gain:",          gain);
-    printf("%22s %22.14g\n", "\\sigma^2_x:",          gain*sigma2e);
-    printf("%22s %22.14g\n", "Yule-Walker residual:", res);
+    printf("%22s %22.14g\n", "mean of data:",         (double) mean          );
+    printf("%22s %22.14g\n", "\\sigma^2_\\epsilon:",  (double) sigma2e       );
+    printf("%22s %22.14g\n", "signal gain:",          (double) gain          );
+    printf("%22s %22.14g\n", "\\sigma^2_x:",          (double) (gain*sigma2e));
+    printf("%22s %22.14g\n", "Yule-Walker residual:", (double) res           );
 
     return 0;
 }

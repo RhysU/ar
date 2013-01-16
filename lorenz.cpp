@@ -16,6 +16,10 @@
 #include <vector>
 
 #include "optionparser.h"
+#include "real.hpp"
+
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 // Declarations for argument checking logic based upon optionparser.h examples
 struct Arg : public option::Arg
@@ -37,7 +41,8 @@ enum SchemeType {
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "", Arg::None,
      "Usage: lorenz [OPTION]...\n"
-     "Output tab-separated (t, x, y, z) data from the Lorenz equations:\n"
+     "Output tab-separated (t, x, y, z) data from the Lorenz equations ("
+         /* Working precision */ STRINGIFY(REAL) "):\n"
      "  d/dt {x,y,z} = {sigma*(y - x), x*(rho - z) - y, x*y - beta*z}\n"
      "Advance per Gottlieb and Shu 1998 (doi:10.1090/S0025-5718-98-00913-2).\n"
      "Individual columns may be extracted by piping to cut(1) utility.\n"
@@ -92,9 +97,9 @@ const option::Descriptor usage[] = {
 
 /** Computation of the Lorenz equation right hand side. */
 static inline void lorenz(
-    const double  beta, const double rho,   const double sigma,
-    const double  x,    const double y,     const double z,
-          double &dxdt,       double &dydt,       double &dzdt)
+    const real  beta, const real rho,   const real sigma,
+    const real  x,    const real y,     const real z,
+          real &dxdt,       real &dydt,       real &dzdt)
 {
      dxdt = sigma*(y - x);
      dydt = x*(rho - z) - y;
@@ -103,12 +108,10 @@ static inline void lorenz(
 
 /** Advance by \c dt using one step of 1st order Forward Euler. */
 static void euler(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-         long double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
     x += dt*dxdt;
     y += dt*dydt;
@@ -121,17 +124,15 @@ static void euler(
  * This optimal scheme appears in Proposition 3.1 of Gottlieb and Shu 1998.
  */
 static void tvd_rk2(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-         long double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
 
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
-    double u1x = x + dt*dxdt;
-    double u1y = y + dt*dydt;
-    double u1z = z + dt*dzdt;
+    real u1x = x + dt*dxdt;
+    real u1y = y + dt*dydt;
+    real u1z = z + dt*dzdt;
 
     lorenz(beta, rho, sigma, u1x, u1y, u1z, dxdt, dydt, dzdt);
     x = (x + u1x + dt*dxdt)/2;
@@ -145,22 +146,20 @@ static void tvd_rk2(
  * The optimal scheme appears in Proposition 3.2 of Gottlieb and Shu 1998.
  */
 static void tvd_rk3(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-         long double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
 
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
-    double u1x = x + dt*dxdt;
-    double u1y = y + dt*dydt;
-    double u1z = z + dt*dzdt;
+    real u1x = x + dt*dxdt;
+    real u1y = y + dt*dydt;
+    real u1z = z + dt*dzdt;
 
     lorenz(beta, rho, sigma, u1x, u1y, u1z, dxdt, dydt, dzdt);
-    double u2x = (3*x + u1x + dt*dxdt)/4;
-    double u2y = (3*y + u1y + dt*dydt)/4;
-    double u2z = (3*z + u1z + dt*dzdt)/4;
+    real u2x = (3*x + u1x + dt*dxdt)/4;
+    real u2y = (3*y + u1y + dt*dydt)/4;
+    real u2z = (3*z + u1z + dt*dzdt)/4;
 
     lorenz(beta, rho, sigma, u2x, u2y, u2z, dxdt, dydt, dzdt);
     x = (x + 2*u2x + 2*dt*dxdt)/3;
@@ -184,19 +183,19 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
-    double      beta   = 8./3;
-    double      burn   = 500;
-    double      dt     = 0.01;
+    real        beta   = 8./3;
+    real        burn   = 500;
+    real        dt     = 0.01;
     long        every  = 1;
-    double      rho    = 28;
+    real        rho    = 28;
     SchemeType  scheme = RK3;
-    double      sigma  = 10;
+    real        sigma  = 10;
     long double t      = 0;
-    double      tfinal = 3000;
+    real        tfinal = 3000;
     bool        more   = false;
-    double      x;
-    double      y;
-    double      z;
+    real        x;
+    real        y;
+    real        z;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -229,11 +228,11 @@ int main(int argc, char *argv[])
 
         // INITX, INITY, INITZ either specified or randomized
         x = opts[INITX] ? strtod(opts[INITX].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
         y = opts[INITY] ? strtod(opts[INITY].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
         z = opts[INITZ] ? strtod(opts[INITZ].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
 
         // Parse remaining options
         if (opts[BETA  ]) beta   = strtod(opts[BETA  ].last()->arg, NULL);
@@ -266,7 +265,7 @@ int main(int argc, char *argv[])
     }
 
     // Output (t, x, y, z) during burn < t <= tfinal at periodic intervals
-    cout.precision(numeric_limits<double>::digits10 + 2);
+    cout.precision(numeric_limits<real>::digits10 + 2);
     cout << showpos;
     do {
 
