@@ -63,7 +63,7 @@ stress: COUNT=5000000                        # Number of samples to generate
 stress: RAND=/dev/urandom                    # Random source to use
 stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
-	@$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
+	$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
 
 ##################################################################
 # Expose functionality through GNU Octave when mkoctfile available
