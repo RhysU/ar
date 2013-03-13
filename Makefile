@@ -1,6 +1,10 @@
-# GNU-compatible toolchain assumed
+# GNU-like toolchain assumed
 
-HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
+ifeq (icpc,${CXX})
+    HOWSTRICT ?= -std=gnu++98 -ansi -Wall
+else
+    HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Wno-long-long
+endif
 HOWFAST   ?= -g -O2 -DNDEBUG
 PRECISION ?= -DREAL=double
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
