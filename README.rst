@@ -78,7 +78,7 @@ Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
 correctness and numerical stability of estimated process parameters and
 autocorrelation information.  The algorithm is [Zohar1974]'s improvement of
-[Trench1967]'s work See [Bunch1985] for a discussion of the stability of
+[Trench1967]'s work.  See [Bunch1985] for a discussion of the stability of
 Trench-like algorithms and for faster, albeit much more complicated, variants.
 
 ::
