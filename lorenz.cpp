@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Rhys Ulerich
+// Copyright (C) 2012, 2013 Rhys Ulerich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,13 +9,17 @@
  * Intended to be piped into another program, e.g. arsel.cpp, for analysis.
  */
 
-#include "optionparser.h"
-
 #include <sys/time.h>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <vector>
+
+#include "optionparser.h"
+#include "real.hpp"
+
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 // Declarations for argument checking logic based upon optionparser.h examples
 struct Arg : public option::Arg
@@ -28,7 +32,7 @@ struct Arg : public option::Arg
 
 // Command line argument declarations for optionparser.h usage
 enum OptionIndex {
-    UNKNOWN, BETA, BURN, DT, EVERY, SCHEME, RHO, SEED, SIGMA,
+    UNKNOWN, BETA, BURN, DT, EVERY, MORE, SCHEME, RHO, SEED, SIGMA,
     TFINAL, INITX, INITY, INITZ, HELP
 };
 enum SchemeType {
@@ -37,7 +41,8 @@ enum SchemeType {
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "", Arg::None,
      "Usage: lorenz [OPTION]...\n"
-     "Output tab-separated (t, x, y, z) data from the Lorenz equations:\n"
+     "Output tab-separated (t, x, y, z) data from the Lorenz equations ("
+         /* Working precision */ STRINGIFY(REAL) "):\n"
      "  d/dt {x,y,z} = {sigma*(y - x), x*(rho - z) - y, x*y - beta*z}\n"
      "Advance per Gottlieb and Shu 1998 (doi:10.1090/S0025-5718-98-00913-2).\n"
      "Individual columns may be extracted by piping to cut(1) utility.\n"
@@ -46,12 +51,14 @@ const option::Descriptor usage[] = {
     {0,0,"","",Arg::None,0}, // table break
     {BETA,     0, "B", "beta",     Arg::Double,
      "  -B \t--beta=BETA  \t Beta coefficient defaulting to 8/3"              },
-    {BURN,     0, "b", "burn",     Arg::DoublePos,
+    {BURN,     0, "b", "burn",     Arg::Double,
      "  -b \t--burn=BURN  \t \"Burn-in\" for 0 <= t < BURN defaulting to 500" },
     {DT,       0, "d", "dt",       Arg::DoublePos,
      "  -d \t--dt=DT      \t Fixed time step size defaulting to 0.01"         },
     {EVERY,    0, "e", "every",    Arg::IntNonNeg,
      "  -e \t--every=N    \t Output every Nth step defaulting to 1"           },
+    {MORE,      0, "m", "more",    Arg::None,
+     "  -m \t--more       \t Output more columns (xx, xy, xz, yy, yz, zz)"    },
     {RHO,      0, "R", "rho",      Arg::Double,
      "  -R \t--rho=RHO    \t Rho coefficient defaulting to 28"                },
     {SEED,     0, "s", "seed",     Arg::Double,
@@ -90,9 +97,9 @@ const option::Descriptor usage[] = {
 
 /** Computation of the Lorenz equation right hand side. */
 static inline void lorenz(
-    const double  beta, const double rho,   const double sigma,
-    const double  x,    const double y,     const double z,
-            double &dxdt,       double &dydt,       double &dzdt)
+    const real  beta, const real rho,   const real sigma,
+    const real  x,    const real y,     const real z,
+          real &dxdt,       real &dydt,       real &dzdt)
 {
      dxdt = sigma*(y - x);
      dydt = x*(rho - z) - y;
@@ -101,12 +108,10 @@ static inline void lorenz(
 
 /** Advance by \c dt using one step of 1st order Forward Euler. */
 static void euler(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-              double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
     x += dt*dxdt;
     y += dt*dydt;
@@ -119,17 +124,15 @@ static void euler(
  * This optimal scheme appears in Proposition 3.1 of Gottlieb and Shu 1998.
  */
 static void tvd_rk2(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-              double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
 
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
-    double u1x = x + dt*dxdt;
-    double u1y = y + dt*dydt;
-    double u1z = z + dt*dzdt;
+    real u1x = x + dt*dxdt;
+    real u1y = y + dt*dydt;
+    real u1z = z + dt*dzdt;
 
     lorenz(beta, rho, sigma, u1x, u1y, u1z, dxdt, dydt, dzdt);
     x = (x + u1x + dt*dxdt)/2;
@@ -143,22 +146,20 @@ static void tvd_rk2(
  * The optimal scheme appears in Proposition 3.2 of Gottlieb and Shu 1998.
  */
 static void tvd_rk3(
-        const double dt,
-        const double beta, const double rho, const double sigma,
-              double &t,
-              double &x,         double &y,        double &z)
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
 {
-    double dxdt, dydt, dzdt;
+    real dxdt, dydt, dzdt;
 
     lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
-    double u1x = x + dt*dxdt;
-    double u1y = y + dt*dydt;
-    double u1z = z + dt*dzdt;
+    real u1x = x + dt*dxdt;
+    real u1y = y + dt*dydt;
+    real u1z = z + dt*dzdt;
 
     lorenz(beta, rho, sigma, u1x, u1y, u1z, dxdt, dydt, dzdt);
-    double u2x = (3*x + u1x + dt*dxdt)/4;
-    double u2y = (3*y + u1y + dt*dydt)/4;
-    double u2z = (3*z + u1z + dt*dzdt)/4;
+    real u2x = (3*x + u1x + dt*dxdt)/4;
+    real u2y = (3*y + u1y + dt*dydt)/4;
+    real u2z = (3*z + u1z + dt*dzdt)/4;
 
     lorenz(beta, rho, sigma, u2x, u2y, u2z, dxdt, dydt, dzdt);
     x = (x + 2*u2x + 2*dt*dxdt)/3;
@@ -182,18 +183,19 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
-    double     beta   = 8./3;
-    double     burn   = 500;
-    double     dt     = 0.01;
-    long       every  = 1;
-    double     rho    = 28;
-    SchemeType scheme = RK3;
-    double     sigma  = 10;
-    double     t      = 0;
-    double     tfinal = 3000;
-    double     x;
-    double     y;
-    double     z;
+    real        beta   = 8./3;
+    real        burn   = 500;
+    real        dt     = 0.01;
+    long        every  = 1;
+    real        rho    = 28;
+    SchemeType  scheme = RK3;
+    real        sigma  = 10;
+    long double t      = 0;
+    real        tfinal = 3000;
+    bool        more   = false;
+    real        x;
+    real        y;
+    real        z;
     {
         option::Stats stats(usage, argc-(argc>0), argv+(argc>0));
 
@@ -226,11 +228,11 @@ int main(int argc, char *argv[])
 
         // INITX, INITY, INITZ either specified or randomized
         x = opts[INITX] ? strtod(opts[INITX].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
         y = opts[INITY] ? strtod(opts[INITY].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
         z = opts[INITZ] ? strtod(opts[INITZ].last()->arg, NULL)
-                        : (double)rand()/(double)RAND_MAX;
+                        : (real)rand()/(real)RAND_MAX;
 
         // Parse remaining options
         if (opts[BETA  ]) beta   = strtod(opts[BETA  ].last()->arg, NULL);
@@ -240,6 +242,7 @@ int main(int argc, char *argv[])
         if (opts[RHO   ]) rho    = strtod(opts[RHO   ].last()->arg, NULL);
         if (opts[SIGMA ]) sigma  = strtod(opts[SIGMA ].last()->arg, NULL);
         if (opts[TFINAL]) tfinal = strtod(opts[TFINAL].last()->arg, NULL);
+        if (opts[MORE  ]) more   = true;
 
         // Warn whenever burn >= tfinal
         if (burn >= tfinal) {
@@ -262,34 +265,41 @@ int main(int argc, char *argv[])
     }
 
     // Output (t, x, y, z) during burn < t <= tfinal at periodic intervals
-    cout.precision(numeric_limits<double>::digits10 + 2);
+    cout.precision(numeric_limits<real>::digits10 + 2);
     cout << showpos;
-    switch (scheme) {  // Switch designed to avoid spurious jumps
-        default:  cerr << "Sanity failure: unknown scheme at "
-                       << __FILE__ << ":" << __LINE__ << '\n';
-                  return EXIT_FAILURE;
-        case RK1: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          euler  (dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-        case RK2: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-        case RK3: do {
-                      cout << t << '\t' << x << '\t' << y << '\t' << z << '\n';
-                      for (long i = 0; i < every; ++i) {
-                          tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
-                      }
-                  } while (t < tfinal);
-                  break;
-    }
+    do {
+
+        cout << t << '\t' << x << '\t' << y << '\t' << z;
+        if (more) {
+            cout << '\t' << x*x << '\t' << x*y << '\t' << x*z
+                                << '\t' << y*y << '\t' << y*z
+                                               << '\t' << z*z;
+        }
+        cout << '\n';
+
+        switch (scheme) {
+        default:
+            cerr << "Sanity failure: unknown scheme at "
+                 << __FILE__ << ":" << __LINE__ << '\n';
+            return EXIT_FAILURE;
+        case RK1:
+            for (long i = 0; i < every; ++i) {
+                euler  (dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        case RK2:
+            for (long i = 0; i < every; ++i) {
+                tvd_rk2(dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        case RK3:
+            for (long i = 0; i < every; ++i) {
+                tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        }
+
+    } while (t < tfinal);
 
     return EXIT_SUCCESS;
 }

@@ -31,6 +31,8 @@ zohar
 *.aux
 *.aux.bak
 *.dvi
+*.fdb_latexmk
+*.fls
 *.log
 *.out
 *.pdf

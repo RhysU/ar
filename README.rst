@@ -78,7 +78,7 @@ Also included is a Toeplitz linear equation solver for a single right hand side
 using O(3m^2) operations.  This solver is useful for investigating the
 correctness and numerical stability of estimated process parameters and
 autocorrelation information.  The algorithm is [Zohar1974]'s improvement of
-[Trench1967]'s work See [Bunch1985] for a discussion of the stability of
+[Trench1967]'s work.  See [Bunch1985] for a discussion of the stability of
 Trench-like algorithms and for faster, albeit much more complicated, variants.
 
 ::
@@ -151,6 +151,11 @@ Contents
    standard output.  This can be directly plotted, or manipulated using
    ``cut(1)`` and piped to ``arsel --subtract-mean``.  Try ``lorenz --help`` to
    see the available options.
+
+   For example, one can examine the long-time behavior of the Lorenz ``z``
+   coordinate using something akin to::
+
+   	./lorenz --every=5 | cut -f 4 | ./arsel -ns | cut -s '-d ' -f 2-
 
 *test\*.coeff*, *test\*.dat*
    Sample data and exact parameters from [Bourke1998] used for ``make check``.

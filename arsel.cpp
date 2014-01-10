@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Rhys Ulerich
+// Copyright (C) 2012, 2013 Rhys Ulerich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,9 +10,6 @@
  * and \ref ar::decorrelation_time.
  */
 
-#include "ar.hpp"
-#include "optionparser.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -21,6 +18,13 @@
 #include <iterator>
 #include <limits>
 #include <vector>
+
+#include "ar.hpp"
+#include "optionparser.h"
+#include "real.hpp"
+
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
@@ -36,7 +40,8 @@ enum OptionIndex {
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
      "Usage: arsel [OPTION]...\n"
-     "Fit an optimal autoregressive model to data from standard input.\n"
+     "Fit an optimal autoregressive model to data from standard input ("
+         /* Working precision */ STRINGIFY(REAL) ").\n"
      "\n"
      "Options:" },
     {0,0,"","",Arg::None,0}, // table break
@@ -110,7 +115,7 @@ int main(int argc, char *argv[])
     // Look up desired model selection criterion using ar::best_model_function
     // best_model_function template parameters fit ar::burg_method usage below
     typedef ar::best_model_function<
-                ar::Burg,size_t,size_t,vector<double>
+                ar::Burg,size_t,size_t,vector<real>
             > best_model_function;
     const best_model_function::type best_model
             = best_model_function::lookup(criterion, subtract_mean);
@@ -120,14 +125,14 @@ int main(int argc, char *argv[])
     }
 
     // Use burg_method to estimate a hierarchy of AR models from input data
-    double mu;
-    vector<double> params, sigma2e, gain, autocor;
+    real mu;
+    vector<real> params, sigma2e, gain, autocor;
     params .reserve(maxorder*(maxorder + 1)/2);
     sigma2e.reserve(maxorder + 1);
     gain   .reserve(maxorder + 1);
     autocor.reserve(maxorder + 1);
-    const size_t N = ar::burg_method(istream_iterator<double>(cin),
-                                     istream_iterator<double>(),
+    const size_t N = ar::burg_method(istream_iterator<real>(cin),
+                                     istream_iterator<real>(),
                                      mu,
                                      maxorder,
                                      back_inserter(params),
@@ -142,20 +147,20 @@ int main(int argc, char *argv[])
     best_model(N, minorder, params, sigma2e, gain, autocor);
 
     // Compute decorrelation time from the estimated autocorrelation model
-    const double T0 = ar::decorrelation_time(
+    const real T0 = ar::decorrelation_time(
                 static_cast<size_t>(window_T0*N),
                 ar::autocorrelation(params.begin(), params.end(),
                                     gain[0], autocor.begin()),
                 absolute_rho);
 
     // Compute effective variance and effective number of independent samples
-    const double eff_var  = (N*gain[0]*sigma2e[0]) / (N - T0); // Trenberth1984
-    const double eff_N    = N / T0;
-    const double mu_sigma = sqrt(eff_var / eff_N);
+    const real eff_var  = (N*gain[0]*sigma2e[0]) / (N - T0); // Trenberth1984
+    const real eff_N    = N / T0;
+    const real mu_sigma = sqrt(eff_var / eff_N);
 
     // Output details about the best model and derived information
     // Naming conventions here match the output of arsel-octfile by design
-    cout.precision(numeric_limits<double>::digits10 + 2);
+    cout.precision(numeric_limits<real>::digits10 + 2);
     cout << boolalpha
          <<   "# absrho    " << absolute_rho
          << "\n# criterion " << criterion
@@ -175,9 +180,9 @@ int main(int argc, char *argv[])
          << "\n# window_T0 " << window_T0
          << noboolalpha
          << showpos                               // Line up signs
-         << '\n'             << double(1)         // Leading one coefficient
+         << '\n'             << real(1)           // Leading one coefficient
          << '\n';
-    copy(params.begin(), params.end(), ostream_iterator<double>(cout,"\n"));
+    copy(params.begin(), params.end(), ostream_iterator<real>(cout,"\n"));
     cout.flush();
 
     return EXIT_SUCCESS;

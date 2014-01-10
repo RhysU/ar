@@ -3,6 +3,8 @@
  * Faber.
  */
 
+#include "real.hpp"
+
 /** Maximum number of input data points */
 #define MAXSIZE (100000)
 
@@ -38,22 +40,22 @@
  * @param[out] err  AR prediction error energy
  * @param[in]  p    system order (# of coefficients)
  */
-static void faber1986(double data[],
-                      int    ndat,
-                      double k[],
-                      double a[],
-                      double err[],
-                      int p)
+static void faber1986(real data[],
+                      int  ndat,
+                      real k[],
+                      real a[],
+                      real err[],
+                      int  p)
 {
-    int i;                    /* order index, i <= i <= p */
-    int j;                    /* order sub-index, j < i */
-    int n;                    /* time index, 0 <= n < ndat */
-    double e[MAXSIZE];        /* forward prediction error[n] */
-    double b[MAXSIZE];        /* backward pred. error[n] */
-    double den;               /* denominator, eq. (2.74) */
-    double num;               /* numerator, eq. (2.73) */
-    double dk;                /* double prec. holder for k[i] */
-    double ta[MAXORD];        /* temporary holder for a[i] */
+    int i;                  /* order index, i <= i <= p    */
+    int j;                  /* order sub-index, j < i      */
+    int n;                  /* time index, 0 <= n < ndat   */
+    real e[MAXSIZE];        /* forward prediction error[n] */
+    real b[MAXSIZE];        /* backward pred. error[n]     */
+    real den;               /* denominator, eq. (2.74)     */
+    real num;               /* numerator, eq. (2.73)       */
+    real dk;                /* holder for k[i]             */
+    real ta[MAXORD];        /* temporary holder for a[i]   */
 
     /******* Initialize *******/
     a[0] = 1;
@@ -114,21 +116,21 @@ int main( int argc, char* argv[] )
     }
 
     // Load data from cin
-    vector<double> data;
-    copy(istream_iterator<double>(cin), istream_iterator<double>(), back_inserter(data));
+    vector<real> data;
+    copy(istream_iterator<real>(cin), istream_iterator<real>(), back_inserter(data));
     if (data.size() > MAXSIZE) {
         cerr << "Input data size exceeds limit MAXSIZE = " << MAXSIZE << endl;
         return 1;
     }
 
     // Compute AR model of given order
-    vector<double> a(p+1), k(p+1), err(p+1);
+    vector<real> a(p+1), k(p+1), err(p+1);
     faber1986(&data[0], data.size(), &k[0], &a[0], &err[0], p);
 
     // Output them
-    cout.precision(numeric_limits<double>::digits10 + 2);
+    cout.precision(numeric_limits<real>::digits10 + 2);
     cout << showpos;
-    copy(a.begin(), a.end(), ostream_iterator<double>(cout, "\n"));
+    copy(a.begin(), a.end(), ostream_iterator<real>(cout, "\n"));
 
     return 0;
 }

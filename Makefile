@@ -1,8 +1,13 @@
-# GNU-compatible toolchain assumed
+# GNU-like toolchain assumed
 
-HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Werror -Wfatal-errors -Wno-long-long
+ifeq (icpc,${CXX})
+    HOWSTRICT ?= -std=gnu++98 -ansi -Wall
+else
+    HOWSTRICT ?= -std=c++98 -ansi -pedantic -Wall -Wextra -Wno-long-long
+endif
 HOWFAST   ?= -g -O2 -DNDEBUG
-CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST)
+PRECISION ?= -DREAL=double
+CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
 
 all:     zohar example test arsel faber1986 collomb2009 lorenz
 
@@ -33,7 +38,7 @@ clean:
 	rm -f example zohar test arsel collomb2009 faber1986 lorenz *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
-check: all
+check: zohar example test
 	@echo
 	./zohar
 	@echo
@@ -58,7 +63,7 @@ stress: COUNT=5000000                        # Number of samples to generate
 stress: RAND=/dev/urandom                    # Random source to use
 stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
-	@$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
+	$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
 
 ##################################################################
 # Expose functionality through GNU Octave when mkoctfile available

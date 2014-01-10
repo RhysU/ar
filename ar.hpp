@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Rhys Ulerich
+// Copyright (C) 2012, 2013 Rhys Ulerich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -481,7 +481,7 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
         ns = nt;
     }
 
-    return ns / ds;
+    return (ns + nc) / (ds + dc);      // Correct final sums and form ratio
 }
 #else
 #warning Using Non-Kahan version of ar::negative_half_reflection_coefficient.
