@@ -36,7 +36,7 @@ enum OptionIndex {
     TFINAL, INITX, INITY, INITZ, HELP
 };
 enum SchemeType {
-    RK1, RK2, RK3
+    RK3 = 0, RK2, RK1
 };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "", Arg::None,
@@ -78,7 +78,7 @@ const option::Descriptor usage[] = {
     {SCHEME, RK2, "2", "rk2",      Arg::None,
      "  -2 \t--rk2        \t Advance with 2nd order TVD Runge--Kutta scheme"  },
     {SCHEME, RK3, "3", "rk3",      Arg::None,
-     "  -3 \t--rk3        \t Advance with default 3rd order TVD Runge--Kutta" },
+     "  -3 \t--rk3        \t Advance with 3rd order TVD Runge--Kutta scheme"  },
     {HELP,     0, "h", "help",     Arg::None,
      "  -h \t--help       \t Display this help message and immediately exit"  },
     {0,0,0,0,0,0}
@@ -188,11 +188,11 @@ int main(int argc, char *argv[])
     real        dt     = 0.01;
     long        every  = 1;
     real        rho    = 28;
-    SchemeType  scheme = RK3;
     real        sigma  = 10;
     long double t      = 0;
     real        tfinal = 3000;
     bool        more   = false;
+    SchemeType  scheme;
     real        x;
     real        y;
     real        z;
@@ -233,6 +233,9 @@ int main(int argc, char *argv[])
                         : (real)rand()/(real)RAND_MAX;
         z = opts[INITZ] ? strtod(opts[INITZ].last()->arg, NULL)
                         : (real)rand()/(real)RAND_MAX;
+
+        // Default timestepping scheme is whichever SchemeType has value zero
+        scheme = static_cast<SchemeType>(opts[SCHEME].last()->type());
 
         // Parse remaining options
         if (opts[BETA  ]) beta   = strtod(opts[BETA  ].last()->arg, NULL);
