@@ -36,7 +36,7 @@ enum OptionIndex {
     TFINAL, INITX, INITY, INITZ, HELP
 };
 enum SchemeType {
-    RK3 = 0, RK2, RK1
+    RK3 = 0, RK4, RK2, RK1
 };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "", Arg::None,
@@ -79,6 +79,8 @@ const option::Descriptor usage[] = {
      "  -2 \t--rk2        \t Advance with 2nd order TVD Runge--Kutta scheme"  },
     {SCHEME, RK3, "3", "rk3",      Arg::None,
      "  -3 \t--rk3        \t Advance with 3rd order TVD Runge--Kutta scheme"  },
+    {SCHEME, RK4, "4", "rk4",      Arg::None,
+     "  -4 \t--rk4        \t Advance with classical 4th order Runge--Kutta"   },
     {HELP,     0, "h", "help",     Arg::None,
      "  -h \t--help       \t Display this help message and immediately exit"  },
     {0,0,0,0,0,0}
@@ -165,6 +167,49 @@ static void tvd_rk3(
     x = (x + 2*u2x + 2*dt*dxdt)/3;
     y = (y + 2*u2y + 2*dt*dydt)/3;
     z = (z + 2*u2z + 2*dt*dzdt)/3;
+    t += dt;
+}
+
+/**
+ * Advance by \c dt using one step of classical 4th order Runge--Kutta.
+ */
+static void std_rk4(
+    const real dt, const real beta, const real rho, const real sigma,
+    long double &t, real &x, real &y, real &z)
+{
+    real dxdt, dydt, dzdt;
+
+    lorenz(beta, rho, sigma, x, y, z, dxdt, dydt, dzdt);
+    real ux = x + dt*dxdt/2;
+    real uy = y + dt*dydt/2;
+    real uz = z + dt*dzdt/2;
+
+    real dx = dt*dxdt/6;
+    real dy = dt*dydt/6;
+    real dz = dt*dzdt/6;
+
+    lorenz(beta, rho, sigma, ux, uy, uz, dxdt, dydt, dzdt);
+    ux = x + dt*dxdt/2;
+    uy = y + dt*dydt/2;
+    uz = z + dt*dzdt/2;
+
+    dx += dt*dxdt/3;
+    dy += dt*dydt/3;
+    dz += dt*dzdt/3;
+
+    lorenz(beta, rho, sigma, ux, uy, uz, dxdt, dydt, dzdt);
+    ux = x + dt*dxdt;
+    uy = y + dt*dydt;
+    uz = z + dt*dzdt;
+
+    dx += dt*dxdt/3;
+    dy += dt*dydt/3;
+    dz += dt*dzdt/3;
+
+    lorenz(beta, rho, sigma, ux, uy, uz, dxdt, dydt, dzdt);
+    x += (dx + dt*dxdt/6);
+    y += (dy + dt*dydt/6);
+    z += (dz + dt*dzdt/6);
     t += dt;
 }
 
@@ -265,6 +310,8 @@ int main(int argc, char *argv[])
                   break;
         case RK3: while (t < burn) tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
                   break;
+        case RK4: while (t < burn) std_rk4(dt, beta, rho, sigma, t, x, y, z);
+                  break;
     }
 
     // Output (t, x, y, z) during burn < t <= tfinal at periodic intervals
@@ -298,6 +345,11 @@ int main(int argc, char *argv[])
         case RK3:
             for (long i = 0; i < every; ++i) {
                 tvd_rk3(dt, beta, rho, sigma, t, x, y, z);
+            }
+            break;
+        case RK4:
+            for (long i = 0; i < every; ++i) {
+                std_rk4(dt, beta, rho, sigma, t, x, y, z);
             }
             break;
         }
