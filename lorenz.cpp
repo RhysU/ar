@@ -44,7 +44,8 @@ const option::Descriptor usage[] = {
      "Output tab-separated (t, x, y, z) data from the Lorenz equations ("
          /* Working precision */ STRINGIFY(REAL) "):\n"
      "  d/dt {x,y,z} = {sigma*(y - x), x*(rho - z) - y, x*y - beta*z}\n"
-     "Advance per Gottlieb and Shu 1998 (doi:10.1090/S0025-5718-98-00913-2).\n"
+     "Advance using Runge--Kutta, either classical (Euler & RK4) or\n"
+     "Gottlieb and Shu 1998 (doi:10.1090/S0025-5718-98-00913-2) (RK2 & RK3).\n"
      "Individual columns may be extracted by piping to cut(1) utility.\n"
      "\n"
      "Options:" },
