@@ -7,6 +7,7 @@
 #ifndef AR_HPP
 #define AR_HPP
 
+#ifndef AR_SUPPRESS_DOXYGEN_MAINPAGE
 /**
  * @mainpage
  *
@@ -18,6 +19,7 @@
  * more detailed overview and http://github.com/RhysU/ar for project
  * information.
  */
+#endif /* AR_SUPPRESS_DOXYGEN_MAINPAGE */
 
 /** @file
  * Autoregressive process modeling tools in header-only C++.
