@@ -2311,7 +2311,6 @@ best_model(Integer1       N,
     // Sanity checks written to provide order messages readable by end users
     AR_ENSURE_ARG(sigma2e.size() > 0);
     const size_t maxorder = sigma2e.size() - 1;
-    AR_ENSURE_ARG(maxorder > 0);
     AR_ENSURE_ARG(is_nonnegative(minorder));
     AR_ENSURE_ARG(static_cast<size_t>(minorder) <= maxorder);
     AR_ENSURE_ARG(params .size() == (sigma2e.size()-1)*sigma2e.size()/2);
