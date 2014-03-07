@@ -18,6 +18,13 @@
  * href="https://github.com/RhysU/ar/blob/master/README.rst"> README</a> for a
  * more detailed overview and http://github.com/RhysU/ar for project
  * information.
+ *
+ * If you find these tools useful towards publishing research, please consider
+ * citing:
+ * \li Todd A. Oliver, Nicholas Malaya, Rhys Ulerich, and Robert D. Moser.
+ *     "Estimating uncertainties in statistics computed from direct numerical
+ *     simulation." Physics of Fluids  26 (March 2014): 035101+.
+ *     http://dx.doi.org/10.1063/1.4866813
  */
 #endif /* AR_SUPPRESS_DOXYGEN_MAINPAGE */
 
