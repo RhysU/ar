@@ -99,6 +99,11 @@ Trench-like algorithms and for faster, albeit much more complicated, variants.
 		8.16014e-14
 
 
+The automated model selection procedure exposed by *arsel.cpp* has been
+extensively tested against simulated data from the Lorenz attractor as
+implemented in *lorenz.cpp*.  Please see [Oliver2014] for full details.
+
+
 Contents
 --------
 
@@ -182,6 +187,16 @@ Contents
 *optionparser.h*
    The Lean Mean C++ Option Parser from http://optionparser.sourceforge.net
    which is used to parse command line arguments within sample applications.
+
+
+Attribution
+-----------
+
+If you find these tools useful towards publishing research, please consider
+citing:
+
+-- [Oliver2014] Todd A. Oliver, Nicholas Malaya, Rhys Ulerich, and Robert D. Moser. "Estimating uncertainties in statistics computed from direct numerical simulation." Physics of Fluids  26 (March 2014): 035101+. http://dx.doi.org/10.1063/1.4866813
+
 
 References
 ----------

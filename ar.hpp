@@ -7,6 +7,7 @@
 #ifndef AR_HPP
 #define AR_HPP
 
+#ifndef AR_SUPPRESS_DOXYGEN_MAINPAGE
 /**
  * @mainpage
  *
@@ -17,7 +18,15 @@
  * href="https://github.com/RhysU/ar/blob/master/README.rst"> README</a> for a
  * more detailed overview and http://github.com/RhysU/ar for project
  * information.
+ *
+ * If you find these tools useful towards publishing research, please consider
+ * citing:
+ * \li Todd A. Oliver, Nicholas Malaya, Rhys Ulerich, and Robert D. Moser.
+ *     "Estimating uncertainties in statistics computed from direct numerical
+ *     simulation." Physics of Fluids  26 (March 2014): 035101+.
+ *     http://dx.doi.org/10.1063/1.4866813
  */
+#endif /* AR_SUPPRESS_DOXYGEN_MAINPAGE */
 
 /** @file
  * Autoregressive process modeling tools in header-only C++.
@@ -2209,7 +2218,7 @@ struct CIC : public criterion
  *
  * @param[in]  N        Sample count used to compute \f$\sigma^2_\epsilon\f$.
  * @param[in]  ordfirst The model order corresponding to \c first.
- *                      When \f$sigma^2_\epsilon\f$ is produced entirely by
+ *                      When \f$\sigma^2_\epsilon\f$ is produced entirely by
  *                      \ref burg_method with <tt>hierarchy == true</tt>,
  *                      this should be \c 0.
  * @param[in]  first    Beginning of the range holding \f$\sigma^2_\epsilon\f$
@@ -2309,7 +2318,6 @@ best_model(Integer1       N,
     // Sanity checks written to provide order messages readable by end users
     AR_ENSURE_ARG(sigma2e.size() > 0);
     const size_t maxorder = sigma2e.size() - 1;
-    AR_ENSURE_ARG(maxorder > 0);
     AR_ENSURE_ARG(is_nonnegative(minorder));
     AR_ENSURE_ARG(static_cast<size_t>(minorder) <= maxorder);
     AR_ENSURE_ARG(params .size() == (sigma2e.size()-1)*sigma2e.size()/2);
