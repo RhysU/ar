@@ -96,7 +96,7 @@ ar.so: ar-python.cpp ar.hpp setup.py
 
 clean: python-clean
 python-clean:
-	rm -rf ar.so python-build
+	rm -rf ar.so ar.cpython*.so python-build
 
 endif
 

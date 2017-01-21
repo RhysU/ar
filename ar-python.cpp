@@ -13,6 +13,12 @@
 
 #include "ar.hpp"
 
+// Permit Python 2 or 3 compilation
+#if PY_MAJOR_VERSION < 3
+# define PyUnicode_FromString PyString_FromString
+# define PyInt_FromSize_t PyLong_FromSize_t
+#endif
+
 /** @file
  * A Python extension module for exposing autoregressive model utilities.
  */
@@ -281,16 +287,16 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     ret_args = PyTuple_Pack(17, PyBool_FromLong(absrho),
                                 _AR,
                                 _autocor,
-                                PyString_FromString(criterion),
+                                PyUnicode_FromString(criterion),
                                 data,
                                 _eff_N,
                                 _eff_var,
                                 _gain,
-                                PyInt_FromSize_t(maxorder),
-                                PyInt_FromSize_t(minorder),
+                                PyLong_FromSize_t(maxorder),
+                                PyLong_FromSize_t(minorder),
                                 _mu,
                                 _mu_sigma,
-                                PyInt_FromLong(N),
+                                PyLong_FromLong(N),
                                 _sigma2eps,
                                 _sigma2x,
                                 PyBool_FromLong(submean),
@@ -335,39 +341,112 @@ static PyMethodDef ar_methods[] = {
 // Module docstring
 static const char ar_docstring[] = "Autoregressive process modeling tools";
 
-extern "C" PyMODINIT_FUNC initar(void)
+// Use collections.namedtuple() to make type 'Arsel' for ar_arsel use
+// The tuple is ordered alphabetically in case-insensitive manner
+static void init_namedtuple(void)
 {
-    // Initialize the module, including making NumPy available
-    if (!Py_InitModule3("ar", ar_methods, ar_docstring)) return;
-    import_array();
-
-    // Use collections.namedtuple() to make type 'Arsel' for ar_arsel use
-    // The tuple is ordered alphabetically in case-insensitive manner
-    PyObject *modName = PyString_FromString((char *)"collections");
+    PyObject *modName = PyUnicode_FromString((char *)"collections");
     PyObject *mod     = PyImport_Import(modName);
     PyObject *func    = PyObject_GetAttrString(mod,(char*)"namedtuple");
     PyObject *args    = PyTuple_Pack(2,
-                                     PyString_FromString((char *) "Arsel"),
-                                     PyString_FromString((char *) " absrho"
-                                                                  " AR"
-                                                                  " autocor"
-                                                                  " criterion"
-                                                                  " data"
-                                                                  " eff_N"
-                                                                  " eff_var"
-                                                                  " gain"
-                                                                  " maxorder"
-                                                                  " minorder"
-                                                                  " mu"
-                                                                  " mu_sigma"
-                                                                  " N"
-                                                                  " sigma2eps"
-                                                                  " sigma2x"
-                                                                  " submean"
-                                                                  " T0"));
+                                     PyUnicode_FromString((char *) "Arsel"),
+                                     PyUnicode_FromString((char *) " absrho"
+                                                                   " AR"
+                                                                   " autocor"
+                                                                   " criterion"
+                                                                   " data"
+                                                                   " eff_N"
+                                                                   " eff_var"
+                                                                   " gain"
+                                                                   " maxorder"
+                                                                   " minorder"
+                                                                   " mu"
+                                                                   " mu_sigma"
+                                                                   " N"
+                                                                   " sigma2eps"
+                                                                   " sigma2x"
+                                                                   " submean"
+                                                                   " T0"));
     ar_ArselType = (PyTypeObject *) PyObject_CallObject(func, args);
     Py_DECREF(args);
     Py_DECREF(func);
     Py_DECREF(mod);
     Py_DECREF(modName);
+}
+
+// -----------------------------------------------------------------------------
+// For both Python 2 and Python 3 compatibility, the remainder of file follows
+// https://docs.python.org/3/howto/cporting.html#module-initialization-and-state
+// -----------------------------------------------------------------------------
+
+struct module_state {
+    PyObject *error;
+};
+
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#else
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+
+static int ar_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+
+static int ar_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "ar",
+        ar_docstring,
+        sizeof(struct module_state),
+        ar_methods,
+        NULL,
+        ar_traverse,
+        ar_clear,
+        NULL
+};
+
+#define INITERROR return NULL
+
+PyMODINIT_FUNC
+PyInit_ar(void)
+
+#else
+#define INITERROR return
+
+void
+initar(void)
+#endif
+{
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&moduledef);
+#else
+    PyObject *module = Py_InitModule3("ar", ar_methods, ar_docstring);
+#endif
+
+    if (module == NULL)
+        INITERROR;
+    struct module_state *st = GETSTATE(module);
+
+    st->error = PyErr_NewException("ar.Error", NULL, NULL);
+    if (st->error == NULL) {
+        Py_DECREF(module);
+        INITERROR;
+    }
+
+	// Register NumPy and the Arsel namedtuple
+    import_array();
+    init_namedtuple();
+
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }
