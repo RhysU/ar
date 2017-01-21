@@ -416,14 +416,13 @@ static struct PyModuleDef moduledef = {
 
 #define INITERROR return NULL
 
-PyMODINIT_FUNC
-PyInit_ar(void)
+extern "C" PyMODINIT_FUNC PyInit_ar(void)
 
 #else
 #define INITERROR return
 
-void
-initar(void)
+extern "C" void initar(void)
+
 #endif
 {
 #if PY_MAJOR_VERSION >= 3

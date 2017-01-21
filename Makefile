@@ -92,11 +92,11 @@ ifneq "$(PYTHON)" ""
 
 all:   ar.so
 ar.so: ar-python.cpp ar.hpp setup.py
-	$(PYTHON) setup.py build_ext --inplace --build-temp python-build
+	$(PYTHON) setup.py build_ext --inplace
 
 clean: python-clean
 python-clean:
-	rm -rf ar.so ar.cpython*.so python-build
+	rm -rf ar.so ar.cpython*.so build
 
 endif
 
