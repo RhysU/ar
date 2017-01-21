@@ -24,6 +24,12 @@ lorenz
 test
 zohar
 
+# Python artifacts
+.eggs
+ar.egg-info
+
+nothing added to commit but untracked files present (use "git add" to track)
+
 # Octave octfiles
 *.oct
 
