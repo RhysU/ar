@@ -6,13 +6,14 @@ PACKAGE_NAME = 'ar'
 
 setup(
     name=PACKAGE_NAME,
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
-    version='0.0.1',
-    author='Rhys Ulerich',
     author_email='rhys.ulerich@gmail.com',
-    license='MPL2',
+    author='Rhys Ulerich',
     classifiers=['Development Status :: 3 - Alpha'],
+    install_requires=['numpy'],
+    license='MPL2',
+    setup_requires=['setuptools_scm'],
+    url='http://github.com/RhysU/ar',
+    use_scm_version=True,
     ext_modules=[
         Extension(
             PACKAGE_NAME,
