@@ -122,15 +122,17 @@ Contents
    see available options.  This is perhaps the most useful standalone utility.
 
 *arsel-octfile.cpp*, *arcov-octfile.cpp*
-   Provides arsel.cpp-like capabilities for GNU Octave.  This is perhaps the
-   most feature-rich way to start using these AR tools.  See appendix A
-   ("Dynamically Linked Functions") within [Octave] for implementation details.
-   Also demonstrates how working storage may be reused across multiple
-   invocations to reduce the number of allocations for processing data sets.
+   These two Octave wrappers were removed after
+   http://github.com/RhysU/ar/releases/tag/0.1.5 on account of licensing
+   considerations.  The code followed appendix A ("Dynamically Linked
+   Functions") of [Octave].
 
 *ar-python.cpp*, *setup.py*
-   Provides some functionality as a Python extension module called 'ar'.
-   This is modeled after the Octave wrapper but is not yet as robust.
+   Provides some functionality as a Python extension module called
+   'ar'.  This is perhaps the easiest way to start using these AR tools.
+   Also demonstrates how working storage may be reused across multiple
+   invocations to reduce the number of allocations for processing
+   data sets.
 
 *test.cpp*
    A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].

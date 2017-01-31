@@ -4,6 +4,5 @@ compiler:
 before_script:
   - sudo apt-get -qq update
   - sudo apt-get -qq install time
-  - sudo apt-get -qq install octave3.2 octave3.2-headers
   - sudo apt-get -qq install python-numpy python-setuptools
 script: make && make check && make stress

@@ -65,25 +65,6 @@ stress: test
 	@printf "Fitting model to %g samples from %s...\n\n" $(COUNT) $(RAND)
 	$(TIME) ./test --subtract-mean <(echo $(ORDER)) <(od -tu1 -vAn -N$(COUNT) $(RAND))
 
-##################################################################
-# Expose functionality through GNU Octave when mkoctfile available
-##################################################################
-MKOCTFILE ?= $(shell which mkoctfile)
-ifneq "$(MKOCTFILE)" ""
-
-all:      octfiles
-OCTFILES := $(patsubst %-octfile.cpp,%.oct,$(wildcard *-octfile.cpp))
-octfiles: $(OCTFILES)
-
-%.oct : %-octfile.cpp ar.hpp
-	env "CXXFLAGS=$(HOWFAST)" $(MKOCTFILE) -v $< -o $@
-
-clean: octfiles-clean
-octfiles-clean:
-	rm -f $(OCTFILES)
-
-endif
-
 ###################################################################
 # Expose functionality as a Python module called 'ar' when possible
 ###################################################################
