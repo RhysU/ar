@@ -89,11 +89,12 @@
  *
  * @par Download:
  * Tarball with examples and test programs:
- * <a style="font-size:larger;font-weight:bold" href="http://sourceforge.net/projects/optionparser/files/optionparser-1.3.tar.gz/download">optionparser-1.3.tar.gz</a> @n
+ * <a style="font-size:larger;font-weight:bold" href="http://sourceforge.net/projects/optionparser/files/optionparser-1.4.tar.gz/download">optionparser-1.4.tar.gz</a> @n
  * Just the header (this is all you really need):
  * <a style="font-size:larger;font-weight:bold" href="http://optionparser.sourceforge.net/optionparser.h">optionparser.h</a>
  *
  * @par Changelog:
+ * <b>Version 1.4:</b> Fixed 2 printUsage() bugs that messed up output with small COLUMNS values @n
  * <b>Version 1.3:</b> Compatible with Microsoft Visual C++. @n
  * <b>Version 1.2:</b> Added @ref option::Option::namelen "Option::namelen" and removed the extraction
  *                     of short option characters into a special buffer. @n
@@ -112,6 +113,7 @@
  * @par Example program:
  * (Note: @c option::* identifiers are links that take you to their documentation.)
  * @code
+ * #error EXAMPLE SHORTENED FOR READABILITY. BETTER EXAMPLES ARE IN THE .TAR.GZ!
  * #include <iostream>
  * #include "optionparser.h"
  *
@@ -534,7 +536,7 @@ public:
    */
   int index() const
   {
-    return desc == 0 ? -1 : desc->index;
+    return desc == 0 ? -1 : (int)desc->index;
   }
 
   /**
@@ -2485,7 +2487,11 @@ struct PrintUsageImplementation
 
       int rightwidth = width - tabstop[lastcolumn];
       bool print_last_column_on_own_line = false;
-      if (rightwidth < last_column_min_width && rightwidth < col_width[lastcolumn])
+      if (rightwidth < last_column_min_width &&  // if we don't have the minimum requested width for the last column
+            ( col_width[lastcolumn] == 0 ||      // and all last columns are > overlong_column_threshold
+              rightwidth < col_width[lastcolumn] // or there is at least one last column that requires more than the space available
+            )
+          )
       {
         print_last_column_on_own_line = true;
         rightwidth = last_column_own_line_max_width;
@@ -2541,7 +2547,7 @@ struct PrintUsageImplementation
 
             LineWrapper& lineWrapper = (part.column() == 0) ? interjectionLineWrapper : lastColumnLineWrapper;
 
-            if (!print_last_column_on_own_line)
+            if (!print_last_column_on_own_line || part.column() != lastcolumn)
               lineWrapper.process(write, part.data(), part.length());
           }
         } // while
