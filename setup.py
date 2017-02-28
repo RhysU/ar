@@ -19,9 +19,7 @@ setup(
             PACKAGE_NAME,
             depends=['ar.hpp'],
             sources=['ar-python.cpp'],
-            include_dirs=[
-                numpy.distutils.misc_util.get_numpy_include_dirs()
-            ],
+            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
         )
     ],
 )
