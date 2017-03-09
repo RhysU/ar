@@ -6,7 +6,7 @@ Overview
 
 This package contains a precision-agnostic, header-only, C++ implementation of
 Burg's recursive method for estimating autoregressive model parameters.  Many
-usability-related extensions, in particular Octave- and Python-friendly
+usability-related extensions, in particular Python-friendly
 functions, have been added to permit simply obtaining autocorrelation
 information from the resulting estimated model.
 
@@ -110,7 +110,7 @@ Contents
 *Makefile*
    Try ``make`` followed by ``make check``.  On Linux, try ``make stress`` to
    examine the implementation's performance when piping in plain text data.
-   Octave and/or Python functionality also will be built in-place when possible.
+   Python functionality also will be built in-place when possible.
 
 *ar.hpp*
   The standalone header implementing all algorithms.  Complete API
