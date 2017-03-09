@@ -443,14 +443,19 @@ ValueType welford_inner_product(InputIterator1 first1,
 /**
  * Robustly compute negative one half the reflection coefficient assuming
  * \f$\vec{a}\f$ and \f$\vec{b}\f$ contain real-valued backward and forward
- * prediction error sequences, respectively.
+ * prediction error sequences, respectively.  Zero is returned whenever the
+ * reflection coefficient numerator is identically zero, as otherwise
+ * constant zero signals produce undesired NaN reflection coefficients.
+ * The constant zero special case does not defeat NaN detection as any data
+ * introducing NaN into the denominator must introduce NaN into the numerator.
  *
  * @param[in] a_first Beginning of the first input range \f$\vec{a}\f$.
  * @param[in] a_last  Exclusive end of first input range \f$\vec{a}\f$.
  * @param[in] b_first Beginning of the second input range \f$\vec{b}\f$.
  *
  * @return \f$\frac{\vec{a}\cdot\vec{b}}
- *                 {\vec{a}\cdot\vec{a} + \vec{b}\cdot\vec{b}}\f$.
+ *                 {\vec{a}\cdot\vec{a} + \vec{b}\cdot\vec{b}}\f$
+ *         when that numerator is nonzero, else zero.
  *
  * @see Wikipedia's article on <a href="">Kahan summation</a> for
  *      background on how the accumulation error is reduced in the result.
@@ -490,7 +495,9 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
         ns = nt;
     }
 
-    return (ns + nc) / (ds + dc);      // Correct final sums and form ratio
+    return ns + nc == 0                // Does special zero case apply?
+        ? 0                            // Yes, to avoid NaN from 0 / 0
+        : (ns + nc) / (ds + dc);       // No, correct final sums and form ratio
 }
 #else
 #warning Using Non-Kahan version of ar::negative_half_reflection_coefficient.
@@ -502,11 +509,13 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
     {
         ValueType xa  = *a_first++;
         ValueType xb  = *b_first++;
-        ns           += xa * xb;
-        ds           += xa * xa + xb * xb;
+        ns           += xa * xb;            // Numerator
+        ds           += xa * xa + xb * xb;  // Denominator
     }
 
-    return ns / ds;
+    return ns == 0                          // Does special zero case apply?
+        ? 0                                 // Yes, to avoid NaN from 0 / 0
+        : ns / ds;                          // No, form ratio
 }
 #endif
 
@@ -676,6 +685,7 @@ std::size_t burg_method(InputIterator   data_first,
     {
         // Compute mu from f, b, and Dk and then update sigma2e and Ak using mu
         // Afterwards, Ak[1:kp1] contains AR(k) coefficients by the recurrence
+        // Must treat mu result of 0 / 0 as 0 to avoid NaNs on constant signals
         // By the recurrence, Ak[kp1] will also be the reflection coefficient
         Value mu = -2 * negative_half_reflection_coefficient<Value>(
                 f.begin() + kp1, f.end(), b.begin());
