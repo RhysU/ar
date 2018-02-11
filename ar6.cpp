@@ -54,8 +54,8 @@ const option::Descriptor usage[] = {
 // Box-Muller logic adjusted from
 // https://github.com/rflynn/c/blob/master/rand-normal-distribution.c
 static double rand01() {
-    const double x = (double) rand() / RAND_MAX;
-    const double y = (double) rand() / RAND_MAX;
+    const double x = (double) random() / RAND_MAX;
+    const double y = (double) random() / RAND_MAX;
     const double z = sqrt(-2 * log(x)) * cos(2 * M_PI * y);
     return z;
 }
@@ -126,19 +126,19 @@ int main(int argc, char *argv[])
 
     std::vector<double> initial;
     for (size_t i = 0; i < params.size(); ++i) {
-        initial.push_back(rand01());
+        initial.push_back(rand0point1());
     }
     p.initial_conditions(initial.begin());
 
     // Discard 0 <= t < burn
-    for (; t < burn; ++t) {
-        *p;
+    for (; t < burn; ++t, ++p) {
+        // NOP
     }
 
     // Output (t, x, y, z) during burn < t <= tfinal
     cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos;
-    for (; t < tfinal; ++t) {
+    for (; t < tfinal; ++t, ++p) {
         cout << t << '\t' << *p << '\n';
     }
 
