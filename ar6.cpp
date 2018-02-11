@@ -115,13 +115,14 @@ int main(int argc, char *argv[])
     }
 
     // Initialize the AR process parameters
+    // Negated as convention differs from https://arxiv.org/abs/1802.01056v1
     std::vector<double> params;
-    params.push_back(+3.1378);
-    params.push_back(-3.9789);
-    params.push_back(+2.6788);
-    params.push_back(-1.0401);
-    params.push_back(+0.2139);
-    params.push_back(-0.0133);
+    params.push_back(-1 * +3.1378);
+    params.push_back(-1 * -3.9789);
+    params.push_back(-1 * +2.6788);
+    params.push_back(-1 * -1.0401);
+    params.push_back(-1 * +0.2139);
+    params.push_back(-1 * -0.0133);
     ar::predictor<double> p(params.begin(), params.end(), rand0point1);
 
     std::vector<double> initial;
