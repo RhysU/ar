@@ -11,13 +11,14 @@
  */
 
 #include <sys/time.h>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <vector>
 
+#include "ar.hpp"
 #include "optionparser.h"
-#include "real.hpp"
 
 // Declarations for argument checking logic based upon optionparser.h examples
 struct Arg : public option::Arg
@@ -50,6 +51,19 @@ const option::Descriptor usage[] = {
     {0,0,0,0,0,0}
 };
 
+// Box-Muller logic adjusted from
+// https://github.com/rflynn/c/blob/master/rand-normal-distribution.c
+static double rand01() {
+    const double x = (double) rand() / RAND_MAX;
+    const double y = (double) rand() / RAND_MAX;
+    const double z = sqrt(-2 * log(x)) * cos(2 * M_PI * y);
+    return z;
+}
+
+// Scale to obtain variance 0.1.
+static double rand0point1() {
+    return sqrt(0.1) * rand01();
+}
 
 int main(int argc, char *argv[])
 {
@@ -100,6 +114,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Initialize the AR process parameters
     std::vector<double> params;
     params.push_back(+3.1378);
     params.push_back(-3.9789);
@@ -107,22 +122,24 @@ int main(int argc, char *argv[])
     params.push_back(-1.0401);
     params.push_back(+0.2139);
     params.push_back(-0.0133);
+    ar::predictor<double> p(params.begin(), params.end(), rand0point1);
 
-    // TODO InitialState
-    // TODO NoiseGenerator
-    // TODO Predictor
+    std::vector<double> initial;
+    for (size_t i = 0; i < params.size(); ++i) {
+        initial.push_back(rand01());
+    }
+    p.initial_conditions(initial.begin());
 
     // Discard 0 <= t < burn
     for (; t < burn; ++t) {
-
+        *p;
     }
 
     // Output (t, x, y, z) during burn < t <= tfinal
-    cout.precision(numeric_limits<real>::digits10 + 2);
+    cout.precision(numeric_limits<double>::digits10 + 2);
     cout << showpos;
     for (; t < tfinal; ++t) {
-        const double x = 5; // FIXME
-        cout << t << '\t' << x << '\n';
+        cout << t << '\t' << *p << '\n';
     }
 
     return EXIT_SUCCESS;
