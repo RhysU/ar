@@ -16,6 +16,7 @@
 *.swp
 
 # Binaries
+ar6
 arsel
 collomb2009
 example
@@ -28,6 +29,7 @@ zohar
 .eggs
 ar.egg-info
 dist
+build
 
 nothing added to commit but untracked files present (use "git add" to track)
 

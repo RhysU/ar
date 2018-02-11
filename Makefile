@@ -9,7 +9,7 @@ HOWFAST   ?= -g -O2 -DNDEBUG
 PRECISION ?= -DREAL=double
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
 
-all:     zohar example test arsel faber1986 collomb2009 lorenz
+all:     zohar example test ar6 arsel faber1986 collomb2009 lorenz
 
 CC = $(CXX) # Force compilation and linking with C++ compiler
 
@@ -21,6 +21,9 @@ example:   example.o
 
 test.o:    test.cpp    ar.hpp
 test:      test.o
+
+ar6.o:   ar6.cpp   ar.hpp
+ar6:     ar6.o
 
 arsel.o:   arsel.cpp   ar.hpp
 arsel:     arsel.o
