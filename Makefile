@@ -38,7 +38,7 @@ lorenz.o:  lorenz.cpp
 lorenz:    lorenz.o
 
 clean:
-	rm -f example zohar test arsel collomb2009 faber1986 lorenz *.o
+	rm -f example zohar test ar6 arsel collomb2009 faber1986 lorenz *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: zohar example test
