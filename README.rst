@@ -116,6 +116,12 @@ Contents
   The standalone header implementing all algorithms.  Complete API
   documentation is available at http://rhysu.github.com/ar.
 
+*ar6.cpp*
+  A sample program generating data from an AR(6) process specified in
+  section 4.1 of [Beyhaghi2018].  Try ``./ar6 -b 5000 -t 50000 | cut -f2 |
+  ./arsel`` to see the statistical parameters estimated by ``arsel`` when
+  fed input from a realization of this process.
+
 *arsel.cpp*
    Given data on standard input, use Burg's method to compute a hierarchy of
    candidate models and select the best one using CIC.  Try ``arsel --help`` to
@@ -208,6 +214,8 @@ References
 -- [Andersen1978]    Andersen, N. "Comments on the performance of maximum entropy algorithms." Proceedings of the IEEE 66 (November 1978): 1581-1582. http://dx.doi.org/10.1109/PROC.1978.11160
 
 -- [Bernardo1976]    Bernardo, J. M.  "Algorithm AS 103: Psi (digamma) function." Journal of the Royal Statistical Society.  Series C (Applied Statistics) 25 (1976). http://www.jstor.org/stable/2347257
+
+-- [Beyhaghi2018]    Beyhaghi, Pooriya and Alimohammadi, Shahrouz and Bewley Thomas. "Uncertainty Quantification of the time averaging of a Statistics Computed from Numerical Simulation of Turbulent Flow."  https://arxiv.org/abs/1802.01056v1
 
 -- [Bourke1998]      Bourke, Paul. AutoRegression Analysis, November 1998. http://paulbourke.net/miscellaneous/ar/
 
