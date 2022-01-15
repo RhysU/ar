@@ -1,6 +1,8 @@
 Autoregressive modeling tools in header-only C++
 ================================================
 
+[![Build Status](https://travis-ci.com/RhysU/ar.svg?branch=master)](https://travis-ci.com/github/RhysU/ar)
+
 Overview
 --------
 
