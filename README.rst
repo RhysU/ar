@@ -3,8 +3,8 @@ Autoregressive modeling tools in header-only C++
 
 |BuildStatus|_
 
-.. |BuildStatus| image:: https://app.travis-ci.com/RhysU/ar.svg?branch=master
-.. _BuildStatus: https://app.travis-ci.com/RhysU/ar
+.. |BuildStatus| image:: https://circleci.com/gh/RhysU/jobserver.svg?style=shield
+.. _BuildStatus: https://app.circleci.com/pipelines/github/RhysU/jobserver
 
 Overview
 --------
