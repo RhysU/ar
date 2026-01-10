@@ -27,13 +27,12 @@ jobs:
           name: Dependencies
           command: |
             sudo apt -qq update
-            sudo apt -qq install -y build-essential gcc g++ make time
-            sudo python -m pip install --upgrade pip
+            sudo apt -qq install -y build-essential gcc g++ make python3-pip
+            echo "$(command -v python): $(python -V)"
             sudo python -m pip install numpy setuptools
       - run:
           name: Build
           command: |
-            echo "$(command -v python): $(python -V)"
             make
       - run:
           name: Test
