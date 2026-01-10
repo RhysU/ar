@@ -9,6 +9,7 @@ executors:
         type: string
     docker:
       - image: cimg/python:<<parameters.version-python>>
+    resource_class: small
 
 jobs:
   test:
@@ -54,4 +55,4 @@ workflows:
                 - "3.8"
                 - "3.13"
               version-numpy:
-                - "1.24.4"
+                - "1.23.5"
