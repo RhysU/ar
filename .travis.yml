@@ -1,8 +1,0 @@
-language: cpp
-compiler:
-  - gcc
-before_script:
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install time
-  - sudo apt-get -qq install python-numpy python-setuptools
-script: make && make check && make stress
