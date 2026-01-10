@@ -2,26 +2,56 @@
 version: 2.1
 
 executors:
-  cpp-docker:
+  python-docker:
+    parameters:
+      version-python:
+        description: "Python version"
+        type: string
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:<<parameters.version-python>>
+    resource_class: small
 
 jobs:
   test:
-    executor: cpp-docker
+    parameters:
+      version-python:
+        description: "Python version"
+        type: string
+      prereq-numpy:
+        description: "NumPy prerequisite"
+        type: string
+    executor:
+      name: python-docker
+      version-python: <<parameters.version-python>>
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Dependencies
           command: |
-            sudo apt-get -qq update
-            sudo apt-get -qq install -y build-essential gcc g++ make time python-numpy python-setuptools
+            sudo apt -qq update
+            sudo apt -qq install -y g++ make python3-pip time
+            echo "$(command -v python): $(python -V)"
+            python -m pip install 'setuptools<60' '<<parameters.prereq-numpy>>'
       - run:
-          name: Build and test
+          name: Build
           command: |
-            make && make check && make stress
+            make
+      - run:
+          name: Test
+          command: |
+            make check
+      - run:
+          name: Stress
+          command: |
+            make stress
 
 workflows:
-  build-and-test:
+  matrix-tests:
     jobs:
-      - test
+      - test:
+          matrix:
+            parameters:
+              version-python:
+                - "3.9"
+              prereq-numpy:
+                - "numpy<1.23"
