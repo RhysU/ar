@@ -32,6 +32,7 @@ jobs:
       - run:
           name: Build
           command: |
+            echo "$(command -v python): $(python -V)"
             make
       - run:
           name: Test
