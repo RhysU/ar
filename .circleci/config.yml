@@ -1,0 +1,27 @@
+# See https://circleci.com/docs/2.0/reusing-config/
+version: 2.1
+
+executors:
+  cpp-docker:
+    docker:
+      - image: cimg/base:stable
+
+jobs:
+  test:
+    executor: cpp-docker
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get -qq update
+            sudo apt-get -qq install -y build-essential gcc g++ make time python-numpy python-setuptools
+      - run:
+          name: Build and test
+          command: |
+            make && make check && make stress
+
+workflows:
+  build-and-test:
+    jobs:
+      - test
