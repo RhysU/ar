@@ -28,7 +28,8 @@ jobs:
           command: |
             sudo apt -qq update
             sudo apt -qq install -y build-essential gcc g++ make time
-            sudo apt -qq install -y python3-numpy python3-setuptools
+            sudo python -m pip install --upgrade pip
+            sudo python -m pip install numpy setuptools
       - run:
           name: Build
           command: |
