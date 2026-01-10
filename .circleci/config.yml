@@ -2,26 +2,58 @@
 version: 2.1
 
 executors:
-  cpp-docker:
+  python-docker:
+    parameters:
+      version:
+        description: "Python version"
+        default: "3.9"
+        type: string
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:<<parameters.version>>
 
 jobs:
   test:
-    executor: cpp-docker
+    parameters:
+      version:
+        description: "Python version"
+        default: "3.9"
+        type: string
+    executor:
+      name: python-docker
+      version: <<parameters.version>>
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Dependencies
           command: |
             sudo apt-get -qq update
-            sudo apt-get -qq install -y build-essential gcc g++ make time python-numpy python-setuptools
+            sudo apt-get -qq install -y build-essential gcc g++ make time
+            sudo apt-get -qq install -y python-numpy python-setuptools
       - run:
-          name: Build and test
+          name: Build
           command: |
-            make && make check && make stress
+            make
+      - run:
+          name: Test
+          command: |
+            make check
+      - run:
+          name: Stress
+          command: |
+            make stress
 
 workflows:
-  build-and-test:
+  matrix-tests:
     jobs:
-      - test
+      - test:
+          matrix:
+            parameters:
+              version:
+                - "3.6"
+                - "3.7"
+                - "3.8"
+                - "3.9"
+                - "3.10"
+                - "3.11"
+                - "3.12"
+                - "3.13"
