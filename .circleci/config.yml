@@ -17,8 +17,8 @@ jobs:
       version-python:
         description: "Python version"
         type: string
-      version-numpy:
-        description: "NumPy version"
+      prereq-numpy:
+        description: "NumPy prerequisite"
         type: string
     executor:
       name: python-docker
@@ -31,7 +31,7 @@ jobs:
             sudo apt -qq update
             sudo apt -qq install -y build-essential gcc g++ make python3-pip
             echo "$(command -v python): $(python -V)"
-            python -m pip install setuptools numpy==<<parameters.version-numpy>>
+            python -m pip install setuptools '<<parameters.prereq-numpy>>'
       - run:
           name: Build
           command: |
@@ -54,5 +54,5 @@ workflows:
               version-python:
                 - "3.8"
                 - "3.11"
-              version-numpy:
-                - "1.24.6"
+              prereq-numpy:
+                - "numpy<2"
