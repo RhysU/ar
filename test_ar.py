@@ -11,35 +11,15 @@ Uses only standard library for test infrastructure.
 """
 
 import sys
-import os
+import ar
+import numpy as np
 
 def main():
     """Test ar.arsel() against known test data."""
 
-    # Try importing required modules
-    try:
-        import ar
-    except ImportError:
-        print("ar module not available, skipping Python AR test")
-        return 0
-
-    try:
-        import numpy as np
-    except ImportError:
-        print("numpy not available, skipping Python AR test")
-        return 0
-
     # Test data files
     coeff_file = "test0.coeff"
     data_file = "test0.dat"
-
-    # Check if test files exist
-    if not os.path.exists(coeff_file):
-        print("Test file {} not found".format(coeff_file))
-        return 1
-    if not os.path.exists(data_file):
-        print("Test file {} not found".format(data_file))
-        return 1
 
     # Load expected coefficients
     expected_coeffs = []
