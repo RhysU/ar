@@ -29,7 +29,7 @@ jobs:
             sudo apt -qq update
             sudo apt -qq install -y build-essential gcc g++ make python3-pip
             echo "$(command -v python): $(python -V)"
-            sudo python -m pip install numpy setuptools
+            python -m pip install numpy setuptools
       - run:
           name: Build
           command: |
@@ -50,11 +50,5 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.6"
-                - "3.7"
                 - "3.8"
-                - "3.9"
-                - "3.10"
-                - "3.11"
-                - "3.12"
                 - "3.13"
