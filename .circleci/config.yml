@@ -6,7 +6,6 @@ executors:
     parameters:
       version-python:
         description: "Python version"
-        default: "3.9"
         type: string
     docker:
       - image: cimg/python:<<parameters.version-python>>
@@ -16,11 +15,9 @@ jobs:
     parameters:
       version-python:
         description: "Python version"
-        default: "3.9"
         type: string
       version-numpy:
         description: "NumPy version"
-        default: "1.26.4"
         type: string
     executor:
       name: python-docker
@@ -57,4 +54,4 @@ workflows:
                 - "3.8"
                 - "3.13"
               version-numpy:
-                - "1.26.4"
+                - "1.24.4"
