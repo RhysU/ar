@@ -31,7 +31,7 @@ jobs:
             sudo apt -qq update
             sudo apt -qq install -y build-essential gcc g++ make python3-pip
             echo "$(command -v python): $(python -V)"
-            python -m pip install setuptools '<<parameters.prereq-numpy>>'
+            python -m pip install 'setuptools<60' '<<parameters.prereq-numpy>>'
       - run:
           name: Build
           command: |
