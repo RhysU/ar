@@ -4,27 +4,27 @@ version: 2.1
 executors:
   python-docker:
     parameters:
-      version_python:
+      version-python:
         description: "Python version"
         default: "3.9"
         type: string
     docker:
-      - image: cimg/python:<<parameters.version_python>>
+      - image: cimg/python:<<parameters.version-python>>
 
 jobs:
   test:
     parameters:
-      version_python:
+      version-python:
         description: "Python version"
         default: "3.9"
         type: string
-      version_numpy:
+      version-numpy:
         description: "NumPy version"
         default: "1.26.4"
         type: string
     executor:
       name: python-docker
-      version: <<parameters.version_python>>
+      version-python: <<parameters.version-python>>
     steps:
       - checkout
       - run:
@@ -33,7 +33,7 @@ jobs:
             sudo apt -qq update
             sudo apt -qq install -y build-essential gcc g++ make python3-pip
             echo "$(command -v python): $(python -V)"
-            python -m pip install setuptools pip==<<parameters.version_numpy>>
+            python -m pip install setuptools pip==<<parameters.version-numpy>>
       - run:
           name: Build
           command: |
@@ -53,8 +53,8 @@ workflows:
       - test:
           matrix:
             parameters:
-              version_python:
+              version-python:
                 - "3.8"
                 - "3.13"
-              version_numpy:
+              version-numpy:
                 - "1.26.4"
