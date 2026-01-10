@@ -26,9 +26,9 @@ jobs:
       - run:
           name: Dependencies
           command: |
-            sudo apt-get -qq update
-            sudo apt-get -qq install -y build-essential gcc g++ make time
-            sudo apt-get -qq install -y python-numpy python-setuptools
+            sudo apt -qq update
+            sudo apt -qq install -y build-essential gcc g++ make time
+            sudo apt -qq install -y python3-numpy python3-setuptools
       - run:
           name: Build
           command: |
