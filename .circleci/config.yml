@@ -70,5 +70,5 @@ workflows:
                 - "3.12"
                 - "3.13"
               prereq-numpy:
-                - "numpy<1.23"
+                - "numpy<2"
                 - "numpy<3"
