@@ -7,8 +7,7 @@ name = "ar"
 dynamic = ["version"]
 description = "Autoregressive process modeling tools"
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = "MPL-2.0"
-license-file = "LICENSE"
+license = {file = "LICENSE", content-type = "text/plain"}
 requires-python = ">=3.7"
 authors = [
     {name = "Rhys Ulerich", email = "rhys.ulerich@gmail.com"}
