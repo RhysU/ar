@@ -1,14 +1,18 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel", "numpy>=1.19.3,<2.0"]
+requires = [
+    "numpy>=1.19.3",
+    "setuptools>=80",
+    "setuptools_scm[simple]>=8",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ar"
 dynamic = ["version"]
 description = "Autoregressive process modeling tools"
-readme = "README.rst"
-license = "MPL-2.0"
-license-files = ["LICENSE"]
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = {file = "LICENSE", content-type = "text/plain"}
 requires-python = ">=3.7"
 authors = [
     {name = "Rhys Ulerich", email = "rhys.ulerich@gmail.com"}
@@ -22,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "numpy>=1.19.3",
@@ -30,8 +35,3 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/RhysU/ar"
 Repository = "https://github.com/RhysU/ar"
-
-[tool.setuptools]
-py-modules = []
-
-[tool.setuptools_scm]

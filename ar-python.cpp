@@ -19,6 +19,22 @@
 # define PyInt_FromSize_t PyLong_FromSize_t
 #endif
 
+// NumPy 2.0 compatibility: Several flags were renamed or removed in NumPy 2.0
+// In NumPy 2.0, arrays are always aligned, so we can safely omit NPY_ALIGNED
+#ifndef NPY_ALIGNED
+# define NPY_ALIGNED 0
+#endif
+
+// NPY_ELEMENTSTRIDES was renamed to NPY_ARRAY_ELEMENTSTRIDES in NumPy 2.0
+#ifndef NPY_ELEMENTSTRIDES
+# define NPY_ELEMENTSTRIDES NPY_ARRAY_ELEMENTSTRIDES
+#endif
+
+// NPY_NOTSWAPPED doesn't exist in NumPy 2.0 (arrays are always native byte order now)
+#ifndef NPY_NOTSWAPPED
+# define NPY_NOTSWAPPED 0
+#endif
+
 /** @file
  * A Python extension module for exposing autoregressive model utilities.
  */
@@ -173,8 +189,8 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
 
     // Reshape any 1D ndarray into a 2D ndarray organized as a row vector.
     // Permits the remainder of the routine to uniformly worry about 2D only.
-    if (1 == ((PyArrayObject *)(data))->nd) {
-        npy_intp dim[2] = { 1, PyArray_DIM(data, 0) };
+    if (1 == PyArray_NDIM((PyArrayObject *)data)) {
+        npy_intp dim[2] = { 1, PyArray_DIM((PyArrayObject *)data, 0) };
         PyArray_Dims newshape = { dim, sizeof(dim)/sizeof(dim[0]) };
         PyObject *olddata = data;
         data = PyArray_Newshape((PyArrayObject *)olddata,
@@ -189,8 +205,8 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     // How many data points are there?
-    npy_intp M = PyArray_DIM(data, 0);
-    npy_intp N = PyArray_DIM(data, 1);
+    npy_intp M = PyArray_DIM((PyArrayObject *)data, 0);
+    npy_intp N = PyArray_DIM((PyArrayObject *)data, 1);
 
     // Prepare per-signal storage locations to return to caller
     // TODO Ensure these invocations all worked as expected
@@ -224,13 +240,13 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
         gain   .clear();
         autocor.clear();
         ar::strided_adaptor<const double*> signal_begin(
-                (const double*) PyArray_GETPTR2(data, i, 0),
-                PyArray_STRIDES(data)[1] / sizeof(double));
+                (const double*) PyArray_GETPTR2((PyArrayObject *)data, i, 0),
+                PyArray_STRIDES((PyArrayObject *)data)[1] / sizeof(double));
         ar::strided_adaptor<const double*> signal_end  (
-                (const double*) PyArray_GETPTR2(data, i, N),
-                PyArray_STRIDES(data)[1] / sizeof(double));
+                (const double*) PyArray_GETPTR2((PyArrayObject *)data, i, N),
+                PyArray_STRIDES((PyArrayObject *)data)[1] / sizeof(double));
         ar::burg_method(signal_begin, signal_end,
-                        *(double*)PyArray_GETPTR1(_mu, i),
+                        *(double*)PyArray_GETPTR1((PyArrayObject *)_mu, i),
                         maxorder,
                         std::back_inserter(params),
                         std::back_inserter(sigma2e),
@@ -251,7 +267,7 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
         // Compute decorrelation time from the estimated autocorrelation model
         ar::predictor<double> p = ar::autocorrelation(
                 params.begin(), params.end(), gain[0], autocor.begin());
-        *(double*)PyArray_GETPTR1(_T0, i)
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_T0, i)
             = ar::decorrelation_time(N, p, absrho);
 
         // Filter()-ready process parameters in field 'AR' with leading one
@@ -263,13 +279,13 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
         }
 
         // Field 'sigma2eps'
-        *(double*)PyArray_GETPTR1(_sigma2eps, i) = sigma2e[0];
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_sigma2eps, i) = sigma2e[0];
 
         // Field 'gain'
-        *(double*)PyArray_GETPTR1(_gain, i) = gain[0];
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_gain, i) = gain[0];
 
         // Field 'sigma2x'
-        *(double*)PyArray_GETPTR1(_sigma2x, i) = gain[0]*sigma2e[0];
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_sigma2x, i) = gain[0]*sigma2e[0];
 
         // Field 'autocor'
         PyObject *_autocori = PyList_New(autocor.size());
@@ -280,18 +296,18 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
 
         // Field 'eff_var'
         // Unbiased effective variance expression from [Trenberth1984]
-        *(double*)PyArray_GETPTR1(_eff_var, i)
-            = (N*gain[0]*sigma2e[0]) / (N - *(double*)PyArray_GETPTR1(_T0, i));
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_eff_var, i)
+            = (N*gain[0]*sigma2e[0]) / (N - *(double*)PyArray_GETPTR1((PyArrayObject *)_T0, i));
 
         // Field 'eff_N'
-        *(double*)PyArray_GETPTR1(_eff_N, i)
-            = N / *(double*)PyArray_GETPTR1(_T0, i);
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_eff_N, i)
+            = N / *(double*)PyArray_GETPTR1((PyArrayObject *)_T0, i);
 
         // Field 'mu_sigma'
         // Variance of the sample mean using effective quantities
-        *(double*)PyArray_GETPTR1(_mu_sigma, i)
-            = std::sqrt(   *(double*)PyArray_GETPTR1(_eff_var, i)
-                         / *(double*)PyArray_GETPTR1(_eff_N,   i));
+        *(double*)PyArray_GETPTR1((PyArrayObject *)_mu_sigma, i)
+            = std::sqrt(   *(double*)PyArray_GETPTR1((PyArrayObject *)_eff_var, i)
+                         / *(double*)PyArray_GETPTR1((PyArrayObject *)_eff_N,   i));
     }
 
     // Prepare build and return an ar_ArselType via tuple constructor
