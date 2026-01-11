@@ -123,7 +123,7 @@ static const char ar_arsel_docstring[] =
 // Return type for ar_arsel initialized within initar
 static PyTypeObject *ar_ArselType = NULL;
 
-extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
+extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *ret_args = NULL, *ret = NULL;
 
@@ -142,12 +142,24 @@ extern "C" PyObject *ar_arsel(PyObject *self, PyObject *args)
     std::size_t minorder  = DEFAULT_MINORDER;
     std::size_t maxorder  = DEFAULT_MAXORDER;
 
-    // Parse input tuple with second and subsequent arguments optional
+    // Define keyword argument names
+    static char *kwlist[] = {
+        (char *)"data",
+        (char *)"submean",
+        (char *)"absrho",
+        (char *)"criterion",
+        (char *)"minorder",
+        (char *)"maxorder",
+        NULL
+    };
+
+    // Parse input tuple and keywords with second and subsequent arguments optional
     {
         unsigned long ul_minorder = minorder, ul_maxorder = maxorder;
-        if (!PyArg_ParseTuple(args, "O|iiskk", &data_obj, &submean, &absrho,
-                                               &criterion,
-                                               &ul_minorder, &ul_maxorder)) {
+        if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiskk", kwlist,
+                                         &data_obj, &submean, &absrho,
+                                         &criterion,
+                                         &ul_minorder, &ul_maxorder)) {
             return NULL;
         }
         minorder = ul_minorder;
@@ -350,7 +362,7 @@ fail:
 
 // Specification of methods available in the module
 static PyMethodDef ar_methods[] = {
-    {"arsel", ar_arsel, METH_VARARGS, ar_arsel_docstring},
+    {"arsel", (PyCFunction)ar_arsel, METH_VARARGS | METH_KEYWORDS, ar_arsel_docstring},
     {NULL, NULL, 0, NULL}
 };
 
