@@ -31,7 +31,13 @@ git clone --quiet --branch=gh-pages "https://${GH_TOKEN}@github.com/${CIRCLE_PRO
 cd gh-pages
 
 # Remove all existing content (except .git)
-find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name '..' -exec rm -rf {} \; 2>/dev/null || true
+shopt -s dotglob  # Include hidden files in glob
+for item in *; do
+    if [ "$item" != ".git" ]; then
+        rm -rf "$item"
+    fi
+done
+shopt -u dotglob
 
 # Copy new documentation
 cp -R "${CIRCLE_WORKING_DIRECTORY}/${SOURCE_DIR}"/* .
