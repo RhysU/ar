@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "numpy>=1.19.3",
-    "setuptools>=80",
+    "setuptools>=60",
     "setuptools_scm[simple]>=8",
     "wheel",
 ]
@@ -12,7 +12,7 @@ name = "ar"
 dynamic = ["version"]
 description = "Autoregressive process modeling tools"
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = {file = "LICENSE", content-type = "text/plain"}
+license = {text = "MPL-2.0"}
 requires-python = ">=3.7"
 authors = [
     {name = "Rhys Ulerich", email = "rhys.ulerich@gmail.com"}
