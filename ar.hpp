@@ -657,7 +657,9 @@ std::size_t burg_method(InputIterator   data_first,
     // Adjust, if necessary, to make sigma2e the second moment.
     if (subtract_mean)
     {
-        transform(f.begin(), f.end(), f.begin(), bind2nd(minus<Value>(), mean));
+        for (typename Vector::iterator it = f.begin(); it != f.end(); ++it) {
+            *it -= mean;
+        }
     }
     else
     {
@@ -816,19 +818,13 @@ struct nullary_impl1 : public nullary<Value>
  */
 template <typename Value, typename Index = std::size_t>
 class predictor
-    : public std::iterator<std::input_iterator_tag, Value,
-      std::ptrdiff_t, const Value*, const Value&>
 {
-private:
-    typedef std::iterator<std::input_iterator_tag, Value,
-            std::ptrdiff_t, const Value*, const Value&> base;
-
 public:
-    typedef typename base::difference_type   difference_type;
-    typedef typename base::iterator_category iterator_category;
-    typedef typename base::pointer           pointer;
-    typedef typename base::reference         reference;
-    typedef typename base::value_type        value_type;
+    typedef std::input_iterator_tag iterator_category;
+    typedef Value                   value_type;
+    typedef std::ptrdiff_t          difference_type;
+    typedef const Value*            pointer;
+    typedef const Value&            reference;
 
     /** Singular instance marking prediction index \c n. */
     explicit predictor(Index n = 0) : n(n), d(), g(0), xn()
@@ -922,7 +918,6 @@ public:
                 delete tmp;
                 throw;
             }
-            base::operator=(other);
             n = other.n;
             d = other.d;
             delete g;
@@ -1631,8 +1626,11 @@ template <class EstimationMethod,
           typename Integer1 = std::size_t,
           typename Integer2 = Integer1>
 struct empirical_variance_function
-    : public std::binary_function<Result,Integer1,Integer2>
 {
+    typedef Integer1 first_argument_type;
+    typedef Integer2 second_argument_type;
+    typedef Result   result_type;
+
     Result operator() (Integer1 N, Integer2 i) const
     {
         return EstimationMethod::template empirical_variance<Result>(N, i);
@@ -1685,22 +1683,17 @@ template <class EstimationMethod,
           typename Integer1 = std::size_t,
           typename Integer2 = Integer1>
 class empirical_variance_iterator
-    : public std::iterator<std::random_access_iterator_tag, Result,
-                           std::ptrdiff_t, const Result*, const Result&>
 {
 private:
-    typedef std::iterator<std::random_access_iterator_tag, Result,
-                          std::ptrdiff_t, const Result*, const Result&> base;
-
     Integer1 N;
     Integer2 i;
 
 public:
-    typedef typename base::difference_type   difference_type;
-    typedef typename base::iterator_category iterator_category;
-    typedef typename base::pointer           pointer;
-    typedef typename base::reference         reference;
-    typedef typename base::value_type        value_type;
+    typedef std::random_access_iterator_tag iterator_category;
+    typedef Result                          value_type;
+    typedef std::ptrdiff_t                  difference_type;
+    typedef const Result*                   pointer;
+    typedef const Result&                   reference;
 
     /** Construct a past-end iterator */
     empirical_variance_iterator() : N(0), i(1) {}  // Null
@@ -2386,8 +2379,14 @@ best_model(Integer1       N,
 namespace { // anonymous
 
 // Used to discard output per http://stackoverflow.com/questions/335930/
-struct null_output : std::iterator< std::output_iterator_tag, null_output >
+struct null_output
 {
+    typedef std::output_iterator_tag iterator_category;
+    typedef void                     value_type;
+    typedef void                     difference_type;
+    typedef void                     pointer;
+    typedef void                     reference;
+
     template <typename T> void operator=(const T&) {}
 
     null_output& operator++()
