@@ -30,6 +30,10 @@
 #define ARSEL_VERSION "unspecified"
 #endif
 
+#ifndef ARSEL_CXXFLAGS
+#define ARSEL_CXXFLAGS "unspecified"
+#endif
+
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
 {
@@ -100,7 +104,8 @@ int main(int argc, char *argv[])
         }
 
         if (options[VERSION]) {
-            cout << "arsel " << ARSEL_VERSION << "\n";
+            cout << "arsel version " << ARSEL_VERSION
+                 << " compiled with " << ARSEL_CXXFLAGS << "\n";
             return EXIT_SUCCESS;
         }
 
