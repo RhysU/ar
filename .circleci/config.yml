@@ -33,11 +33,19 @@ jobs:
             echo "$(command -v python): $(python -V)"
             python -m pip install 'setuptools<60' '<<parameters.prereq-numpy>>'
       - run:
-          name: Build
+          name: Build without Python
+          command: |
+            PYTHON= make
+      - run:
+          name: Test without Python
+          command: |
+            PYTHON= make check
+      - run:
+          name: Build with Python
           command: |
             make
       - run:
-          name: Test
+          name: Test with Python
           command: |
             make check
       - run:

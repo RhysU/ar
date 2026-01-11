@@ -14,13 +14,14 @@ import ar
 
 def main():
     """Test ar.arsel() against known test data."""
-    # Load required inputs
+
+    print("Loading required inputs")
     with open("rhoe.dat") as file:
         data = [float(line.strip()) for line in file.readlines()]
     with open("rhoe.coeff") as file:
         desired = [float(line.strip()) for line in file.readlines()]
 
-    # Fit AR model using both positional and keyword arguments
+    print("Fitting AR model using both positional and keyword arguments")
     kwargs = {
         "data": data,
         "submean": True,
@@ -32,7 +33,7 @@ def main():
     result_positional = ar.arsel(*kwargs.values())
     result_keyword = ar.arsel(**kwargs)
 
-    # Confirm results match regardless of calling convention
+    print("Confirming results match regardless of calling convention")
     npt.assert_equal(result_positional.N, result_keyword.N)
     npt.assert_equal(result_positional.AR, result_keyword.AR)
     npt.assert_equal(result_positional.mu, result_keyword.mu)
@@ -42,9 +43,11 @@ def main():
     npt.assert_equal(result_positional.autocor, result_keyword.autocor)
     npt.assert_equal(result_positional.data, result_keyword.data)
 
-    # Confirm coefficients sufficiently close to expected results
+    print("Confirming coefficients sufficiently close to expected results")
     actual = result_positional.AR[0][1:]
     npt.assert_allclose(actual=actual, desired=desired)
+
+    print("PASS")
 
 
 if __name__ == "__main__":
