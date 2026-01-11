@@ -35,6 +35,3 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/RhysU/ar"
 Repository = "https://github.com/RhysU/ar"
-
-[tool.setuptools_scm]
-write_to = "_version.py"

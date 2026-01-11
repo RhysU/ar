@@ -35,6 +35,11 @@
 
 // FIXME Add window_T0-like option per arsel.cpp
 
+// Version information from git via Makefile/setup.py
+#ifndef ARSEL_VERSION
+#define ARSEL_VERSION "unspecified"
+#endif
+
 // Compile-time defaults in the code also appearing in arsel docstring
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
@@ -449,24 +454,8 @@ extern "C" PyMODINIT_FUNC PyInit_ar(void)
     import_array();
     init_namedtuple();
 
-    // Add __version__ attribute from setuptools-scm generated version file
-    PyObject *version_module = PyImport_ImportModule("_version");
-    if (version_module != NULL) {
-        PyObject *version_str = PyObject_GetAttrString(version_module, "version");
-        if (version_str != NULL) {
-            PyModule_AddObject(module, "__version__", version_str);
-            // version_str reference is stolen by PyModule_AddObject on success
-        } else {
-            // If version attribute doesn't exist, fall back to "unknown"
-            PyErr_Clear();
-            PyModule_AddStringConstant(module, "__version__", "unknown");
-        }
-        Py_DECREF(version_module);
-    } else {
-        // If _version module doesn't exist, fall back to "unknown"
-        PyErr_Clear();
-        PyModule_AddStringConstant(module, "__version__", "unknown");
-    }
+    // Add __version__ attribute from compile-time ARSEL_VERSION macro
+    PyModule_AddStringConstant(module, "__version__", ARSEL_VERSION);
 
     return module;
 }

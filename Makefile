@@ -8,7 +8,7 @@ endif
 HOWFAST   ?= -g -O2 -DNDEBUG
 PRECISION ?= -DREAL=double
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
-VERSION   := $(shell git describe --dirty 2>/dev/null || echo 'unknown')
+VERSION   := $(shell git describe --always --dirty 2>/dev/null || echo 'unknown')
 
 all:     zohar example test ar6 arsel faber1986 collomb2009 lorenz
 
