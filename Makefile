@@ -79,7 +79,7 @@ ifneq "$(PYTHON)" ""
 
 all:   ar.so
 ar.so: ar-python.cpp ar.hpp setup.py
-	$(PYTHON) setup.py build_ext --inplace
+	ARSEL_VERSION="$(VERSION)" $(PYTHON) setup.py build_ext --inplace
 
 python-check: ar.so
 	$(PYTHON) test_ar.py

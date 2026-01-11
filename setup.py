@@ -1,19 +1,12 @@
 """Setuptools for building the extension package"""
 from setuptools import setup, Extension
 import numpy
-import subprocess
+import os
 
 PACKAGE_NAME = 'ar'
 
-# Get version from git describe, similar to Makefile
-try:
-    version = subprocess.check_output(
-        ['git', 'describe', '--always', '--dirty'],
-        stderr=subprocess.DEVNULL,
-        text=True
-    ).strip()
-except (subprocess.CalledProcessError, FileNotFoundError):
-    version = 'unknown'
+# Get version from environment variable set by Makefile
+version = os.environ.get('ARSEL_VERSION', 'unknown')
 
 setup(
     ext_modules=[
