@@ -14,17 +14,20 @@ import ar
 
 def main():
     """Test ar.arsel() against known test data."""
-
-    # Fit AR model using both positional and keyword arguments
+    # Load required inputs
     with open("rhoe.dat") as file:
         data = [float(line.strip()) for line in file.readlines()]
+    with open("rhoe.coeff") as file:
+        desired = [float(line.strip()) for line in file.readlines()]
+
+    # Fit AR model using both positional and keyword arguments
     kwargs = {
         "data": data,
         "submean": True,
         "absrho": True,
         "criterion": "CIC",
-        "minorder": len(expected),
-        "maxorder": len(expected),
+        "minorder": len(desired),
+        "maxorder": len(desired),
     }
     result_positional = ar.arsel(*kwargs.values())
     result_keyword = ar.arsel(**kwargs)
@@ -41,8 +44,6 @@ def main():
 
     # Confirm coefficients sufficiently close to expected results
     actual = result_positional.AR[0][1:]
-    with open("rhoe.coeff") as file:
-        desired = [float(line.strip()) for line in file.readlines()]
     npt.assert_allclose(actual=actual, desired=desired)
 
 
