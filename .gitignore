@@ -28,6 +28,7 @@ zohar
 # Python artifacts
 .eggs
 ar.egg-info
+ar_version.py
 dist
 build
 
