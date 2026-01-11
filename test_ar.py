@@ -15,6 +15,11 @@ import ar
 def main():
     """Test ar.arsel() against known test data."""
 
+    print("Testing __version__ attribute exists")
+    assert hasattr(ar, "__version__"), "ar module should have __version__ attribute"
+    assert isinstance(ar.__version__, str), "__version__ should be a string"
+    print(f"ar.__version__ = {ar.__version__}")
+
     print("Loading required inputs")
     with open("rhoe.dat") as file:
         data = [float(line.strip()) for line in file.readlines()]

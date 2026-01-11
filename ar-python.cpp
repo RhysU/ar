@@ -35,6 +35,11 @@
 
 // FIXME Add window_T0-like option per arsel.cpp
 
+// Version information from git via Makefile/setup.py
+#ifndef ARSEL_VERSION
+#define ARSEL_VERSION "unspecified"
+#endif
+
 // Compile-time defaults in the code also appearing in arsel docstring
 #define DEFAULT_SUBMEAN   true
 #define DEFAULT_ABSRHO    true
@@ -448,6 +453,9 @@ extern "C" PyMODINIT_FUNC PyInit_ar(void)
 	// Register NumPy and the Arsel namedtuple
     import_array();
     init_namedtuple();
+
+    // Add __version__ attribute from compile-time ARSEL_VERSION macro
+    PyModule_AddStringConstant(module, "__version__", ARSEL_VERSION);
 
     return module;
 }

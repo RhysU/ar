@@ -29,6 +29,7 @@ zohar
 .eggs
 ar.egg-info
 ar_version.py
+__pycache__/
 dist
 build
 
