@@ -22,7 +22,6 @@
 #include "ar.hpp"
 #include "optionparser.h"
 #include "real.hpp"
-#include "version.h"
 
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)

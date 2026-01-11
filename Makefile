@@ -8,6 +8,7 @@ endif
 HOWFAST   ?= -g -O2 -DNDEBUG
 PRECISION ?= -DREAL=double
 CXXFLAGS  ?= $(HOWSTRICT) $(HOWFAST) $(PRECISION)
+VERSION   := $(shell git describe --dirty 2>/dev/null || echo 'unknown')
 
 all:     zohar example test ar6 arsel faber1986 collomb2009 lorenz
 
@@ -25,14 +26,9 @@ test:      test.o
 ar6.o:   ar6.cpp   ar.hpp
 ar6:     ar6.o
 
-.PHONY: version.h
-version.h:
-	@echo "#ifndef VERSION_H" > version.h
-	@echo "#define VERSION_H" >> version.h
-	@echo "#define ARSEL_VERSION \"$$(git describe --dirty 2>/dev/null || echo 'unknown')\"" >> version.h
-	@echo "#endif" >> version.h
+arsel.o:   arsel.cpp   ar.hpp
+	$(CXX) $(CXXFLAGS) -DARSEL_VERSION='"$(VERSION)"' -c -o arsel.o arsel.cpp
 
-arsel.o:   arsel.cpp   ar.hpp version.h
 arsel:     arsel.o
 
 faber1986.o:  faber1986.cpp
@@ -45,7 +41,7 @@ lorenz.o:  lorenz.cpp
 lorenz:    lorenz.o
 
 clean:
-	rm -f example zohar test ar6 arsel collomb2009 faber1986 lorenz *.o version.h
+	rm -f example zohar test ar6 arsel collomb2009 faber1986 lorenz *.o
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: zohar example test
