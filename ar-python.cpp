@@ -449,5 +449,24 @@ extern "C" PyMODINIT_FUNC PyInit_ar(void)
     import_array();
     init_namedtuple();
 
+    // Add __version__ attribute from setuptools-scm generated version file
+    PyObject *version_module = PyImport_ImportModule("_version");
+    if (version_module != NULL) {
+        PyObject *version_str = PyObject_GetAttrString(version_module, "version");
+        if (version_str != NULL) {
+            PyModule_AddObject(module, "__version__", version_str);
+            // version_str reference is stolen by PyModule_AddObject on success
+        } else {
+            // If version attribute doesn't exist, fall back to "unknown"
+            PyErr_Clear();
+            PyModule_AddStringConstant(module, "__version__", "unknown");
+        }
+        Py_DECREF(version_module);
+    } else {
+        // If _version module doesn't exist, fall back to "unknown"
+        PyErr_Clear();
+        PyModule_AddStringConstant(module, "__version__", "unknown");
+    }
+
     return module;
 }
