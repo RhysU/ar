@@ -27,7 +27,7 @@ ar6.o:   ar6.cpp   ar.hpp
 ar6:     ar6.o
 
 arsel.o:   arsel.cpp   ar.hpp
-	$(CXX) $(CXXFLAGS) -DARSEL_VERSION='"$(VERSION)"' -c -o arsel.o arsel.cpp
+	$(CXX) $(CXXFLAGS) -DARSEL_VERSION='"$(VERSION)"' -DARSEL_CXXFLAGS='"$(CXXFLAGS)"' -c -o arsel.o arsel.cpp
 
 arsel:     arsel.o
 
