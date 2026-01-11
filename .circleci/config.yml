@@ -31,7 +31,7 @@ jobs:
             sudo apt -qq update
             sudo apt -qq install -y g++ make python3-pip time
             echo "$(command -v python): $(python -V)"
-            python -m pip install 'setuptools<60' '<<parameters.prereq-numpy>>'
+            python -m pip install setuptools '<<parameters.prereq-numpy>>'
       - run:
           name: Build without Python
           command: |
@@ -60,6 +60,13 @@ workflows:
           matrix:
             parameters:
               version-python:
+                - "3.7"
+                - "3.8"
                 - "3.9"
+                - "3.10"
+                - "3.11"
+                - "3.12"
+                - "3.13"
               prereq-numpy:
                 - "numpy<1.23"
+                - "numpy<3"
