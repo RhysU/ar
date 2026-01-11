@@ -55,6 +55,31 @@ jobs:
           command: |
             make stress
 
+  deploy-docs:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Install Doxygen and Graphviz
+          command: |
+            sudo apt-get update -qq
+            sudo apt-get install -y doxygen graphviz
+      - run:
+          name: Build Doxygen documentation
+          command: |
+            doxygen Doxyfile
+      - run:
+          name: Deploy to gh-pages
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+              echo "Deploying documentation to gh-pages..."
+              ./.circleci/deploy-ghpages.sh docs/html
+            else
+              echo "Not on master branch (current: ${CIRCLE_BRANCH}), skipping deployment"
+            fi
+
 workflows:
   matrix-tests:
     jobs:
@@ -72,3 +97,9 @@ workflows:
               prereq-numpy:
                 - "numpy<2"
                 - "numpy<3"
+      - deploy-docs:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
