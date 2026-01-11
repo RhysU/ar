@@ -20,12 +20,12 @@ def main():
 
     # Fit AR model using ar.arsel
     result = ar.arsel(
-        data=data,
-        submean=False,
-        absrho=True,
-        criterion="CIC",
-        minorder=len(expected),
-        maxorder=len(expected),
+        data,
+        False,
+        True,
+        "CIC",
+        len(expected),
+        len(expected),
     )
     estimated = result.AR[0][1:]
 
