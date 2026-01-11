@@ -138,12 +138,12 @@ Contents
    considerations.  The code followed appendix A ("Dynamically Linked
    Functions") of [Octave].
 
-*ar-python.cpp*, *setup.py*
-   Provides some functionality as a Python extension module called
-   'ar'.  This is perhaps the easiest way to start using these AR tools.
-   Also demonstrates how working storage may be reused across multiple
-   invocations to reduce the number of allocations for processing
-   data sets.
+*ar-python.cpp*, *pyproject.toml*, *setup.py*, *test_ar.py*
+   Provides some functionality as a Python extension module called 'ar'.
+   This is perhaps the easiest way to start using these AR tools.  Also
+   demonstrates how working storage may be reused across multiple invocations
+   to reduce the number of allocations for processing data sets.  Tests are
+   automatically run by ``make check`` whenever the Python extension is built.
 
 *test.cpp*
    A test driver for testing ``ar.hpp`` against benchmarks by [Bourke1998].
