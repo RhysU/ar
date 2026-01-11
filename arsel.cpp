@@ -26,6 +26,10 @@
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 
+#ifndef ARSEL_VERSION
+#define ARSEL_VERSION "unspecified"
+#endif
+
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
 {
