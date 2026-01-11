@@ -25,7 +25,14 @@ test:      test.o
 ar6.o:   ar6.cpp   ar.hpp
 ar6:     ar6.o
 
-arsel.o:   arsel.cpp   ar.hpp
+.PHONY: version.h
+version.h:
+	@echo "#ifndef VERSION_H" > version.h
+	@echo "#define VERSION_H" >> version.h
+	@echo "#define ARSEL_VERSION \"$$(git describe --dirty 2>/dev/null || echo 'unknown')\"" >> version.h
+	@echo "#endif" >> version.h
+
+arsel.o:   arsel.cpp   ar.hpp version.h
 arsel:     arsel.o
 
 faber1986.o:  faber1986.cpp
@@ -38,7 +45,7 @@ lorenz.o:  lorenz.cpp
 lorenz:    lorenz.o
 
 clean:
-	rm -f example zohar test ar6 arsel collomb2009 faber1986 lorenz *.o
+	rm -f example zohar test ar6 arsel collomb2009 faber1986 lorenz *.o version.h
 
 # Some test cases from http://paulbourke.net/miscellaneous/ar/
 check: zohar example test
