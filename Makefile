@@ -79,8 +79,7 @@ ar.so: ar-python.cpp ar.hpp setup.py
 	$(PYTHON) setup.py build_ext --inplace
 
 python-check: ar.so
-	@$(PYTHON) test_ar.py
-	@echo
+	$(PYTHON) test_ar.py
 
 check: python-check
 

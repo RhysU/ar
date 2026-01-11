@@ -52,7 +52,7 @@
 
 // TODO The returned values are no longer keys but attributes
 static const char ar_arsel_docstring[] =
-"    Usage: M = arsel (data, submean, absrho, criterion, minorder, maxorder)\n"
+"    Usage: M = arsel(data, submean, absrho, criterion, minorder, maxorder)\n"
 "\n"
 "    Automatically fit autoregressive models to input signals.\n"
 "\n"
