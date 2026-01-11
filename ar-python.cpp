@@ -13,12 +13,6 @@
 
 #include "ar.hpp"
 
-// Permit Python 2 or 3 compilation
-#if PY_MAJOR_VERSION < 3
-# define PyUnicode_FromString PyString_FromString
-# define PyInt_FromSize_t PyLong_FromSize_t
-#endif
-
 // NumPy 2.0 compatibility: Several flags were renamed or removed in NumPy 2.0
 // In NumPy 2.0, arrays are always aligned, so we can safely omit NPY_ALIGNED
 #ifndef NPY_ALIGNED
@@ -403,7 +397,7 @@ static void init_namedtuple(void)
 }
 
 // -----------------------------------------------------------------------------
-// For both Python 2 and Python 3 compatibility, the remainder of file follows
+// Module initialization and state management
 // https://docs.python.org/3/howto/cporting.html#module-initialization-and-state
 // -----------------------------------------------------------------------------
 
@@ -411,14 +405,7 @@ struct module_state {
     PyObject *error;
 };
 
-#if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-#else
-#define GETSTATE(m) (&_state)
-static struct module_state _state;
-#endif
-
-#if PY_MAJOR_VERSION >= 3
 
 static int ar_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(GETSTATE(m)->error);
@@ -445,19 +432,8 @@ static struct PyModuleDef moduledef = {
 #define INITERROR return NULL
 
 extern "C" PyMODINIT_FUNC PyInit_ar(void)
-
-#else
-#define INITERROR return
-
-extern "C" void initar(void)
-
-#endif
 {
-#if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&moduledef);
-#else
-    PyObject *module = Py_InitModule3("ar", ar_methods, ar_docstring);
-#endif
 
     if (module == NULL)
         INITERROR;
@@ -473,7 +449,5 @@ extern "C" void initar(void)
     import_array();
     init_namedtuple();
 
-#if PY_MAJOR_VERSION >= 3
     return module;
-#endif
 }
