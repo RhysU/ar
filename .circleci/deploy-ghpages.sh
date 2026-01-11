@@ -18,6 +18,7 @@ git config --global user.name "${GH_NAME}"
 
 # Create a temporary directory and initialize a fresh git repository
 TEMP_DIR=$(mktemp -d)
+trap "rm -rf '$TEMP_DIR'" EXIT
 cd "$TEMP_DIR"
 
 # Initialize a new repository with gh-pages as the default branch
@@ -42,7 +43,3 @@ echo "Pushing to gh-pages branch..."
 git push --force --quiet origin gh-pages > /dev/null 2>&1
 
 echo "Documentation deployed successfully to gh-pages"
-
-# Cleanup
-cd "$CIRCLE_WORKING_DIRECTORY"
-rm -rf "$TEMP_DIR"
