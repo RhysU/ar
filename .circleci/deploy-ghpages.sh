@@ -16,48 +16,27 @@ fi
 git config --global user.email "${GH_EMAIL}"
 git config --global user.name "${GH_NAME}"
 
-# Clone the existing gh-pages branch into a temporary directory
+# Create a temporary directory and initialize a fresh git repository
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"
 
-git clone --quiet --branch=gh-pages "https://${GH_TOKEN}@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" gh-pages > /dev/null 2>&1 || {
-    # If gh-pages doesn't exist, create it
-    git clone --quiet "https://${GH_TOKEN}@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" gh-pages > /dev/null 2>&1
-    cd gh-pages
-    git checkout --orphan gh-pages
-    git rm -rf . > /dev/null 2>&1 || true
-}
+# Initialize a new repository with gh-pages as the default branch
+git init -b gh-pages
 
-cd gh-pages
-
-# Remove all existing content (except .git)
-shopt -s dotglob  # Include hidden files in glob
-for item in *; do
-    if [ "$item" != ".git" ]; then
-        rm -rf "$item"
-    fi
-done
-shopt -u dotglob
-
-# Copy new documentation
+# Copy documentation into the repository
 cp -R "${CIRCLE_WORKING_DIRECTORY}/${SOURCE_DIR}"/* .
 
 # Create .nojekyll file to allow files/dirs with underscores
 touch .nojekyll
 
-# Check if there are changes to commit
-if git diff --quiet && git diff --cached --quiet; then
-    echo "No changes to documentation"
-    cd "$CIRCLE_WORKING_DIRECTORY"
-    rm -rf "$TEMP_DIR"
-    exit 0
-fi
-
-# Commit and push
+# Commit all content
 git add -A
 git commit -m "Deploy documentation to GitHub Pages [ci skip]
 
 Built from commit ${CIRCLE_SHA1} on branch ${CIRCLE_BRANCH}"
+
+# Set remote and force push to replace gh-pages branch
+git remote add origin "https://${GH_TOKEN}@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
 
 echo "Pushing to gh-pages branch..."
 git push --force --quiet origin gh-pages > /dev/null 2>&1
