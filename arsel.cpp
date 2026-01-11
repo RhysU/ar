@@ -26,6 +26,10 @@
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 
+#ifndef ARSEL_VERSION
+#define ARSEL_VERSION "unspecified"
+#endif
+
 // Forward declarations for argument checking logic
 struct Arg : public option::Arg
 {
@@ -35,7 +39,7 @@ struct Arg : public option::Arg
 
 // Command line argument declarations for optionparser.h usage
 enum OptionIndex {
-    UNKNOWN, CRITERION, HELP, MAXORDER, MINORDER, NONABSRHO, SUBMEAN, WINT0
+    UNKNOWN, CRITERION, HELP, MAXORDER, MINORDER, NONABSRHO, SUBMEAN, VERSION, WINT0
 };
 const option::Descriptor usage[] = {
     {UNKNOWN, 0, "", "",      option::Arg::None,
@@ -49,6 +53,8 @@ const option::Descriptor usage[] = {
      "  -c \t--criterion=ABBREV  \tUse the specified model selection criterion" },
     {HELP,      0,  "h", "help",               Arg::None,
      "  -h \t--help   \tDisplay this help message and immediately exit" },
+    {VERSION,   0,  "v", "version",            Arg::None,
+     "  -v \t--version   \tDisplay version information and immediately exit" },
     {MINORDER,  0,  "M",  "minorder",          Arg::NonNegative,
      "  -M \t--minorder=MIN  \tConsider only models of at least order AR(p=MIN)" },
     {MAXORDER,  0,  "m",  "maxorder",          Arg::NonNegative,
@@ -90,6 +96,11 @@ int main(int argc, char *argv[])
 
         if (options[HELP]) {
             printUsage(cout, usage);
+            return EXIT_SUCCESS;
+        }
+
+        if (options[VERSION]) {
+            cout << "arsel " << ARSEL_VERSION << "\n";
             return EXIT_SUCCESS;
         }
 
