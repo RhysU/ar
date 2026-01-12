@@ -33,3 +33,4 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/RhysU/ar"
 Repository = "https://github.com/RhysU/ar"
+Documentation = "https://rhysu.github.io/ar/"
