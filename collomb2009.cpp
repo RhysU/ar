@@ -78,7 +78,7 @@ static void BurgAlgorithm( vector<real>& coeffs, const vector<real>& x )
     coeffs.assign( ++Ak.begin(), Ak.end() );
 }
 
-/** Fit data from standard input using \ref BurgAlgorithm. */
+/** Fit data from standard input using \ref ar::Burg "Burg's method". */
 int main( int argc, char* argv[] )
 {
     int order;

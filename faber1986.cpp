@@ -101,7 +101,7 @@ static void faber1986(real data[],
 
 using namespace std;
 
-/** Fit data from standard input using \ref faber1986. */
+/** Fit data from standard input using the faber1986() function. */
 int main( int argc, char* argv[] )
 {
     int p;
