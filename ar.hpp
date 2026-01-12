@@ -2112,7 +2112,7 @@ struct FSIC<YuleWalker<MeanHandling> > : public criterion
         Result v0  = YuleWalker<MeanHandling>
             ::template empirical_variance<Result>(N, Integer2(0));
         Result a = AR_POCHHAMMER(N*(N+3) - p, p);
-        Result b = AR_POCHHAMMER(Result(1 + N) - N*N);
+        Result b = AR_POCHHAMMER(Result(1 + N) - N*N, p);
 
         return (1 + v0) / (1 - v0) * (a / b) - 1;
     }
