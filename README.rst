@@ -119,7 +119,7 @@ Contents
 
 *ar.hpp*
   The standalone header implementing all algorithms.  Complete API
-  documentation is available at http://rhysu.github.com/ar.
+  documentation is available at https://rhysu.github.io/ar/.
 
 *ar6.cpp*
   A sample program generating data from an AR(6) process specified in

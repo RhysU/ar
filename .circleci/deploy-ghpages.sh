@@ -2,11 +2,11 @@
 # Deploy documentation to gh-pages branch
 # Based on: https://github.com/DevProgress/onboarding/wiki/Using-Circle-CI-with-Github-Pages-for-Continuous-Delivery
 
-set -e # Exit with nonzero exit code if anything fails
+# Exit with nonzero exit code if anything fails or is undefined
+set -eu
 
 # Get the directory containing the built documentation
 SOURCE_DIR="${1:-docs/html}"
-
 if [ ! -d "$SOURCE_DIR" ]; then
     echo "Error: Source directory $SOURCE_DIR does not exist"
     exit 1
