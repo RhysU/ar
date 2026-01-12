@@ -97,7 +97,7 @@ namespace ar
  * message \c msg.
  *
  * This macro is intended for <tt>assert</tt>-like checks which should always
- * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ * be performed regardless of whether or not \c NDEBUG is <tt>\#define</tt>d.
  */
 #define AR_ENSURE_MSGEXCEPT(expr, msg, except) \
     if (!(expr)) throw except(msg)
@@ -108,7 +108,7 @@ namespace ar
  * with message \c msg.
  *
  * This macro is intended for <tt>assert</tt>-like checks which should always
- * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ * be performed regardless of whether or not \c NDEBUG is <tt>\#define</tt>d.
  */
 #define AR_ENSURE_MSG(expr, msg) \
     AR_ENSURE_MSGEXCEPT(expr, msg, std::logic_error)
@@ -118,7 +118,7 @@ namespace ar
  * evaluates to boolean \c false, then a <tt>std::logic_error</tt> is thrown.
  *
  * This macro is intended for <tt>assert</tt>-like checks which should always
- * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ * be performed regardless of whether or not \c NDEBUG is <tt>\#define</tt>d.
  */
 #define AR_ENSURE(expr) \
     AR_ENSURE_MSG(expr, AR_STRINGIFY(expr)" false")
@@ -129,7 +129,7 @@ namespace ar
  * <tt>std::invalid_argument</tt> is thrown.
  *
  * This macro is intended for <tt>assert</tt>-like checks which should always
- * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ * be performed regardless of whether or not \c NDEBUG is <tt>\#define</tt>d.
  */
 #define AR_ENSURE_ARG(expr) \
     AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr)" false", std::invalid_argument)
@@ -139,7 +139,7 @@ namespace ar
  * evaluates to boolean \c false, then an exception \c except is thrown.
  *
  * This macro is intended for <tt>assert</tt>-like checks which should always
- * be performed regardless of whether or not \c NDEBUG is <tt>#define</tt>d.
+ * be performed regardless of whether or not \c NDEBUG is <tt>\#define</tt>d.
  */
 #define AR_ENSURE_EXCEPT(expr, except) \
     AR_ENSURE_MSGEXCEPT(expr, AR_STRINGIFY(expr)" false", except)
@@ -524,94 +524,13 @@ negative_half_reflection_coefficient(InputIterator1 a_first,
 #endif
 
 /**
- * Fit an autoregressive model to stationary time series data using %Burg's
- * method.  That is, find coefficients \f$a_i\f$ such that the sum of the
- * squared errors in the forward predictions \f$x_n = -a_1 x_{n-1} - \dots -
- * a_p x_{n-p}\f$ and backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p
- * x_{n+p}\f$ are both minimized.  Either a single model of given order or a
- * hierarchy of models up to and including a maximum order may fit.
+ * \copydoc burg_method(InputIterator,InputIterator,Value&,std::size_t&,OutputIterator1,OutputIterator2,OutputIterator3,OutputIterator4,const bool,const bool)
  *
- * The input data \f$\vec{x}\f$ are read from <tt>[data_first, data_last)</tt>
- * in a single pass.  The mean is computed, returned in \c mean, and \e
- * removed from further consideration whenever \c subtract_mean is true.
- * The estimated model parameters \f$a_i\f$ are output using \c params_first
- * with the behavior determined by the amount of data read, <tt>maxorder</tt>,
- * and the \c hierarchy flag:
- * <ul>
- *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
- *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
- *         are output.</li>
- *     <li>If \c hierarchy is \c true, the <tt>maxorder*(maxorder+1)/2</tt>
- *         parameters \f$a_1, \dots, a_m\f$ for models AR(0), AR(1), AR(2),
- *         ..., AR(maxorder) are output.  Notice AR(0) has no parameters.
- *         </li>
- * </ul>
- * Note that the latter case is \e always computed; the \c hierarchy flag
- * merely controls what is output.  In both cases, the maximum order is limited
- * by the number of data samples provided and is output to \c maxorder.
- *
- * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
- * innovation variance, and gain, defined as \f$\sigma^2_x /
- * \sigma^2_\epsilon\f$, are output for each model, including the trivial
- * zeroth order model when \c maxorder is zero or \c hierarchy is \c true,
- * using \c sigma2e_first and \c gain_first.  The autocorrelations for lags
- * <tt>[0,k]</tt> are output using \c autocor_first.  When \c hierarchy is \c
- * true, only lags <tt>[0,m]</tt> should be applied for some AR(<tt>m</tt>)
- * model.  Outputting the lag \c k autocorrelation is technically redundant as
- * it may be computed from \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.
- * Autocovariances may be computed by multiplying the autocorrelations by the
- * gain times \f$\sigma^2_\epsilon\f$.
- *
- * The software aspects of the implementation differs from many other sources.
- * In particular,
- * <ul>
- *     <li>iterators are employed,</li>
- *     <li>the working precision is selectable using \c mean,</li>
- *     <li>the mean squared discrepancy calculation has been added,</li>
- *     <li>some loop index transformations have been performed,</li>
- *     <li>working storage may be passed into the method to reduce allocations
- *     across many invocations, and</li>
- *     <li>and all lower order models may be output during the recursion using
- *     \c hierarchy.</li>
- * </ul>
- * Gain and autocorrelation calculations have been added based on sections 5.2
- * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
- * analysis.  Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.  The
- * classical algorithm, rather than the variant using denominator recursion due
- * to Andersen (http://dx.doi.org/10.1109/PROC.1978.11160), has been chosen as
- * the latter can be numerically unstable.
- *
- * @param[in]     data_first    Beginning of the input data range.
- * @param[in]     data_last     Exclusive end of the input data range.
- * @param[out]    mean          Mean of data.
- * @param[in,out] maxorder      On input, the maximum model order desired.
- *                              On output, the maximum model order computed.
- * @param[out]    params_first  Model parameters for a single model or
- *                              for an entire hierarchy of models.  At most
- *                              <tt>!hierarchy ? maxorder :
- *                              maxorder*(maxorder+1)/2</tt> values will be
- *                              output.
- * @param[out]    sigma2e_first The mean squared discrepancy for only
- *                              AR(<tt>maxorder</tt>) or for an entire
- *                              hierarchy.  Either one or at most
- *                              <tt>maxorder + 1</tt> values will be output.
- * @param[out]    gain_first    The model gain for only AR(<tt>maxorder</tt>)
- *                              or an entire hierarchy.  Either one or at most
- *                              <tt>maxorder + 1</tt> values will be output.
- * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
- *                              At most <tt>maxorder + 1</tt> values will be
- *                              output.
- * @param[in]     subtract_mean Should \c mean be subtracted from the data?
- * @param[in]     hierarchy     Should the entire hierarchy of estimated
- *                              models be output?
  * @param[in]     f             Working storage.  Reuse across invocations
  *                              may speed execution by avoiding allocations.
  * @param[in]     b             Working storage similar to \c f.
  * @param[in]     Ak            Working storage similar to \c f.
  * @param[in]     ac            Working storage similar to \c f.
- *
- * @returns the number data values processed within
- *          <tt>[data_first, data_last)</tt>.
  */
 template <class InputIterator,
           class Value,
@@ -739,7 +658,91 @@ std::size_t burg_method(InputIterator   data_first,
     return N;
 }
 
-/** \copydoc burg_method(InputIterator,InputIterator,Value&,std::size_t&,OutputIterator1,OutputIterator2,OutputIterator3,OutputIterator4,const bool,const bool,Vector&,Vector&,Vector&,Vector&) */
+/**
+ * Fit an autoregressive model to stationary time series data using %Burg's
+ * method.  That is, find coefficients \f$a_i\f$ such that the sum of the
+ * squared errors in the forward predictions \f$x_n = -a_1 x_{n-1} - \dots -
+ * a_p x_{n-p}\f$ and backward predictions \f$x_n = -a_1 x_{n+1} - \dots - a_p
+ * x_{n+p}\f$ are both minimized.  Either a single model of given order or a
+ * hierarchy of models up to and including a maximum order may fit.
+ *
+ * The input data \f$\vec{x}\f$ are read from <tt>[data_first, data_last)</tt>
+ * in a single pass.  The mean is computed, returned in \c mean, and \e
+ * removed from further consideration whenever \c subtract_mean is true.
+ * The estimated model parameters \f$a_i\f$ are output using \c params_first
+ * with the behavior determined by the amount of data read, <tt>maxorder</tt>,
+ * and the \c hierarchy flag:
+ * <ul>
+ *     <li>If \c hierarchy is \c false, only the \f$a_1, \dots,
+ *         a_\text{maxorder}\f$ parameters for an AR(<tt>maxorder</tt>) process
+ *         are output.</li>
+ *     <li>If \c hierarchy is \c true, the <tt>maxorder*(maxorder+1)/2</tt>
+ *         parameters \f$a_1, \dots, a_m\f$ for models AR(0), AR(1), AR(2),
+ *         ..., AR(maxorder) are output.  Notice AR(0) has no parameters.
+ *         </li>
+ * </ul>
+ * Note that the latter case is \e always computed; the \c hierarchy flag
+ * merely controls what is output.  In both cases, the maximum order is limited
+ * by the number of data samples provided and is output to \c maxorder.
+ *
+ * One mean squared discrepancy \f$\sigma^2_\epsilon\f$, also called the
+ * innovation variance, and gain, defined as \f$\sigma^2_x /
+ * \sigma^2_\epsilon\f$, are output for each model, including the trivial
+ * zeroth order model when \c maxorder is zero or \c hierarchy is \c true,
+ * using \c sigma2e_first and \c gain_first.  The autocorrelations for lags
+ * <tt>[0,k]</tt> are output using \c autocor_first.  When \c hierarchy is \c
+ * true, only lags <tt>[0,m]</tt> should be applied for some AR(<tt>m</tt>)
+ * model.  Outputting the lag \c k autocorrelation is technically redundant as
+ * it may be computed from \f$a_i\f$ and lags <tt>0, ..., k-1</tt>.
+ * Autocovariances may be computed by multiplying the autocorrelations by the
+ * gain times \f$\sigma^2_\epsilon\f$.
+ *
+ * The software aspects of the implementation differs from many other sources.
+ * In particular,
+ * <ul>
+ *     <li>iterators are employed,</li>
+ *     <li>the working precision is selectable using \c mean,</li>
+ *     <li>the mean squared discrepancy calculation has been added,</li>
+ *     <li>some loop index transformations have been performed,</li>
+ *     <li>working storage may be passed into the method to reduce allocations
+ *     across many invocations (see overload with Vector parameters), and</li>
+ *     <li>and all lower order models may be output during the recursion using
+ *     \c hierarchy.</li>
+ * </ul>
+ * Gain and autocorrelation calculations have been added based on sections 5.2
+ * and 5.3 of Broersen, P.  M.  T. Automatic autocorrelation and spectral
+ * analysis.  Springer, 2006.  http://dx.doi.org/10.1007/1-84628-329-9.  The
+ * classical algorithm, rather than the variant using denominator recursion due
+ * to Andersen (http://dx.doi.org/10.1109/PROC.1978.11160), has been chosen as
+ * the latter can be numerically unstable.
+ *
+ * @param[in]     data_first    Beginning of the input data range.
+ * @param[in]     data_last     Exclusive end of the input data range.
+ * @param[out]    mean          Mean of data.
+ * @param[in,out] maxorder      On input, the maximum model order desired.
+ *                              On output, the maximum model order computed.
+ * @param[out]    params_first  Model parameters for a single model or
+ *                              for an entire hierarchy of models.  At most
+ *                              <tt>!hierarchy ? maxorder :
+ *                              maxorder*(maxorder+1)/2</tt> values will be
+ *                              output.
+ * @param[out]    sigma2e_first The mean squared discrepancy for only
+ *                              AR(<tt>maxorder</tt>) or for an entire
+ *                              hierarchy.  Either one or at most
+ *                              <tt>maxorder + 1</tt> values will be output.
+ * @param[out]    gain_first    The model gain for only AR(<tt>maxorder</tt>)
+ *                              or an entire hierarchy.  Either one or at most
+ *                              <tt>maxorder + 1</tt> values will be output.
+ * @param[out]    autocor_first Lag one through lag maxorder autocorrelations.
+ *                              At most <tt>maxorder + 1</tt> values will be
+ *                              output.
+ * @param[in]     subtract_mean Should \c mean be subtracted from the data?
+ * @param[in]     hierarchy     Should the entire hierarchy of estimated
+ *                              models be output?
+ *
+ * @returns the number data values processed within
+ *          <tt>[data_first, data_last)</tt>.
+ */
 template <class InputIterator,
           class Value,
           class OutputIterator1,
