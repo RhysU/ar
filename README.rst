@@ -50,9 +50,9 @@ A variety of finite sample model selection criteria are implemented following
 are all implemented.  An included sample program called ``arsel`` uses CIC to
 select the best model order given data from standard input.  It also estimates
 the effective sample size and corresponding variance using ideas from
-[Trenberth1984], [Thiebaux1984], and [vonStorch2001].  For example, ``arsel
---subtract-mean < rhoe.dat`` reproduces results from ARMASA [Broersen2002] on a
-turbulence signal::
+[Trenberth1984], [Thiebaux1984], and [vonStorch2001].  For example,
+``arsel --subtract-mean < rhoe.dat`` reproduces results from
+ARMASA [Broersen2002] on a turbulence signal::
 
 	# absrho    true
 	# criterion CIC
